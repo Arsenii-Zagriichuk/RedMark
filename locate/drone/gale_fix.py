@@ -102,10 +102,10 @@ ONBOARD_HEADING_ERROR_DEG = 3.0
 
 OVERLAY_HALF_M = 45.0  # the overlay's map panel reaches this far from the crew
 OVERLAY_SCALE = 4  # overlay pixels per map pixel
-SIMULATED_NOTE = (
-    "SIMULATED. The photo is cut from the same Gale 25 cm map it is matched to: it shows the"
-    " pipeline, not accuracy. Astronaut detection is a mock-up."
-)
+SIMULATED_NOTE = [
+    "SIMULATED. The photo is cut from the same Gale 25 cm map it is matched to:",
+    "it shows the pipeline, not accuracy. Astronaut detection is a mock-up.",
+]
 
 
 def build_simulated_fix_result(
@@ -353,7 +353,7 @@ def run(matcher_name: str) -> None:
     left = photo_image.resize((720, 720), Image.Resampling.LANCZOS)
     right = _map_panel(photo_map, crew_centre, estimate, found, fix, route)
     lines = [
-        SIMULATED_NOTE,
+        " ".join(SIMULATED_NOTE),
         f"Left: the drone photo ({photo.resolution * 100:.0f} cm per pixel, up is the drone's"
         " heading) with the detected astronauts (yellow).",
         f"Right: the Gale map on the demo walk to {target['name']} (white), the photo's matched"
@@ -369,7 +369,7 @@ def run(matcher_name: str) -> None:
     sheet.paste(right, (left.width + 10, banner.height))
     _save_png(sheet, overlay, metadata)
 
-    photo_banner = _banner(photo_image.width, [SIMULATED_NOTE[:96], SIMULATED_NOTE[96:]])
+    photo_banner = _banner(photo_image.width, SIMULATED_NOTE)
     framed = Image.new("RGB", (photo_image.width, photo_banner.height + photo_image.height))
     framed.paste(photo_banner, (0, 0))
     framed.paste(photo_image, (0, photo_banner.height))

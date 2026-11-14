@@ -4,11 +4,11 @@ import json
 from pathlib import Path
 
 import pytest
-from locate.drone.gale_fix import DEMO_STEP, build_simulated_fix_result, write_demo_cache
 
 from contracts.models.common import Method, Provenance, SiteId, TerrainType
 from contracts.models.demo_cache import DemoCacheEntry
 from contracts.models.fix_result import FixResult
+from locate.drone.gale_fix import DEMO_STEP, build_simulated_fix_result, write_demo_cache
 from locate.drone.gale_view import Astronaut
 
 PHOTO_ID = "gale-sim-drone-0001"
