@@ -55,14 +55,7 @@ from locate.drone.fix import (
 )
 from locate.drone.gale_view import Astronaut, DronePhoto, take_photo
 from locate.drone.ground import HALF_SIZE_M, read_map_window
-from locate.drone.matchers import (
-    JPL_LOFTR_WEIGHTS,
-    LIGHTGLUE_CHECKPOINTS,
-    TORCH_HUB,
-    lightglue_matcher,
-    loftr_matcher,
-    pick_device,
-)
+from locate.drone.matchers import load_matcher
 from locate.drone.pipeline import RESOLUTION, SEARCH_RADIUS_M
 from locate.drone.records import provenance, recorded
 
@@ -76,6 +69,9 @@ DEMO_IMAGES = "cache/demo/drone/overlays"
 
 # The code the fix depends on, the route engine included; uncommitted changes stop the run.
 FIX_CODE = ["locate/drone", "prep", "contracts", "route", "sites", "pyproject.toml", "uv.lock"]
+# Person 3's layer 5 checkpoint candidates, which the route engine reads when
+# the file exists (route.engine.checkpoint_candidates): a route input.
+CHECKPOINT_CANDIDATES = "layers/location_quality/layer5-gale.json"
 
 # The demo walk, as the app plans it (app/src/plan/routes.ts): the fastest
 # route from base camp to the first science target at the default limits, and
@@ -329,13 +325,7 @@ def run(matcher_name: str) -> None:
     nadir = _offset(crew_centre, travel, -DRONE_BEHIND_M, 0.0)
     photo = take_photo(photo_map, tuple(nadir), travel, crew)
 
-    device = pick_device()
-    if matcher_name == "loftr":
-        weights = [root / JPL_LOFTR_WEIGHTS]
-        matcher = loftr_matcher(weights[0], device)
-    else:
-        matcher = lightglue_matcher(root / TORCH_HUB, device)
-        weights = [root / TORCH_HUB / "checkpoints" / name for name in LIGHTGLUE_CHECKPOINTS]
+    matcher, device, weights = load_matcher(matcher_name, root)
 
     started = time.perf_counter()
     ground = photo.straighten((travel + ONBOARD_HEADING_ERROR_DEG) % 360.0, RESOLUTION)
@@ -350,6 +340,9 @@ def run(matcher_name: str) -> None:
     files = site["files"]
     route_inputs = [root / files[key] for key in ("slope", "sand", "ridges")]
     conditions = REPO_ROOT / "conditions" / f"{site['replayed_sol']}.json"
+    candidates = REPO_ROOT / CHECKPOINT_CANDIDATES
+    if candidates.is_file():
+        route_inputs.append(candidates)
     made_by = provenance(
         Path(__file__), FIX_CODE, [photo_map, site_path, conditions, *route_inputs, *weights]
     )

@@ -35,14 +35,7 @@ from contracts.models.fix_result import FixResult
 from contracts.paths import REPO_ROOT, data_root
 from locate.drone.fix import DroneFix, GroundView, MapWindow, build_fix_result
 from locate.drone.label import DroneFrame, onboard_position, read_drone_frame, takeoff_position
-from locate.drone.matchers import (
-    JPL_LOFTR_WEIGHTS,
-    LIGHTGLUE_CHECKPOINTS,
-    TORCH_HUB,
-    lightglue_matcher,
-    loftr_matcher,
-    pick_device,
-)
+from locate.drone.matchers import load_matcher
 from locate.drone.pipeline import PreviousPhoto, fix_frame, search_centre
 from locate.drone.records import provenance, recorded
 
@@ -199,13 +192,7 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
         captured_checksums[previous_fix] = hashlib.sha256(prior_bytes).hexdigest()
     preparation_s = time.perf_counter() - started
 
-    device = pick_device()
-    if matcher_name == "loftr":
-        weights = [root / JPL_LOFTR_WEIGHTS]
-        matcher = loftr_matcher(weights[0], device)
-    else:
-        matcher = lightglue_matcher(root / TORCH_HUB, device)
-        weights = [root / TORCH_HUB / "checkpoints" / name for name in LIGHTGLUE_CHECKPOINTS]
+    matcher, device, weights = load_matcher(matcher_name, root)
 
     started = time.perf_counter()
     with rasterio.open(label) as src:

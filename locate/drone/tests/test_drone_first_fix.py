@@ -11,7 +11,7 @@ import pytest
 from PIL import Image
 
 from contracts.models.fix_result import FixResult
-from locate.drone import first_fix, records
+from locate.drone import first_fix, matchers, records
 from locate.drone.fix import DroneFix, GroundView, MapWindow
 
 FRAME = "HNM_0152_0680432615_348FDR_N0100001HELI03026_0000LUJ05"
@@ -74,7 +74,7 @@ def test_retry_preserves_published_overlay_and_hashes_the_prior_used(tmp_path, m
     waypoints = root / "jezero" / "source" / "nasa"
     waypoints.mkdir()
     (waypoints / "m20_heli_waypoints.json").touch()
-    weights = root / first_fix.JPL_LOFTR_WEIGHTS
+    weights = root / matchers.JPL_LOFTR_WEIGHTS
     weights.parent.mkdir(parents=True)
     weights.touch()
 
@@ -92,8 +92,8 @@ def test_retry_preserves_published_overlay_and_hashes_the_prior_used(tmp_path, m
         first_fix, "read_drone_frame", lambda label: SimpleNamespace(flight=10, sclk=int(label))
     )
     monkeypatch.setattr(first_fix, "_onboard", lambda frame, waypoints: (10.0, 20.0))
-    monkeypatch.setattr(first_fix, "pick_device", lambda: SimpleNamespace(type="cpu"))
-    monkeypatch.setattr(first_fix, "loftr_matcher", lambda weights, device: None)
+    monkeypatch.setattr(matchers, "pick_device", lambda: SimpleNamespace(type="cpu"))
+    monkeypatch.setattr(matchers, "loftr_matcher", lambda weights, device: None)
     pixels = np.full((8, 8), 127, dtype=np.uint8)
     raw = nullcontext(SimpleNamespace(read=lambda band: pixels))
     monkeypatch.setattr(first_fix.rasterio, "open", lambda path: raw)
