@@ -8,7 +8,7 @@ the error map, the median horizon fix error the horizon test measured for the
 cell's class (error_map.py, from results/horizon/horizon-gale.json); and the
 location-quality score, the share of landmarks in view scaled by that error.
 Then checkpoint candidates (checkpoints.py) and lost-mode landmark directions
-for each leg of the demo route in the demo cache (directions.py).
+for each leg of the demo walk saved in the demo cache (directions.py).
 
 Writes, under REDMARK_DATA:
 - gale/layers/landmark_<id>/ for each landmark, gale/layers/error_map/ and
@@ -44,6 +44,7 @@ from scipy.signal import fftconvolve  # noqa: E402
 
 from contracts.models.common import Provenance  # noqa: E402
 from contracts.models.route_response import RouteResponse  # noqa: E402
+from contracts.models.site import SiteConfig  # noqa: E402
 from contracts.paths import REPO_ROOT, data_root  # noqa: E402
 from layers.location_quality.checkpoints import checkpoint_candidates  # noqa: E402
 from layers.location_quality.directions import landmark_view, leg_directions  # noqa: E402
@@ -90,8 +91,9 @@ ERROR_LAYER = "error_map"
 ERROR_RASTER = "gale/rasters/error_map.tif"
 HORIZON_TEST = REPO_ROOT / "results" / "horizon" / "horizon-gale.json"
 """The horizon test summary the error map takes its medians from (P3-03)."""
-DEMO_ROUTE = REPO_ROOT / "cache" / "demo" / "route" / "planning-route-fastest.json"
-"""The demo route the landmark directions follow: its saved POST /route response."""
+DEMO_ROUTES = REPO_ROOT / "cache" / "demo" / "route"
+DEMO_SLOPE_DEG = 20
+"""The app's default slope limit, so the demo walk's."""
 CHECKPOINT_SQUARE_M = 500.0
 """Each square of the walk area this size gives one checkpoint candidate."""
 CHECKPOINT_NEIGHBOURHOOD_M = 10.0
@@ -126,12 +128,28 @@ LANDMARK_SHARE_LABELS = [
 MASK_LEGEND = [LegendClass("In view", "#fde725", 1.0), LegendClass("Hidden", "#440154", 0.0)]
 
 
+def demo_route(site: SiteConfig) -> Path:
+    """The saved POST /route response the landmark directions follow: the demo walk, the
+    fastest route to the site's first science target at the app's default slope limit,
+    which the app records as demo step plan.route.fastest.<target>.<slope>."""
+    if not site.science_targets:
+        raise ValueError(f"{site.site.value} has no science target, so no demo walk to follow")
+    step = f"plan.route.fastest.{site.science_targets[0].id}.{DEMO_SLOPE_DEG}"
+    return DEMO_ROUTES / f"{step.replace('.', '-')}.json"
+
+
 def main() -> None:
     site = read_site_config()
     root = data_root()
     missing = [name for name in (GALE_DEM, FAR_DEM, PLACES) if not (root / name).exists()]
     if missing:
         sys.exit(f"{', '.join(missing)} not in {root}: set REDMARK_DATA to the data folder")
+    route_file = demo_route(site)
+    if not route_file.exists():
+        sys.exit(
+            f"{route_file.relative_to(REPO_ROOT).as_posix()} is not in the demo cache: record"
+            " the demo walk on this site config (the service with REDMARK_RECORD=1) and rerun"
+        )
     # Before anything is written: layer 5 code, the horizon terrain code it uses, the
     # landmarks and the site config must be committed, or the recorded commit can't
     # reproduce the layers.
@@ -141,7 +159,7 @@ def main() -> None:
         LANDMARKS_FILE,
         SITE_CONFIG,
         HORIZON_TEST,
-        DEMO_ROUTE,
+        route_file,
     )
     started = time.perf_counter()
     gale = load_gale_terrain(root, site.bounds, root / "gale" / "horizon" / "cache")
@@ -172,7 +190,7 @@ def main() -> None:
         square_m=CHECKPOINT_SQUARE_M,
         neighbourhood_m=CHECKPOINT_NEIGHBOURHOOD_M,
     )
-    route = RouteResponse.model_validate(json.loads(DEMO_ROUTE.read_text())["response"])
+    route = RouteResponse.model_validate(json.loads(route_file.read_text())["response"])
     directions = leg_directions(
         [p.model_dump() for p in route.path],
         [leg.model_dump() for leg in route.legs],
@@ -184,7 +202,7 @@ def main() -> None:
     off_map = [leg["leg"] + 1 for leg in directions if leg["share_in_walk_area"] < 1.0]
     if off_map:
         print(
-            f"WARNING: legs {off_map} of the demo route ({DEMO_ROUTE.relative_to(REPO_ROOT)})"
+            f"WARNING: legs {off_map} of the demo walk ({route_file.relative_to(REPO_ROOT)})"
             " leave the walk area, where layer 5 can't tell what is in view: re-record the"
             " route on this site config and rerun",
             file=sys.stderr,
@@ -289,7 +307,7 @@ def main() -> None:
         ],
         "checkpoint_square_m": CHECKPOINT_SQUARE_M,
         "landmark_directions": {
-            "route": DEMO_ROUTE.relative_to(REPO_ROOT).as_posix(),
+            "route": route_file.relative_to(REPO_ROOT).as_posix(),
             "mode": route.mode.value,
             "step_m": DIRECTION_STEP_M,
             "legs": directions,
@@ -299,7 +317,7 @@ def main() -> None:
         "error_raster": ERROR_RASTER,
         "terrain_load_s": round(loaded - started, 1),
         "compute_s": round(computed - loaded, 1),
-        "provenance": _provenance(root, base_map, commit).model_dump(mode="json"),
+        "provenance": _provenance(root, base_map, commit, route_file).model_dump(mode="json"),
     }
     SUMMARY.write_text(json.dumps(summary, indent=2) + "\n")
     draw_overlay(OVERLAY, gale.terrain, landmarks, masks, share, relief, cells, base_map, spot)
@@ -386,9 +404,9 @@ def _height(terrain: Terrain, x: float, y: float) -> float:
     return terrain.height(np.array([x]), np.array([y]), np.array([np.inf]))[0]
 
 
-def _provenance(root: Path, base_map: LayerImage, commit: str) -> Provenance:
+def _provenance(root: Path, base_map: LayerImage, commit: str, route_file: Path) -> Provenance:
     data = [root / GALE_DEM, root / FAR_DEM, root / PLACES, *base_map.files]
-    repo = [SITE_CONFIG, LANDMARKS_FILE, HORIZON_TEST, DEMO_ROUTE]
+    repo = [SITE_CONFIG, LANDMARKS_FILE, HORIZON_TEST, route_file]
     inputs = [
         {"path": p.resolve().relative_to(root.resolve()).as_posix(), "sha256": sha256_file(p)}
         for p in data
@@ -517,8 +535,8 @@ def draw_final_overlay(
     route: RouteResponse,
     error_legend: list[LegendClass],
 ) -> None:
-    """The error map, and the score with the checkpoint candidates and the demo route,
-    on the base map; then the directions each leg of the route gets."""
+    """The error map, and the score with the checkpoint candidates and the demo walk,
+    on the base map; then the directions each leg of the walk gets, out and back."""
     step = max(1, round(score.shape[1] / 1000))
     extent = (cells.left, cells.right, cells.bottom, cells.top)
     fig, axes = plt.subplots(1, 3, figsize=(32, 11), width_ratios=[1, 1.15, 0.9])
@@ -546,7 +564,7 @@ def draw_final_overlay(
     xs = [p.x for p in route.path]
     ys = [p.y for p in route.path]
     ax.plot(xs, ys, "-", color="white", lw=2.5)
-    ax.plot(xs, ys, "-", color="#d62728", lw=1.2, label=f"demo route ({route.mode.value})")
+    ax.plot(xs, ys, "-", color="#d62728", lw=1.2, label=f"demo walk ({route.mode.value})")
     for leg in summary["landmark_directions"]["legs"]:
         a, b = route.path[leg["start_index"]], route.path[leg["end_index"]]
         ax.annotate(
@@ -568,7 +586,7 @@ def draw_final_overlay(
 
     ax = axes[2]
     ax.axis("off")
-    lines = [f"Demo route ({summary['landmark_directions']['route']}):"]
+    lines = [f"Demo walk ({summary['landmark_directions']['route']}):"]
     for leg in summary["landmark_directions"]["legs"]:
         seen = ", ".join(
             f"{v['id']} {v['side']} {v['share_of_leg_in_view']:.0%}"
@@ -577,7 +595,7 @@ def draw_final_overlay(
         )
         lines.append(f"  leg {leg['leg'] + 1}, heading {leg['heading_deg']:.0f}°:")
         if leg["text"]:
-            lines.append(f'    "{leg["text"]}"')
+            lines.append(f'    out: "{leg["text"]}"; back: "{leg["text_back"]}"')
         else:
             lines.append(
                 f"    no direction: {leg['share_in_walk_area']:.0%} of the leg is in the walk area"
