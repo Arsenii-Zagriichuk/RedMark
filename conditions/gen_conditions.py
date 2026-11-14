@@ -29,7 +29,7 @@ from conditions.mars24 import (
     sun_position,
     sunset_lmst,
 )
-from contracts.paths import STUB_DATA, data_root
+from contracts.paths import data_root
 
 SOL = 4600
 SITE = "gale"
@@ -154,9 +154,11 @@ def gen_conditions(sol: int = SOL) -> dict:
 
     inputs = [p for p in (rad_prov, rems_prov) if p is not None]
 
-    # If all inputs come from stub-data, mark the output as a stub (AGENTS rule 5).
-    using_stubs = data_root().resolve() == STUB_DATA.resolve()
-    script = "stub" if using_stubs else "conditions/gen_conditions.py"
+    # Mark as stub when any required measurement fell back to defaults (AGENTS rule 5).
+    # This covers both the explicit stub-data directory and a REDMARK_DATA that is
+    # missing the RAD/REMS files for this sol.
+    has_all_inputs = rad_prov is not None and rems_prov is not None
+    script = "conditions/gen_conditions.py" if has_all_inputs else "stub"
 
     return {
         "site": SITE,
