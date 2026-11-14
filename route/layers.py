@@ -35,7 +35,8 @@ def load_grid(site: SiteConfig, data_root: Path, cell_m: float = PLANNING_CELL_M
     shape = (math.ceil((b.max_y - b.min_y) / cell_m), math.ceil((b.max_x - b.min_x) / cell_m))
     b_box = (b.min_x, b.max_y - shape[0] * cell_m, b.min_x + shape[1] * cell_m, b.max_y)
 
-    def read(key: str) -> np.ndarray | None:
+    def read(key: str, lowest: bool = False) -> np.ndarray | None:
+        """Each cell's highest pixel, or its lowest when that is the worst case."""
         if key not in site.files:
             return None
         path = data_root / site.files[key]
@@ -49,7 +50,8 @@ def load_grid(site: SiteConfig, data_root: Path, cell_m: float = PLANNING_CELL_M
             band = src.read(1, window=window, boundless=True, masked=True)
             src_transform = src.window_transform(window)
         unknown = np.ma.getmaskarray(band) | ~np.isfinite(band.filled(0))
-        values = np.where(unknown, _UNKNOWN, band.filled(0)).astype(np.float32)
+        sign = -1 if lowest else 1
+        values = np.where(unknown, _UNKNOWN, sign * band.filled(0)).astype(np.float32)
         out = np.full(shape, _UNKNOWN, dtype=np.float32)
         reproject(
             source=values,
@@ -62,9 +64,11 @@ def load_grid(site: SiteConfig, data_root: Path, cell_m: float = PLANNING_CELL_M
             init_dest_nodata=False,
         )
         out[out >= _UNKNOWN] = np.nan
-        return out
+        return sign * out
 
     slope, sand, ridge = read("slope"), read("sand"), read("ridges")
+    # Location quality's worst is its lowest; a cell with an unknown metre counts as 0.
+    quality = read("location_quality", lowest=True)
     return CostGrid(
         site=site.site,
         min_x=b.min_x,
@@ -73,6 +77,7 @@ def load_grid(site: SiteConfig, data_root: Path, cell_m: float = PLANNING_CELL_M
         slope_deg=np.zeros(shape) if slope is None else slope,
         sand=np.zeros(shape, dtype=bool) if sand is None else sand > 0,
         ridge=np.zeros(shape, dtype=bool) if ridge is None else ridge > 0,
+        quality=None if quality is None else np.nan_to_num(quality, nan=0.0),
     )
 
 

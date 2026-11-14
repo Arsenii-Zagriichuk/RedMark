@@ -96,3 +96,15 @@ def test_a_sol_whose_sun_never_rises_has_no_daylight():
         step["sun_elevation_deg"] = -5.0
 
     assert daylight_s(conditions) == 0
+
+
+def test_the_stub_route_visits_checkpoints_from_person_3s_candidates():
+    layer5 = json.loads((REPO_ROOT / "layers/location_quality/layer5-gale.json").read_text())
+    candidates = {c["id"]: c["position"] for c in layer5["checkpoint_candidates"]}
+
+    route = post_route(STUB_REQUEST).json()
+
+    assert route["checkpoints"]
+    for checkpoint in route["checkpoints"]:
+        assert checkpoint["position"] == candidates[checkpoint["id"]]
+        assert checkpoint["position"] in route["path"]

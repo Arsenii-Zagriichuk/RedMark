@@ -22,6 +22,9 @@ from scipy.spatial import cKDTree
 from contracts.models.common import Point
 from contracts.models.route_request import Limits, Mode
 from contracts.models.route_response import (
+    Checkpoint as RouteCheckpoint,
+)
+from contracts.models.route_response import (
     Leg,
     LimitCheck,
     RouteResponse,
@@ -37,6 +40,16 @@ TOBLER_RATE = 3.5
 SAND_TIME_FACTOR = 1.6
 # Climbing over a 1 to 2 m boxwork ridge: a RedMark assumption, not a measured figure.
 RIDGE_TIME_FACTOR = 3.0
+
+
+# Location-aware routing: on ground with no location quality a cell's search cost is up to
+# 1 + LOCATION_WEIGHT times its walking time, so the route prefers ground where fixes work.
+# A RedMark choice, not a measured figure; 0 turns location-aware routing off.
+LOCATION_WEIGHT = 1.0
+# Person 3's checkpoint candidates are the best spot in each 500 m square, so the route looks
+# for one per 500 m of route, within half a square of it.
+CHECKPOINT_STRETCH_M = 500.0
+CHECKPOINT_REACH_M = 250.0
 
 
 class NoSafeRoute(HTTPException):
@@ -60,6 +73,9 @@ class CostGrid:
     slope_deg: np.ndarray
     sand: np.ndarray
     ridge: np.ndarray
+    # Location quality (layer 5), 0 to 1: how well position finding works in each cell.
+    # None when the site has none, which counts as 1 everywhere.
+    quality: np.ndarray | None = None
 
     def cell(self, p: Point) -> tuple[int, int]:
         row = int((self.max_y - p.y) // self.cell_m)
@@ -93,6 +109,8 @@ def plan_on_grid(
     daylight_s: float | None = None,
     targets: Sequence[Point] = (),
     uncertainty_m: float = 0.0,
+    location_weight: float = LOCATION_WEIGHT,
+    checkpoint_candidates: Sequence[CheckpointCandidate] = (),
 ) -> RouteResponse:
     """The crew's fastest safe route, the science alternative through targets, or the cart's
     route, by mode.
@@ -101,6 +119,11 @@ def plan_on_grid(
     is entered, so the route moves away from hazards as the circle grows.
     daylight_s is the time from the walk's start to sunset. The cart cannot cross a ridge,
     and the walk-back rule and daylight limit are crew rules, so they don't apply to it.
+    Location-aware routing: the search prefers ground where location quality is high, each
+    cell costing its walking time x (1 + location_weight x (1 - quality)); every reported
+    time is still the walking time, and the walk home is the fastest one.
+    The crew's routes visit the best checkpoint candidate near each 500 m stretch, as long as
+    every hard limit still holds; the cart's route has no checkpoints.
     """
     cart = mode == Mode.cart
     hazards = Hazards(grid, limits.max_slope_deg)
@@ -127,50 +150,210 @@ def plan_on_grid(
         mapped_targets.append(target)
     targets = mapped_targets
     walk_s = _walk_seconds_per_cell(grid, limits.planning_speed_kmh)
+    search_s = walk_s
+    if grid.quality is not None and location_weight:
+        search_s = walk_s * (1 + location_weight * (1 - grid.quality))
     rules = _Rules(habitat, limits, daylight_s, cart, uncertainty_m, hazards)
-    field = _Field(grid, walk_s, blocked, corners_blocked, [habitat, start, *targets], rules)
-    fastest = _respond(
-        grid,
-        rules,
-        _route(field, [start, goal]),
-        ResponseMode.cart if cart else ResponseMode.fastest,
+    # One step graph for the search and one for walking time, shared by every search below.
+    walk_graph = _walking_graph(walk_s, blocked, corners_blocked)
+    search_graph = (
+        walk_graph if search_s is walk_s else _walking_graph(search_s, blocked, corners_blocked)
     )
-    if mode != Mode.science:
-        return fastest
+    home = _Field(grid, walk_s, walk_graph, [habitat], rules)
 
-    # Walking times between every pair of waypoints, worked out once (indexes into stops).
-    stops = [start, *targets, goal]
-    hop_s = {
-        (i, j): field.time(stops[i], stops[j])
-        for i in range(len(stops) - 1)
-        for j in range(1, len(stops))
-        if i != j
-    }
-
-    def tour_s(order: Sequence[int]) -> float:
-        visits = [0, *order, len(stops) - 1]
-        return sum(hop_s[a, b] for a, b in zip(visits, visits[1:], strict=False))
-
-    def keeps_limits(waypoints: Sequence[Point]) -> RouteResponse | None:
+    def usable(candidate: CheckpointCandidate) -> bool:
+        """On the map, on open ground, outside every hazard's circle, and reachable on foot
+        from the habitat (and so from the start, which the walk home reaches too)."""
         try:
-            return _respond(grid, rules, _route(field, waypoints), ResponseMode.science)
+            cell = grid.cell(candidate.position)
         except NoSafeRoute:
-            return None
+            return False
+        return (
+            not blocked[cell]
+            and hazards.metres_from(candidate.position) > uncertainty_m
+            and math.isfinite(home.time(habitat, candidate.position))
+        )
 
-    # Only a target the crew could visit on its own, within every hard limit, is a candidate.
-    chosen = [i for i in range(1, len(stops) - 1) if keeps_limits([start, stops[i], goal])]
-    while chosen:
-        order = min(itertools.permutations(chosen), key=tour_s)
-        science = keeps_limits([start, *(stops[i] for i in order), goal])
-        if science is not None:
-            break
-        # Drop the target whose visit costs the most time, then try again.
-        chosen.remove(min(order, key=lambda t: tour_s([i for i in order if i != t])))
-    else:
-        science = fastest.model_copy(update={"mode": ResponseMode.science})
-    return science.model_copy(
-        update={"extra_time_vs_fastest_s": science.total_time_s - fastest.total_time_s}
-    )
+    usable_candidates = [c for c in checkpoint_candidates if usable(c)]
+
+    def plan_with(search_graph) -> RouteResponse:
+        field = _Field(grid, walk_s, search_graph, [start, *targets], rules)
+        fastest = _respond(
+            grid,
+            rules,
+            _route(field, home, [start, goal]),
+            ResponseMode.cart if cart else ResponseMode.fastest,
+        )
+
+        walking_fields: dict[_Field, _Field] = {}
+
+        def route_through(
+            visits: _Field, waypoints: Sequence[Point], response_mode: ResponseMode
+        ) -> RouteResponse:
+            try:
+                return _respond(grid, rules, _route(visits, home, waypoints), response_mode)
+            except NoSafeRoute:
+                if search_graph is walk_graph:
+                    raise
+                # Reuse the unweighted search while trying subsets of the same visits.
+                if visits not in walking_fields:
+                    walking_fields[visits] = _Field(grid, walk_s, walk_graph, visits.origins, rules)
+                return _respond(
+                    grid,
+                    rules,
+                    _route(walking_fields[visits], home, waypoints),
+                    response_mode,
+                )
+
+        def visit_checkpoints(route: RouteResponse, waypoints: list[Point]) -> RouteResponse:
+            if cart or not usable_candidates:
+                return route
+            chosen = _checkpoints_along(route, usable_candidates)
+            # How far along the route each waypoint is, each found after the one before, so the
+            # waypoints keep their order and each checkpoint goes between the two it falls between.
+            along, found_at, waypoint_m = _along_m(route.path), 0, []
+            for w in waypoints:
+                found_at = route.path.index(w, found_at)
+                waypoint_m.append(along[found_at])
+            last = len(waypoints) - 2
+
+            def in_walking_order(checkpoints: list[CheckpointCandidate]) -> list[Point]:
+                points: list[Point] = []
+                for i in range(len(waypoints) - 1):
+                    if i:
+                        points.append(waypoints[i])
+                    low, high = waypoint_m[i], waypoint_m[i + 1]
+                    points += [
+                        c.position
+                        for c, at_m in chosen
+                        if c in checkpoints and low <= at_m and (at_m < high or i == last)
+                    ]
+                return points
+
+            visits = _Field(
+                grid,
+                walk_s,
+                search_graph,
+                [start, *waypoints[1:-1], *(c.position for c, _ in chosen)],
+                rules,
+            )
+
+            def search_cost_s(points: Sequence[Point]) -> float:
+                stops = [start, *points, goal]
+                return sum(visits.time(a, b) for a, b in zip(stops, stops[1:], strict=False))
+
+            checkpoints = [c for c, _ in chosen]
+            while checkpoints:
+                try:
+                    visited = route_through(
+                        visits, [start, *in_walking_order(checkpoints), goal], route.mode
+                    )
+                except NoSafeRoute:
+                    # Drop the checkpoint that costs the most to visit (in search cost: walking
+                    # time weighted by location quality), then try again.
+                    checkpoints.remove(
+                        min(
+                            checkpoints,
+                            key=lambda c: search_cost_s(
+                                in_walking_order([k for k in checkpoints if k is not c])
+                            ),
+                        )
+                    )
+                    continue
+                return visited.model_copy(
+                    update={
+                        "checkpoints": [
+                            RouteCheckpoint(id=c.id, position=c.position) for c in checkpoints
+                        ]
+                    }
+                )
+            return route
+
+        fastest = visit_checkpoints(fastest, [start, goal])
+        if mode != Mode.science:
+            return fastest
+
+        # Walking times between every pair of waypoints, worked out once (indexes into stops).
+        stops = [start, *targets, goal]
+        hop_s = {
+            (i, j): field.time(stops[i], stops[j])
+            for i in range(len(stops) - 1)
+            for j in range(1, len(stops))
+            if i != j
+        }
+
+        def tour_s(order: Sequence[int]) -> float:
+            visits = [0, *order, len(stops) - 1]
+            return sum(hop_s[a, b] for a, b in zip(visits, visits[1:], strict=False))
+
+        def keeps_limits(waypoints: Sequence[Point]) -> RouteResponse | None:
+            try:
+                return route_through(field, waypoints, ResponseMode.science)
+            except NoSafeRoute:
+                return None
+
+        # Only a target the crew could visit on its own, within every hard limit, is a candidate.
+        chosen = [i for i in range(1, len(stops) - 1) if keeps_limits([start, stops[i], goal])]
+        while chosen:
+            order = min(itertools.permutations(chosen), key=tour_s)
+            science_waypoints = [start, *(stops[i] for i in order), goal]
+            science = keeps_limits(science_waypoints)
+            if science is not None:
+                science = visit_checkpoints(science, science_waypoints)
+                break
+            # Drop the target whose visit costs the most time, then try again.
+            chosen.remove(min(order, key=lambda t: tour_s([i for i in order if i != t])))
+        else:
+            science = fastest.model_copy(update={"mode": ResponseMode.science})
+        return science.model_copy(
+            update={"extra_time_vs_fastest_s": science.total_time_s - fastest.total_time_s}
+        )
+
+    try:
+        return plan_with(search_graph)
+    except NoSafeRoute:
+        if search_graph is walk_graph:
+            raise
+        # Location quality is a preference, never a hard limit: when the preferred route
+        # breaks one, plan on walking time alone before saying no route exists.
+        return plan_with(walk_graph)
+
+
+@dataclass(frozen=True)
+class CheckpointCandidate:
+    """A spot where a photo fix works well, from Person 3's layer 5."""
+
+    id: str
+    position: Point
+    score: float
+
+
+def _along_m(path: Sequence[Point]) -> list[float]:
+    """Ground metres walked to each point of a path."""
+    along = [0.0]
+    for a, b in zip(path, path[1:], strict=False):
+        along.append(along[-1] + _metres(a, b))
+    return along
+
+
+def _checkpoints_along(
+    route: RouteResponse, candidates: Sequence[CheckpointCandidate]
+) -> list[tuple[CheckpointCandidate, float]]:
+    """The best-scoring candidate near each stretch of the route, with how far along it is.
+
+    A candidate belongs to the stretch of its nearest route point; ties go to the nearer.
+    """
+    along = _along_m(route.path)
+    best: dict[int, tuple[CheckpointCandidate, float, float]] = {}
+    for candidate in candidates:
+        off_m, k = min((_metres(candidate.position, p), k) for k, p in enumerate(route.path))
+        if off_m > CHECKPOINT_REACH_M:
+            continue
+        stretch = int(along[k] // CHECKPOINT_STRETCH_M)
+        held = best.get(stretch)
+        if held is None or (candidate.score, -off_m) > (held[0].score, -held[2]):
+            best[stretch] = (candidate, along[k], off_m)
+    return sorted(((c, at_m) for c, at_m, _ in best.values()), key=lambda pair: pair[1])
 
 
 @dataclass(frozen=True)
@@ -186,20 +369,23 @@ class _Rules:
 
 
 class _Field:
-    """The fastest walking time from each origin to every cell, with the paths behind them.
+    """The cheapest path from each origin to every cell, by search cost.
 
     The search runs between cell centres; the walk runs between the exact points, so the
-    stretch from an exact point to its cell's centre is added at that cell's pace.
+    stretch from an exact point to its cell's centre is added at that cell's pace. With the
+    search cost equal to the walking time, time() is the fastest walking time; walk() always
+    reports walking time along the path found.
     """
 
-    def __init__(self, grid: CostGrid, walk_s, blocked, corners_blocked, origins, rules: _Rules):
+    def __init__(self, grid: CostGrid, walk_s: np.ndarray, graph, origins, rules: _Rules):
         self.grid, self.origins = grid, list(origins)
         self.rules = rules
+        self.walk_s = walk_s
         self.pace = walk_s / grid.cell_m  # seconds per metre in each cell
-        self.shape = blocked.shape
+        self.shape = walk_s.shape
         self.cells = [grid.cell(p) for p in self.origins]
         seconds, self.previous = dijkstra(
-            _walking_graph(walk_s, blocked, corners_blocked),
+            graph,
             directed=False,
             indices=[np.ravel_multi_index(c, self.shape) for c in self.cells],
             return_predecessors=True,
@@ -234,15 +420,18 @@ class _Field:
         i, cell = self._origin(origin), self.grid.cell(p)
         if cell == self.cells[i] and self._keeps_hazard_margin(origin, p):
             return [(origin, walked_s), (p, walked_s + self.time(origin, p))]
-        set_off_s = walked_s + self._to_centre_s(origin, self.cells[i])
+        at_s = walked_s + self._to_centre_s(origin, self.cells[i])
         cells = _trace(self.previous[i], cell, self.shape)
-        centres = [(self.grid.centre(*c), set_off_s + self.seconds[i][c]) for c in cells]
-        return [(origin, walked_s), *centres, (p, walked_s + self.time(origin, p))]
+        centres = [(self.grid.centre(*cells[0]), at_s)]
+        for a, b in zip(cells, cells[1:], strict=False):
+            at_s += (self.walk_s[a] + self.walk_s[b]) / 2 * math.hypot(b[0] - a[0], b[1] - a[1])
+            centres.append((self.grid.centre(*b), at_s))
+        return [(origin, walked_s), *centres, (p, at_s + self._to_centre_s(p, cell))]
 
 
-def _route(field: _Field, waypoints: Sequence[Point]) -> list[_Stop]:
+def _route(field: _Field, home: _Field, waypoints: Sequence[Point]) -> list[_Stop]:
     """The stops through every waypoint in turn, each with its time walked and time home."""
-    habitat = field.origins[0]
+    habitat = home.origins[0]
     stops: list[_Stop] = []
     for a, b in zip(waypoints, waypoints[1:], strict=False):
         if not math.isfinite(field.time(a, b)):
@@ -250,7 +439,7 @@ def _route(field: _Field, waypoints: Sequence[Point]) -> list[_Stop]:
         walked_s = stops[-1].walked_s if stops else 0.0
         for point, at_s in field.walk(a, b, walked_s):
             if not stops or point != stops[-1].point:
-                stops.append(_Stop(point, at_s, field.time(habitat, point)))
+                stops.append(_Stop(point, at_s, home.time(habitat, point)))
     return stops
 
 
