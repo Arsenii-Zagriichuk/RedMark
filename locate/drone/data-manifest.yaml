@@ -1,0 +1,25 @@
+# Matcher weights the drone fix reads. The Jezero map crops, Navcam frames and
+# NASA flight files it also reads are listed in prep/data-manifest.yaml.
+# Schema: contracts/schemas/data_manifest.json.
+files:
+  - name: LoFTR fine-tuned by JPL on MARTIAN renders of HiRISE-scale maps (V1/finetuned), from weights_loftr.zip
+    path: weights/mbl-mars/loftr/V1/finetuned/2024_08_23-05_52_53.pt
+    size_bytes: 139564896
+    source_url: https://huggingface.co/dpisanti/mbl-mars/resolve/main/weights_loftr.zip
+    checksum: 0cde28a10ab7e5c2159ca6814c628a289b1fbde2dad67b5bbdd7704c6c4268a0
+    checksum_algorithm: sha256
+    credit: Pisanti, D., Hewitt, R., Brockers, R. and Georgakis, G. (2026), Geometry-aided Vision-based Localization of Future Mars Helicopters in Challenging Illumination Conditions, arXiv:2502.09795. Weights Apache-2.0, Copyright California Institute of Technology.
+  - name: DISK keypoint weights (depth), the LightGlue fallback's features
+    path: weights/torch-hub/checkpoints/depth-save.pth
+    size_bytes: 4375832
+    source_url: https://raw.githubusercontent.com/cvlab-epfl/disk/master/depth-save.pth
+    checksum: 9c2ee4ded238892dfa51569941372601e35e4a74aa6f84ea80053d2ab1c07abe
+    checksum_algorithm: sha256
+    credit: Tyszkiewicz, M., Fua, P. and Trulls, E. (2020), DISK, Learning local features with policy gradient, NeurIPS.
+  - name: LightGlue weights for DISK features (v0.1_arxiv), the drone fix's fallback matcher
+    path: weights/torch-hub/checkpoints/disk_lightglue_v0-1_arxiv-pth
+    size_bytes: 47631405
+    source_url: https://huggingface.co/kornia/lightglue/resolve/main/disk_lightglue.pth
+    checksum: b5b21d47ea24f2c5e501aec9c91b9716e4c8c3429a4dc1e615c133c4c9378335
+    checksum_algorithm: sha256
+    credit: Lindenberger, P., Sarlin, P.-E. and Pollefeys, M. (2023), LightGlue, Local Feature Matching at Light Speed, ICCV. Released at https://github.com/cvg/LightGlue (v0.1_arxiv); mirrored by kornia.
