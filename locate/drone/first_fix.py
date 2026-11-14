@@ -20,7 +20,6 @@ import csv
 import hashlib
 import json
 import os
-import subprocess
 import sys
 import tempfile
 import time
@@ -31,7 +30,7 @@ import numpy as np
 import rasterio
 from PIL import Image, ImageDraw, PngImagePlugin
 
-from contracts.models.common import Method, Provenance, SiteId, TerrainType
+from contracts.models.common import Method, SiteId, TerrainType
 from contracts.models.fix_result import FixResult
 from contracts.paths import REPO_ROOT, data_root
 from locate.drone.fix import DroneFix, GroundView, MapWindow, build_fix_result
@@ -45,55 +44,13 @@ from locate.drone.matchers import (
     pick_device,
 )
 from locate.drone.pipeline import PreviousPhoto, fix_frame, search_centre
+from locate.drone.records import provenance, recorded
 
 # The code a drone fix depends on; uncommitted changes here stop the run.
 FIX_CODE = ["locate/drone", "prep", "contracts", "pyproject.toml", "uv.lock"]
 RESULTS = REPO_ROOT / "results" / "drone"
 OVERLAY_SCALE = 2  # overlay pixels per map pixel
 CHECKER_M = 4.0  # side of the overlay's photo/map checkerboard squares, metres
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as f:
-        for block in iter(lambda: f.read(1 << 20), b""):
-            digest.update(block)
-    return digest.hexdigest()
-
-
-def _recorded(path: Path) -> str:
-    """Relative to REDMARK_DATA for data files, to the repo for repo files."""
-    for root in (data_root().resolve(), REPO_ROOT):
-        if path.resolve().is_relative_to(root):
-            return path.resolve().relative_to(root).as_posix()
-    raise ValueError(f"{path} is neither in the repo nor in REDMARK_DATA")
-
-
-def _provenance(inputs: list[Path], captured_checksums: dict[Path, str]) -> Provenance:
-    # The commit only traces the numbers if the code that made them is in it.
-    changed = subprocess.run(
-        ["git", "status", "--porcelain", "--untracked-files=no", "--", *FIX_CODE],
-        capture_output=True,
-        text=True,
-        cwd=REPO_ROOT,
-        check=True,
-    ).stdout.strip()
-    if changed:
-        raise SystemExit(f"commit the code first; uncommitted changes:\n{changed}")
-    commit = subprocess.run(
-        ["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=REPO_ROOT, check=True
-    ).stdout.strip()
-    return Provenance(
-        script=_recorded(Path(__file__)),
-        commit=commit,
-        inputs=[
-            {
-                "path": _recorded(path),
-                "sha256": captured_checksums.get(path) or _sha256(path),
-            }
-            for path in inputs
-        ],
-    )
 
 
 def _frame_row(frames_csv: Path, stem: str) -> dict:
@@ -258,7 +215,7 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
     ground, window, drone_fix = fix_frame(raw, frame, crop, centre, matcher)
     seconds = preparation_s + (time.perf_counter() - started)
     # Before anything is written: refuse uncommitted fix code, checksum the inputs.
-    provenance = _provenance(inputs + weights, captured_checksums)
+    made_by = provenance(Path(__file__), FIX_CODE, inputs + weights, captured_checksums)
 
     # Each published fix keeps its own overlay, even if a retry fails or races it.
     overlay = RESULTS / "overlays" / f"{stem}-{matcher_name}-{uuid4().hex}.png"
@@ -287,8 +244,8 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
         # The pack's hard-mode flights are over sand ripples; P4-01 tags each
         # keyed frame by eye, and P2-06 uses those tags.
         terrain_type=TerrainType.plain if hard_mode else TerrainType.textured,
-        overlay=_recorded(overlay),
-        provenance=provenance,
+        overlay=recorded(overlay),
+        provenance=made_by,
     )
     _draw_overlay(window, ground, drone_fix, onboard, title, overlay, fix)
     path = RESULTS / "fixes" / f"{stem}.json"
@@ -297,9 +254,9 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
         staged = Path(temporary) / path.name
         staged.write_text(fix.model_dump_json(indent=2) + "\n", encoding="utf-8")
         staged.replace(path)
-    print(f"wrote {_recorded(path)}")
+    print(f"wrote {recorded(path)}")
     print(
-        f"wrote {_recorded(overlay)}; {drone_fix.inliers}/{drone_fix.matches} matches agree, "
+        f"wrote {recorded(overlay)}; {drone_fix.inliers}/{drone_fix.matches} matches agree, "
         f"{shift:.1f} m from the onboard position, {seconds:.1f} s"
     )
 

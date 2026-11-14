@@ -11,7 +11,7 @@ import pytest
 from PIL import Image
 
 from contracts.models.fix_result import FixResult
-from locate.drone import first_fix
+from locate.drone import first_fix, records
 from locate.drone.fix import DroneFix, GroundView, MapWindow
 
 FRAME = "HNM_0152_0680432615_348FDR_N0100001HELI03026_0000LUJ05"
@@ -83,8 +83,10 @@ def test_retry_preserves_published_overlay_and_hashes_the_prior_used(tmp_path, m
     monkeypatch.setattr(first_fix, "RESULTS", results)
     monkeypatch.setattr(first_fix, "__file__", str(tmp_path / "first_fix.py"))
     monkeypatch.setattr(first_fix, "data_root", lambda: root)
+    monkeypatch.setattr(records, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(records, "data_root", lambda: root)
     monkeypatch.setattr(
-        first_fix.subprocess, "run", lambda *args, **kwargs: SimpleNamespace(stdout="")
+        records.subprocess, "run", lambda *args, **kwargs: SimpleNamespace(stdout="")
     )
     monkeypatch.setattr(
         first_fix, "read_drone_frame", lambda label: SimpleNamespace(flight=10, sclk=int(label))
