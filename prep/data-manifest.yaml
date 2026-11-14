@@ -16,6 +16,14 @@ files:
   checksum: ea0e43f1033c2477d1defc7952c1c43d3ffa76a964e8e7fc2181970a2d3e6018
   checksum_algorithm: sha256
   credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Index of the 767 Navcam labels read to choose frames (path, size, SHA-256;
+    each label is in the Helicam bundle under sol/)
+  path: jezero/source/helicam/labels-index.csv
+  size_bytes: 125045
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/
+  checksum: c835ada1f60ac5cf4209faf205cbd132e8e5936457eb31fa302668bc5e650b99
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
 - name: Ingenuity Navcam frame, flight 9
   path: jezero/source/helicam/sol-00133/HNM_0133_0678747619_360FDR_N0090001HELI00812_0000LUJ07.IMG
   size_bytes: 632320

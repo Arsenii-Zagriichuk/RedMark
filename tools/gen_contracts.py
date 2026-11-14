@@ -50,7 +50,7 @@ def generate(out: Path) -> None:
             npm, "exec", "--prefix", str(REPO_ROOT / "app"), "--no", "--",
             "json2ts",
             "--cwd", str(SCHEMAS),
-            "-i", str(SCHEMAS / "*.json"),
+            "-i", (SCHEMAS / "*.json").as_posix(),
             "-o", str(out / "types"),
             "--bannerComment", f"/* {BANNER} */",
         ],
@@ -66,7 +66,14 @@ def stale(fresh: Path, current: Path) -> list[str]:
     problems: list[str] = []
 
     def walk(cmp: filecmp.dircmp, prefix: str) -> None:
-        for name in cmp.left_only + cmp.right_only + cmp.diff_files + cmp.funny_files:
+        # Git may check out LF-generated text as CRLF on Windows.
+        changed = [
+            name
+            for name in cmp.diff_files
+            if (Path(cmp.left) / name).read_text(encoding="utf-8")
+            != (Path(cmp.right) / name).read_text(encoding="utf-8")
+        ]
+        for name in cmp.left_only + cmp.right_only + changed + cmp.funny_files:
             problems.append(f"{prefix}{name}")
         for sub, child in cmp.subdirs.items():
             walk(child, f"{prefix}{sub}/")
