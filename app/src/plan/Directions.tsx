@@ -1,6 +1,6 @@
 // The Planning screen's directions (P1-04): the three route options, the chosen route's
 // total time, walk-back margin and every walk limit marked pass, fail or not checked, and
-// the slope limit, which re-plans all three routes in place.
+// the slope limit, which re-plans all three routes in place. Start walk opens the Walk view.
 import type { RouteMode } from "@contracts/route_request";
 import type { RouteResponse } from "@contracts/route_response";
 import type { ScienceTarget, SiteConfig } from "@contracts/site";
@@ -28,6 +28,7 @@ interface Props {
   slopeLimit: SlopeLimit;
   onSlopeLimit: (limit: SlopeLimit) => void;
   onBack: () => void;
+  onStartWalk: () => void;
 }
 
 const MODE_NAMES: Record<RouteMode, string> = {
@@ -126,12 +127,14 @@ export function Directions(props: Props) {
         <button
           type="button"
           className="button button--primary"
-          disabled
-          title="The Walk view arrives in P1-05"
+          disabled={state.status !== "ok" || chosen === "cart"}
+          onClick={props.onStartWalk}
         >
           Start walk
         </button>
-        <span className="data">The Walk view arrives in P1-05</span>
+        <span className="data">
+          {chosen === "cart" ? "The cart drives itself; pick a crew route" : "Plays a simulated walk along this route"}
+        </span>
       </div>
     </aside>
   );
