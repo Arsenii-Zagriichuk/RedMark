@@ -50,7 +50,8 @@ class ExactMatcher:
         self.seen_shapes: list[tuple] = []
         self.rng = np.random.default_rng(7)
 
-    def _tile_offset(self, tile: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def _tile_offset(tile: np.ndarray) -> np.ndarray:
         rows = np.lib.stride_tricks.sliding_window_view(WINDOW_IMAGE, (1, 16))[:, :, 0, :]
         (row, col), *_ = np.argwhere(np.all(rows == tile[0, :16], axis=-1))
         assert np.array_equal(
@@ -135,7 +136,7 @@ def test_fix_result_is_a_real_drone_fix_at_jezero():
 def test_too_few_matches_is_no_fix():
     ground, window = _views()
     with pytest.raises(ValueError, match="no fix"):
-        locate_on_map(ground, window, ExactMatcher(0, 1, outlier_share=0.97))
+        locate_on_map(ground, window, ExactMatcher(0, 1, outlier_share=1.0))
 
 
 class CollapsingMatcher:
@@ -143,10 +144,38 @@ class CollapsingMatcher:
     scale zero, which every pair agrees with."""
 
     def __call__(self, query: np.ndarray, reference: np.ndarray) -> Matches:
-        return Matches(query_xy=GRID.copy(), reference_xy=np.tile([50.0, 60.0], (len(GRID), 1)))
+        point = np.array([150.0, 120.0]) - ExactMatcher._tile_offset(reference)
+        if not ((point >= 0) & (point < reference.shape[::-1])).all():
+            return Matches(np.empty((0, 2)), np.empty((0, 2)))
+        return Matches(query_xy=GRID.copy(), reference_xy=np.tile(point, (len(GRID), 1)))
 
 
 def test_matches_collapsing_onto_one_map_point_are_no_fix():
     ground, window = _views()
     with pytest.raises(ValueError, match="no fix"):
         locate_on_map(ground, window, CollapsingMatcher())
+
+
+def test_repeated_keypoints_across_overlapping_tiles_are_not_an_independent_fix():
+    ground = GroundView(
+        image=np.zeros((256, 256), dtype=np.uint8),
+        valid=np.ones((256, 256), dtype=bool),
+        resolution=RES,
+        nadir_px=np.array([127.5, 127.5]),
+        heading_deg=0.0,
+    )
+    window = MapWindow(
+        image=np.arange(736 * 736).reshape(736, 736), min_x=MIN_X, max_y=MAX_Y, resolution=RES
+    )
+    jitter = {256: -0.27, 384: 0.0, 480: 0.27}
+
+    def repeated_keypoints(query: np.ndarray, reference: np.ndarray) -> Matches:
+        top, left = divmod(int(reference[0, 0]), window.image.shape[1])
+        if top not in jitter or left not in jitter:
+            return Matches(np.empty((0, 2)), np.empty((0, 2)))
+        # The same two features observed by nine tiles, with subpixel jitter.
+        query_xy = np.array([[100.0, 100.0], [110.0, 110.0]]) + [jitter[left], jitter[top]]
+        return Matches(query_xy, query_xy + [390.0 - left, 390.0 - top])
+
+    with pytest.raises(ValueError, match="no fix: 2 of 18 matches agree"):
+        locate_on_map(ground, window, repeated_keypoints)

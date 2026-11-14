@@ -24,8 +24,12 @@ The steps, one module each:
 
 Time per fix covers reading the frame to fitting the fix; it leaves out loading the matcher's weights and drawing the overlay.
 
-`first_fix.py` writes `results/drone/fixes/<frame>.json` (LoFTR only) and an overlay per matcher in `results/drone/overlays/<frame>-<matcher>.png`. In the overlay, photo and map alternate in 4 m squares inside the photo's outline; where the fit is right, rocks and ridges run on across the squares' edges.
+`first_fix.py` writes the selected matcher’s fix to `results/drone/fixes/<frame>.json` and an overlay per matcher in `results/drone/overlays/<frame>-<matcher>.png`. In the overlay, photo and map alternate in 4 m squares inside the photo's outline; where the fit is right, rocks and ridges run on across the squares' edges.
+Each PNG embeds its own schema-valid `fix_result` JSON with input checksums,
+plus `matches` and `inliers` metadata. A LightGlue fix can seed `--previous`
+the same way a LoFTR fix can. Run the preferred matcher last when comparing
+both on the same frame so its result is the one read from `fixes/`.
 
 Until P2-06 measures them on the answer key, every drone fix carries an uncertainty circle of 10 m (the project's drone target) and a confidence of 0%, as named constants in `fix.py`. What other owners need to know before they use the results is in `results/drone/README.md`.
 
-Tests: `uv run pytest locate/drone`. They need no GPU or data. One end-to-end test renders a raw frame through the committed flight 10 label's camera from a synthetic map at a known position, and runs straightening, the window, matching and the shared scorer on it; another scores a fix against its own key and expects zero error.
+Tests: `uv run pytest locate/drone`. They need no GPU or data. One end-to-end test uses a frozen synthetic frame rendered by NASA VICAR from the flight 10 label and runs straightening, window selection, matching and the shared scorer. Another scores a fix against its own key and expects zero error.

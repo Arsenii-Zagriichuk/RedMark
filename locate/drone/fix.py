@@ -33,7 +33,8 @@ EDGE_PX = 2
 # (0.5 m at 25 cm). Fewer agreeing matches than MIN_INLIERS is no fix.
 INLIER_PX = 2.0
 MIN_INLIERS = 15
-RANSAC_ROUNDS = 2000
+RANSAC_ROUNDS = 10_000  # sparse LoFTR inliers among overlapping tile candidates
+KEYPOINT_PX = 1.0  # repeated detections of one feature can differ by subpixel amounts
 # The view is drawn at the map's scale, so a true fit scales it by about 1:
 # the drone's height and the ground's relief are off by a few percent, not by
 # a quarter. Fits outside these bounds (such as many points onto one) are refused.
@@ -140,10 +141,10 @@ def locate_on_map(ground: GroundView, window: MapWindow, matcher: Matcher) -> Dr
 
 
 def _tile_starts(length: int, tile: int) -> list[int]:
-    """Tile starts every half tile, with the last tile flush with the far edge."""
+    """Tile starts every quarter tile, with the last tile flush with the far edge."""
     if length <= tile:
         return [0]
-    starts = list(range(0, length - tile + 1, tile // 2))
+    starts = list(range(0, length - tile + 1, max(1, tile // 4)))
     return starts if starts[-1] == length - tile else [*starts, length - tile]
 
 
@@ -152,7 +153,7 @@ def _match_in_tiles(ground: GroundView, window: MapWindow, matcher: Matcher) -> 
     view's size, as JPL's pipeline does: the matchers were trained on pairs of
     similar extent, and a far larger window drowns the right matches.
 
-    A match found in two overlapping tiles is kept once.
+    Keep alternative map matches until the fit can choose between them.
     """
     rows, cols = ground.image.shape
     found = []
@@ -193,28 +194,49 @@ def _fit_similarity(
 
     A complex a is a turn and a scale with no mirroring, so the fit cannot
     flip the photo. Candidates scaled outside MIN_SCALE to MAX_SCALE are
-    skipped, and the returned agreeing matches are those of the final fit.
+    skipped. A keypoint in either image can support the final fit only once.
     """
     q, r = _complex(query), _complex(reference)
     best = np.zeros(len(q), dtype=bool)
     if len(q) >= 2:
+        # Alternatives are retained across tiles, but each feature can vote
+        # only once. The radius test also works across pixel-bin boundaries.
+        def consensus(a: complex, b: complex) -> np.ndarray:
+            residuals = np.abs(a * q + b - r)
+            candidates = np.flatnonzero(residuals < INLIER_PX)
+            order = candidates[np.argsort(residuals[candidates], kind="stable")]
+            selected = np.zeros(len(q), dtype=bool)
+            while len(order):
+                index = order[0]
+                selected[index] = True
+                order = order[
+                    (np.abs(q[order] - q[index]) > KEYPOINT_PX)
+                    & (np.abs(r[order] - r[index]) > KEYPOINT_PX)
+                ]
+            return selected
+
         rng = np.random.default_rng(0)  # the same matches always give the same fix
+        best_count = 0
         for _ in range(RANSAC_ROUNDS):
             i, j = rng.choice(len(q), size=2, replace=False)
-            if abs(q[j] - q[i]) < 1e-9:
+            if abs(q[j] - q[i]) <= KEYPOINT_PX:
                 continue
             a = (r[j] - r[i]) / (q[j] - q[i])
             if not MIN_SCALE <= abs(a) <= MAX_SCALE:
                 continue
-            agree = np.abs(a * q + (r[i] - a * q[i]) - r) < INLIER_PX
-            if agree.sum() > best.sum():
-                best = agree
-    if best.sum() < 2:
-        return 1 + 0j, 0j, best
-    qc, rc = q[best] - q[best].mean(), r[best] - r[best].mean()
-    a = (rc * qc.conj()).sum() / (np.abs(qc) ** 2).sum()
-    b = r[best].mean() - a * q[best].mean()
-    return complex(a), complex(b), np.abs(a * q + b - r) < INLIER_PX
+            b = r[i] - a * q[i]
+            if np.count_nonzero(np.abs(a * q + b - r) < INLIER_PX) <= best_count:
+                continue
+            agree = consensus(a, b)
+            count = np.count_nonzero(agree)
+            if count > best_count:
+                best, best_count = agree, count
+        if best_count >= 2:
+            qc, rc = q[best] - q[best].mean(), r[best] - r[best].mean()
+            a = (rc * qc.conj()).sum() / (np.abs(qc) ** 2).sum()
+            b = r[best].mean() - a * q[best].mean()
+            return complex(a), complex(b), consensus(a, b)
+    return 1 + 0j, 0j, best
 
 
 def build_fix_result(

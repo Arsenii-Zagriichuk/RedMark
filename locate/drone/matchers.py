@@ -16,6 +16,7 @@ from locate.drone.fix import Matcher, Matches
 JPL_LOFTR_WEIGHTS = "weights/mbl-mars/loftr/V1/finetuned/2024_08_23-05_52_53.pt"
 # Under REDMARK_DATA: where kornia downloads the DISK and LightGlue weights.
 TORCH_HUB = "weights/torch-hub"
+LIGHTGLUE_CHECKPOINTS = ("depth-save.pth", "disk_lightglue_v0-1_arxiv-pth")
 LIGHTGLUE_MAX_KEYPOINTS = 2048
 
 

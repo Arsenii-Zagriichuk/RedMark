@@ -1,7 +1,7 @@
 """Seam: the drone pipeline on one fixture frame, from raw pixels to a scored fix.
 
-A raw Navcam frame is rendered through the committed flight 10 label's own
-camera and pose, looking down on a synthetic photo map from a known position.
+A frozen raw Navcam frame was rendered with NASA VICAR using the committed
+flight 10 label, looking down on a synthetic map from a known position.
 Straightening, cutting the search window, matching and fitting must put the
 fix back on that position through the shared scorer. The stand-in matcher
 finds the view in each map tile by normalised cross-correlation, so it only
@@ -13,6 +13,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 import rasterio
+from PIL import Image
 from rasterio.transform import from_origin
 
 from contracts.models.common import Point, Provenance, TerrainType
@@ -28,6 +29,7 @@ LABEL = (
     / "fixtures"
     / "HNM_0152_0680432615_348FDR_N0100001HELI03026_0000LUJ05.xml"
 )
+RAW_FRAME = Path(__file__).with_name("fixtures") / "vicar-navcam.png"
 RES = 0.25
 MIN_X, MAX_Y = 4354000.0, 1092400.0
 MAP_PX = 900  # 225 m square
@@ -62,7 +64,7 @@ def _smooth_noise(size: int, sigma_px: float, seed: int) -> np.ndarray:
 
 
 @pytest.fixture
-def photo_map(tmp_path: Path) -> tuple[Path, np.ndarray]:
+def photo_map(tmp_path: Path) -> Path:
     noise = _smooth_noise(MAP_PX, sigma_px=2.0, seed=11)
     values = np.clip(2000 + 600 * noise / noise.std(), 0, 4095).astype(np.uint16)
     crop = tmp_path / "crop.tif"
@@ -77,54 +79,7 @@ def photo_map(tmp_path: Path) -> tuple[Path, np.ndarray]:
         transform=from_origin(MIN_X, MAX_Y, RES, RES),
     ) as dst:
         dst.write(values, 1)
-    return crop, values.astype(np.float64)
-
-
-def _map_value(values: np.ndarray, x: np.ndarray, y: np.ndarray) -> np.ndarray:
-    """Bilinear map value at map metres (x, y); pixel centres at whole pixels + 0.5."""
-    col = (x - MIN_X) / RES - 0.5
-    row = (MAX_Y - y) / RES - 0.5
-    c0, r0 = np.floor(col).astype(int), np.floor(row).astype(int)
-    fc, fr = col - c0, row - r0
-    return (
-        values[r0, c0] * (1 - fc) * (1 - fr)
-        + values[r0, c0 + 1] * fc * (1 - fr)
-        + values[r0 + 1, c0] * (1 - fc) * fr
-        + values[r0 + 1, c0 + 1] * fc * fr
-    )
-
-
-def _render_raw(frame, values: np.ndarray) -> np.ndarray:
-    """What the Navcam sees from TRUE_X, TRUE_Y: ground points 5 cm apart,
-    each projected through the camera, averaged per raw pixel."""
-    offsets = np.arange(-34.0, 34.0, 0.05)
-    east, north = (a.ravel() for a in np.meshgrid(offsets, offsets))
-    height = -frame.camera_ned[2]
-    # The ground point's offset from the camera in north, east, down, into the body.
-    in_body = np.column_stack([north, east, np.full(east.size, height)]) @ frame.body_to_ned
-    x, y = frame.camera.project(in_body + frame.camera.c)
-    lines, samples = 480, 640
-    seen = np.isfinite(x) & (x > -0.5) & (x < samples - 0.5) & (y > -0.5) & (y < lines - 0.5)
-    cols, rows = np.round(x[seen]).astype(int), np.round(y[seen]).astype(int)
-    brightness = _map_value(values, TRUE_X + east[seen], TRUE_Y + north[seen])
-    total = np.zeros((lines, samples))
-    count = np.zeros((lines, samples))
-    np.add.at(total, (rows, cols), brightness)
-    np.add.at(count, (rows, cols), 1)
-    raw = np.where(count > 0, total / np.maximum(count, 1), np.nan)
-    for _ in range(3):  # fill the few pixels no ground point landed in
-        padded = np.pad(raw, 1, constant_values=np.nan)
-        neighbours = np.stack(
-            [
-                padded[1 + dr : 1 + dr + lines, 1 + dc : 1 + dc + samples]
-                for dr in (-1, 0, 1)
-                for dc in (-1, 0, 1)
-            ]
-        )
-        known = np.isfinite(neighbours)
-        mean = np.where(known, neighbours, 0).sum(axis=0) / np.maximum(known.sum(axis=0), 1)
-        raw = np.where(np.isnan(raw) & known.any(axis=0), mean, raw)
-    return np.nan_to_num(raw, nan=2000.0).astype(np.uint16)
+    return crop
 
 
 def _correlate(a: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -163,12 +118,12 @@ def ncc_matcher(query: np.ndarray, reference: np.ndarray) -> Matches:
 
 
 def test_fixture_frame_is_fixed_where_it_was_rendered(photo_map):
-    crop, values = photo_map
     frame = read_drone_frame(LABEL.read_text())
-    raw = _render_raw(frame, values)
+    with Image.open(RAW_FRAME) as image:
+        raw = np.array(image)
 
     # The search starts 7.9 m off, as from a drifted onboard position.
-    _, _, drone_fix = fix_frame(raw, frame, crop, (TRUE_X + 6.3, TRUE_Y - 4.7), ncc_matcher)
+    _, _, drone_fix = fix_frame(raw, frame, photo_map, (TRUE_X + 6.3, TRUE_Y - 4.7), ncc_matcher)
     result = build_fix_result(
         photo_id=frame.file_stem,
         estimate=drone_fix,

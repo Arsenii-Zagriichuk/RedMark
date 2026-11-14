@@ -51,6 +51,14 @@ def _first(pattern: str, text: str) -> str:
     return match[1]
 
 
+def frame_block(xml: str, identifier: str) -> str:
+    """The coordinate-space definition for a matching PDS identifier."""
+    return _first(
+        rf"<local_identifier>{identifier}</local_identifier>(.*?)</geom:Coordinate_Space_Definition>",
+        xml,
+    )
+
+
 def read_label(xml: str) -> NavcamFrame:
     """Parse a Navcam frame's PDS4 label.
 
@@ -58,11 +66,7 @@ def read_label(xml: str) -> NavcamFrame:
     flight's HELI_G_FRAME (take-off point, z down).
     """
     flight = int(_first(r"<local_identifier>HELI_G_FRAME_(\d+)</local_identifier>", xml))
-    m_frame = _first(
-        r"<local_identifier>HELI_M_FRAME_\d+_\d+</local_identifier>(.*?)"
-        r"</geom:Coordinate_Space_Definition>",
-        xml,
-    )
+    m_frame = frame_block(xml, rf"HELI_M_FRAME_{flight}_\d+")
     z = float(_first(r"<geom:Vector_Origin_Offset>.*?<geom:z_position[^>]*>([^<]+)<", m_frame))
     return NavcamFrame(
         file_stem=_first(r"<file_name>([^<]+)\.IMG</file_name>", xml),

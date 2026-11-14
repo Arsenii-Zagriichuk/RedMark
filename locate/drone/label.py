@@ -17,6 +17,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from locate.drone.camera import Cahvore
+from prep.jezero.frames import frame_block, read_label
 
 
 @dataclass(frozen=True)
@@ -56,13 +57,6 @@ def _rotation(block: str) -> np.ndarray:
     )
 
 
-def _frame_block(xml: str, identifier: str) -> str:
-    return _first(
-        rf"<local_identifier>{identifier}</local_identifier>(.*?)</geom:Coordinate_Space_Definition>",
-        xml,
-    )
-
-
 def read_drone_frame(xml: str) -> DroneFrame:
     model = _first(r"<geom:CAHVORE_Model>(.*?)</geom:CAHVORE_Model>", xml)
     if np.any(_vector_terms(model, "Entrance_Terms")):
@@ -76,16 +70,16 @@ def read_drone_frame(xml: str) -> DroneFrame:
         r=_vector_terms(model, "Radial_Terms"),
         linearity=float(_first(r"<geom:cahvore_model_parameter>([^<]+)<", model)),
     )
-    flight = int(_first(r"<local_identifier>HELI_G_FRAME_(\d+)</local_identifier>", xml))
-    takeoff = _frame_block(xml, rf"HELI_G_FRAME_{flight}")
-    body = _frame_block(xml, rf"HELI_M_FRAME_{flight}_\d+")
+    navcam = read_label(xml)
+    takeoff = frame_block(xml, f"HELI_G_FRAME_{navcam.flight}")
+    body = frame_block(xml, rf"HELI_M_FRAME_{navcam.flight}_\d+")
     takeoff_to_ned = _rotation(takeoff)
     body_to_ned = takeoff_to_ned @ _rotation(body)
     body_offset = _vector(body, "Vector_Origin_Offset", "_position")
     return DroneFrame(
-        file_stem=_first(r"<file_name>([^<]+)\.IMG</file_name>", xml),
-        flight=flight,
-        sclk=float(_first(r"<msn:spacecraft_clock_start>([^<]+)<", xml)),
+        file_stem=navcam.file_stem,
+        flight=navcam.flight,
+        sclk=navcam.sclk,
         camera=camera,
         body_to_ned=body_to_ned,
         camera_ned=takeoff_to_ned @ body_offset + body_to_ned @ camera.c,
