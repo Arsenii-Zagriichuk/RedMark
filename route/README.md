@@ -11,7 +11,7 @@ The route engine behind `POST /route`: cost map, fastest safe, science and cart 
 
 **Exact endpoints.** The search runs between planning-cell centres, but the route runs from the exact start to the exact goal: the stretch from each exact point (and the habitat) to its cell's centre is walked at that cell's pace and counted in the time, the walk-back margin and the distance from the habitat.
 
-**Walk-back margin.** The least spare time at any point of the route: the walk-time limit minus the time walked so far and the fastest safe walk from that point back to the habitat. A route whose margin would go negative is refused with `NoSafeRoute`; the `walk_back` limit check itself comes with P4-04.
+**Walk-back margin.** The least spare time at any point of the route: the walk-time limit minus the time walked so far and the fastest safe walk from that point back to the habitat. Within the habitat's cell, the return leg goes directly to the habitat at that cell's pace, so no return travel is charged after arrival. A route whose margin would go negative is refused with `NoSafeRoute`; the `walk_back` limit check itself comes with P4-04.
 
 Run `uv run python -m route.plot_route` to redraw the overlay.
 

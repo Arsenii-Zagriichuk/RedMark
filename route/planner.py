@@ -98,11 +98,19 @@ def plan_on_grid(
     to_start_s = _metres(start, grid.centre(*start_cell)) * pace[start_cell]
     to_goal_s = _metres(goal, grid.centre(*goal_cell)) * pace[goal_cell]
     to_habitat_s = _metres(habitat, grid.centre(*habitat_cell)) * pace[habitat_cell]
-    stops = [_Stop(start, 0.0, to_start_s + home[start_cell] + to_habitat_s)]
+
+    def seconds_home(point: Point) -> float:
+        cell = grid.cell(point)
+        if cell == habitat_cell:
+            # The direct leg stays in this safe cell and is zero at the habitat.
+            return _metres(point, habitat) * pace[cell]
+        return _metres(point, grid.centre(*cell)) * pace[cell] + home[cell] + to_habitat_s
+
+    stops = [_Stop(start, 0.0, seconds_home(start))]
     for c in cells:
         stops.append(_Stop(grid.centre(*c), to_start_s + cumulative[c], home[c] + to_habitat_s))
     walked_s = stops[-1].walked_s + to_goal_s
-    stops.append(_Stop(goal, walked_s, to_goal_s + home[goal_cell] + to_habitat_s))
+    stops.append(_Stop(goal, walked_s, seconds_home(goal)))
     stops = [
         b for a, b in zip([None, *stops], stops, strict=False) if a is None or b.point != a.point
     ]

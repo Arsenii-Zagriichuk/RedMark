@@ -289,3 +289,33 @@ def test_the_walk_back_counts_the_walk_to_and_from_the_exact_endpoints():
 
     with pytest.raises(NoSafeRoute):
         plan_on_grid(g, start, goal, start, limits)
+
+
+def test_a_walk_can_finish_at_an_off_centre_habitat_within_its_time_limit():
+    g, _, _ = flat_kilometre()
+    start, habitat = Point(x=2, y=15), Point(x=1008, y=15)
+    limits = DEFAULT_LIMITS.model_copy(update={"max_walk_h": 1815 / 3600})
+
+    route = plan_on_grid(g, start, habitat, habitat, limits)
+
+    assert route.path[-1] == habitat
+    # 3 + 1000 + 3 m at 1.8 s/m is 1810.8 s; arrival at the habitat leaves no walk home.
+    assert route.total_time_s == pytest.approx(1810.8)
+    assert route.walk_back_margin_s == pytest.approx(4.2)
+
+
+@pytest.mark.parametrize("budget_s, expected_margin_s", [(1815, 0.6), (1814, None)])
+def test_a_goal_in_the_habitat_cell_keeps_its_direct_walk_home(budget_s, expected_margin_s):
+    g, _, _ = flat_kilometre()
+    start, goal, habitat = Point(x=2, y=15), Point(x=1009, y=15), Point(x=1008, y=15)
+    limits = DEFAULT_LIMITS.model_copy(update={"max_walk_h": budget_s / 3600})
+    # 3 + 1000 + 4 m out takes 1812.6 s; the final 1 m home takes 1.8 s, not zero.
+    # The full journey takes 1814.4 s, so 1815 s leaves 0.6 s and 1814 s must be refused.
+    if expected_margin_s is None:
+        with pytest.raises(NoSafeRoute):
+            plan_on_grid(g, start, goal, habitat, limits)
+    else:
+        route = plan_on_grid(g, start, goal, habitat, limits)
+
+        assert route.total_time_s == pytest.approx(1812.6)
+        assert route.walk_back_margin_s == pytest.approx(expected_margin_s)
