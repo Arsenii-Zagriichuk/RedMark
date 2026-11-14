@@ -28,10 +28,10 @@ import truststore
 import yaml
 from PIL import Image, ImageDraw
 
-from contracts.models.data_manifest import DataManifest
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
-from prep.jezero.crop import RESOLUTION, Bounds, crop_is_current, crop_to_site_frame
+from prep.common import Bounds, manifest_entry, update_manifest
+from prep.jezero.crop import RESOLUTION, crop_is_current, crop_to_site_frame
 from prep.jezero.flights import flight_bounds, load_flights
 from prep.jezero.frames import (
     HELICAM_DATA,
@@ -43,8 +43,6 @@ from prep.jezero.frames import (
 )
 from prep.jezero.pack import (
     label_index,
-    manifest_entry,
-    merge_manifest,
     multipart_part_size,
     s3_multipart_etag,
     site_config,
@@ -309,12 +307,7 @@ def build(root: Path) -> None:
             credit=HELICAM_CREDIT,
         )
     )
-    manifest_path = REPO_ROOT / "prep" / "data-manifest.yaml"
-    text = manifest_path.read_text()
-    comments = "".join(line + "\n" for line in text.splitlines() if line.startswith("#"))
-    merged = merge_manifest(yaml.safe_load(text) or {}, manifest, replace_prefix="jezero/")
-    DataManifest.model_validate(merged)
-    manifest_path.write_text(comments + yaml.safe_dump(merged, sort_keys=False, allow_unicode=True))
+    update_manifest(manifest, owned=("jezero/",))
     print(f"pack: {len(rows)} frames from {len(crops)} flights in {pack}")
 
 

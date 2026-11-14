@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from prep.gale.crop import Bounds
+from prep.common import Bounds
 
 
 @dataclass(frozen=True)

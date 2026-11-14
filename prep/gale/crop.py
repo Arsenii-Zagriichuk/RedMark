@@ -7,16 +7,14 @@ the crop covers the asked bounds and overshoots by less than a pixel a side.
 """
 
 import math
-import uuid
 from pathlib import Path
 
 import rasterio
 from rasterio.crs import CRS
 from rasterio.windows import Window
 
-Bounds = tuple[float, float, float, float]  # min_x, min_y, max_x, max_y
-# GeoTIFF tag naming the source a crop was cut from, so a rerun can skip it.
-SOURCE_TAG = "REDMARK_SOURCE"
+from prep.common import SOURCE_TAG, Bounds, source_tag, written_atomically
+
 # A source edge counts as a pixel edge if it is this close (in pixels).
 _SNAP = 1e-6
 
@@ -53,22 +51,16 @@ def crop_on_source_grid(
             "predictor": 3 if data.dtype.kind == "f" else 2,
             "BIGTIFF": "IF_SAFER",
         }
-    out.parent.mkdir(parents=True, exist_ok=True)
-    partial = out.with_name(f"{out.name}.{uuid.uuid4().hex}.part")
-    with rasterio.open(partial, "w", **profile) as dst:
+    with written_atomically(out) as partial, rasterio.open(partial, "w", **profile) as dst:
         dst.write(data, 1)
         dst.update_tags(**{SOURCE_TAG: source_id})
-    partial.replace(out)
     with rasterio.open(out) as written:
         return tuple(written.bounds)
 
 
 def crop_is_current(crop: Path, source_id: str) -> bool:
     """`crop` exists and was cut from the source version `source_id`."""
-    if not crop.exists():
-        return False
-    with rasterio.open(crop) as src:
-        return src.tags().get(SOURCE_TAG) == source_id
+    return source_tag(crop) == source_id
 
 
 def _window_covering(src: rasterio.DatasetReader, bounds: Bounds) -> Window:

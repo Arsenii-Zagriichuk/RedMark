@@ -22,7 +22,6 @@ request, once downloaded.
 """
 
 import csv
-import hashlib
 import json
 import os
 import shutil
@@ -36,10 +35,10 @@ import rasterio
 import yaml
 from rasterio.enums import Resampling
 
-from contracts.models.data_manifest import DataManifest
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
-from prep.gale.crop import Bounds, crop_is_current, crop_on_source_grid
+from prep.common import Bounds, manifest_entry, sha256, update_manifest
+from prep.gale.crop import crop_is_current, crop_on_source_grid
 from prep.gale.pack import (
     PixelGrid,
     best_shift,
@@ -92,6 +91,9 @@ SOURCES = {
     },
 }
 OUT = "gale/crops"
+# The data-manifest entries this pack owns: its own folder and its sources at the
+# data root. A rebuild replaces them all, so a source it stops using drops out.
+MANIFEST_OWNED = ("gale/", "MSL_Gale_", "THEMIS_TI_", PLACES)
 EVIDENCE = REPO_ROOT / "prep" / "gale" / "evidence"
 OVERLAY_PX = 2000  # long side of the downsampled base map in each overlay
 ZOOM_HALF_M = 300  # half-width of the full-detail zoom panels
@@ -171,7 +173,7 @@ def build(root: Path) -> None:
             + [
                 {
                     "path": "prep/gale/walk_area.yaml",
-                    "sha256": _sha256(REPO_ROOT / "prep/gale/walk_area.yaml"),
+                    "sha256": sha256(REPO_ROOT / "prep/gale/walk_area.yaml"),
                 }
             ],
         },
@@ -461,35 +463,26 @@ def _write_site_config(spec: dict, habitat, base_camp) -> None:
 
 def _write_manifest(root: Path, checksums: dict[str, str]) -> None:
     entries = [
-        {
-            "name": source["name"],
-            "path": source["file"],
-            "size_bytes": (root / source["file"]).stat().st_size,
-            "source_url": source["url"],
-            "checksum": checksums[source["file"]],
-            "checksum_algorithm": "sha256",
-            "credit": source["credit"],
-        }
+        manifest_entry(
+            root,
+            source["file"],
+            name=source["name"],
+            source_url=source["url"],
+            credit=source["credit"],
+            checksum=checksums[source["file"]],
+        )
         for source in SOURCES.values()
     ] + [
-        {
-            "name": "MSL PLACES rover localizations (localized_pos.csv)",
-            "path": PLACES,
-            "size_bytes": (root / PLACES).stat().st_size,
-            "source_url": PLACES_URL,
-            "checksum": checksums[PLACES],
-            "checksum_algorithm": "sha256",
-            "credit": "MSL PLACES localization archive, NASA/JPL-Caltech, PDS Imaging Node.",
-        }
+        manifest_entry(
+            root,
+            PLACES,
+            name="MSL PLACES rover localizations (localized_pos.csv)",
+            source_url=PLACES_URL,
+            credit="MSL PLACES localization archive, NASA/JPL-Caltech, PDS Imaging Node.",
+            checksum=checksums[PLACES],
+        )
     ]
-    path = REPO_ROOT / "prep" / "data-manifest.yaml"
-    text = path.read_text()
-    comments = "".join(line + "\n" for line in text.splitlines() if line.startswith("#"))
-    files = {f["path"]: f for f in (yaml.safe_load(text) or {}).get("files") or []}
-    files.update({e["path"]: e for e in entries})
-    merged = {"files": sorted(files.values(), key=lambda f: f["path"])}
-    DataManifest.model_validate(merged)
-    path.write_text(comments + yaml.safe_dump(merged, sort_keys=False, allow_unicode=True))
+    update_manifest(entries, owned=MANIFEST_OWNED)
 
 
 def _source_checksums(root: Path, files: list[str]) -> dict[str, str]:
@@ -502,19 +495,11 @@ def _source_checksums(root: Path, files: list[str]) -> dict[str, str]:
         key = f"{stat.st_size}:{stat.st_mtime_ns}"
         if cache.get(name, {}).get("key") != key:
             print(f"checksumming {name}")
-            cache[name] = {"key": key, "sha256": _sha256(root / name)}
+            cache[name] = {"key": key, "sha256": sha256(root / name)}
         result[name] = cache[name]["sha256"]
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     cache_path.write_text(json.dumps(cache, indent=2) + "\n")
     return result
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as f:
-        while chunk := f.read(1 << 24):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def _git_commit() -> str:
