@@ -138,6 +138,7 @@ describe("returnRequest", () => {
   };
 
   it("plans the fastest safe walk from the last known position back to the start, its hazard margin the circle", () => {
+    // 2160 s out is 0.6 h of the 6 h walk-time limit (exit to re-entry), so 5.4 h are left.
     const lastKnown = { index: 2, t_s: 2160, position: { x: 0, y: 1200 }, uncertainty_m: 10 };
 
     expect(returnRequest(planned, lastKnown)).toEqual({
@@ -146,8 +147,14 @@ describe("returnRequest", () => {
       goal: { x: 0, y: 0 },
       mode: "fastest",
       uncertainty_m: 10,
-      limits: { max_slope_deg: 15, max_distance_from_habitat_m: 2000, planning_speed_kmh: 2, max_walk_h: 6 },
+      limits: { max_slope_deg: 15, max_distance_from_habitat_m: 2000, planning_speed_kmh: 2, max_walk_h: 5.4 },
     });
+  });
+
+  it("leaves the walk back one second when the walk-time limit is already spent, so the engine refuses it", () => {
+    const late = { index: 9, t_s: 6.5 * 3600, position: { x: 0, y: 1200 }, uncertainty_m: 10 };
+
+    expect(returnRequest(planned, late).limits.max_walk_h).toBe(1 / 3600);
   });
 });
 

@@ -26,14 +26,23 @@ export function lostModeStart(simulation: SimulateResponse): LastKnown | null {
   return { index, t_s: step.t_s, position: step.estimated_position, uncertainty_m: step.uncertainty_m };
 }
 
-/** The walk back: the fastest safe route from the last known position to where the walk began. */
+/** The contract wants a walk-time limit above 0; a spent one leaves 1 s, which no walk fits. */
+const SPENT_WALK_H = 1 / 3600;
+
+/**
+ * The walk back: the fastest safe route from the last known position to where the walk
+ * began. The walk-time limit runs from exit to re-entry, so the time already walked comes
+ * off it.
+ */
 export function returnRequest(planned: RouteRequest, from: LastKnown): RouteRequest {
+  const left_h = planned.limits.max_walk_h - from.t_s / 3600;
   return {
     ...planned,
     mode: "fastest",
     start: from.position,
     goal: planned.start,
     uncertainty_m: from.uncertainty_m,
+    limits: { ...planned.limits, max_walk_h: Math.max(left_h, SPENT_WALK_H) },
   };
 }
 
