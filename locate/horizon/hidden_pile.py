@@ -22,16 +22,13 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
-import yaml
-
 from contracts.models.site import SiteConfig
-from contracts.paths import REPO_ROOT, data_root
+from contracts.paths import data_root
+from locate.horizon.fix import PLACES, read_site_config
 from locate.horizon.navcam import label_pointing
 from locate.horizon.sources import sha256_file
 
 ARCHIVE = "https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA"
-PLACES = "places/localized_pos.csv"
-SITE_CONFIG = REPO_ROOT / "sites" / "gale.yaml"
 STRETCHES = 20
 MAX_DOWNLOAD_BYTES = 350_000_000
 # Right Navcam reduced frames: full (F), subframe (S) or downsampled (D); not thumbnails.
@@ -39,8 +36,9 @@ FRAME = re.compile(r"NRB_\d{9}ILT_[FSD](\d{3})(\d{4})(NCAM\d{5})M1\.LBL")
 MIN_RING_FRAMES = 7  # 300° of skyline needs at least 7 frames 45° wide
 
 TUNING_SITES = range(96, 101)
-HIDDEN_PILE = "navcam/hidden"
-"""The hidden pile's folder in REDMARK_DATA. Only the scoring scripts name it."""
+HIDDEN_PILE = "hidden/horizon"
+"""The hidden pile's folder in REDMARK_DATA, outside navcam/ so no glob over the
+tuning frames can reach it. Only the scoring scripts name it."""
 HORIZON_ELEVATION_DEG = 20.0
 """A frame sees the horizon when it points within this of level (Navcam is 45° tall)."""
 FRAME_WIDTH_DEG = 45.0
@@ -114,18 +112,24 @@ def walk_area_stops(places: Path, site_config: SiteConfig) -> list[Stop]:
 def main() -> None:
     root = data_root()
     folder = root / HIDDEN_PILE
-    site = SiteConfig.model_validate(yaml.safe_load(SITE_CONFIG.read_text()))
-    candidates = [s for s in walk_area_stops(root / PLACES, site) if not is_tuning_site(s.site)]
-    size = -(-len(candidates) // STRETCHES)
-    stretches = [candidates[i : i + size] for i in range(0, len(candidates), size)]
+    stops = walk_area_stops(root / PLACES, read_site_config())
+    candidates = [stop for stop in stops if not is_tuning_site(stop.site)]
+    if not candidates:
+        raise SystemExit("no walk-area stops outside the tuning pile")
+    stretch_length = -(-len(candidates) // STRETCHES)
+    stretches = [
+        candidates[i : i + stretch_length] for i in range(0, len(candidates), stretch_length)
+    ]
     with ThreadPoolExecutor(8) as pool:
         chosen = [ring for ring in pool.map(lambda s: _first_ring(s, folder), stretches) if ring]
+    if not chosen:
+        raise SystemExit("no hidden stop has a horizon ring")
     total = sum(
         _remote_size(_url(stop, p.photo_id + ".IMG")) for stop, ring in chosen for p in ring
     )
     print(f"{len(chosen)} stops, {sum(len(r) for _, r in chosen)} frames, {total / 1e6:.0f} MB")
     if total > MAX_DOWNLOAD_BYTES:
-        raise SystemExit(f"over the {MAX_DOWNLOAD_BYTES / 1e6:.0f} MB agreed for the hidden pile")
+        raise SystemExit(f"over the {MAX_DOWNLOAD_BYTES / 1e6:.0f} MB cap for the hidden pile")
     rows = []
     for stop, ring in chosen:
         for pointing in ring:
@@ -166,7 +170,7 @@ def _first_ring(stretch: list[Stop], folder: Path) -> tuple[Stop, list[Pointing]
 def _pointings(stop: Stop, folder: Path) -> list[Pointing]:
     """Where every reduced right-Navcam frame taken at the stop on its sol looks."""
     listing = folder / "listings" / f"SOL{stop.sol:05d}.html"
-    if not listing.exists() or listing.stat().st_size < 5_000:  # the archive sometimes truncates
+    if not listing.exists() or 0 < listing.stat().st_size < 5_000:  # the archive can truncate
         _fetch(f"{ARCHIVE}/SOL{stop.sol:05d}/", listing)
     names: dict[str, list[str]] = {}
     for match in FRAME.finditer(listing.read_text(errors="ignore")):
@@ -192,14 +196,21 @@ def _url(stop: Stop, name: str) -> str:
 
 
 def _fetch(url: str, path: Path) -> None:
+    """Download url to path; a missing sol folder (404) is saved as an empty file."""
     # curl, not urllib: it uses the system's certificate store.
     path.parent.mkdir(parents=True, exist_ok=True)
     partial = path.with_name(path.name + ".part")
-    subprocess.run(
-        ["curl", "-sfL", "--retry", "5", "--retry-all-errors", "--max-time", "300"]
-        + ["-o", str(partial), url],
+    status = subprocess.run(
+        ["curl", "-sL", "--retry", "5", "--retry-all-errors", "--max-time", "600"]
+        + ["-w", "%{http_code}", "-o", str(partial), url],
+        capture_output=True,
+        text=True,
         check=True,
-    )
+    ).stdout
+    if status == "404":
+        partial.write_bytes(b"")
+    elif status != "200":
+        raise RuntimeError(f"{url}: HTTP {status}")
     partial.rename(path)
 
 

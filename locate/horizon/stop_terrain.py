@@ -1,6 +1,6 @@
 """Each tested stop's terrain type and whether it is a hollow, from the 1 m terrain.
 
-Both labels come from the heights round the stop, so they are reproducible and
+Both come from the heights round the stop, so they are reproducible and
 need no one to judge photos by eye:
 
 - **Hollow:** the stop sits more than HOLLOW_DEPTH_M below the mean height of
@@ -29,18 +29,18 @@ ROUGH_TEXTURED_M = 0.15
 
 
 @dataclass(frozen=True)
-class StopLabels:
+class StopTerrain:
     terrain_type: TerrainType
     hollow: bool
 
 
-def label_stop(dem: Path, x: float, y: float) -> StopLabels:
-    """The labels of the stop at map (x, y), from the 1 m terrain file."""
+def classify_stop(dem: Path, x: float, y: float) -> StopTerrain:
+    """The terrain type and hollow flag of the stop at map (x, y), from the 1 m terrain file."""
     reach = HOLLOW_RADIUS_M + 1
     raster = read_heights(
         dem, Bounds(min_x=x - reach, min_y=y - reach, max_x=x + reach, max_y=y + reach)
     )
-    return StopLabels(
+    return StopTerrain(
         terrain_type(raster.heights, raster.res), is_hollow(raster.heights, raster.res)
     )
 

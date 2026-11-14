@@ -56,7 +56,7 @@ SINGLE = "NRB_721967057ILT_S0981520NCAM00266M1"
 # Bedrock all round in the ring frames, checked by eye.
 TERRAIN = TerrainType.textured
 # Spots that fit within this factor of the best spot's cost stay inside the
-# uncertainty circle; P3-03 calibrates the circle against the answer key.
+# uncertainty circle.
 CIRCLE_COST_FACTOR = 1.5
 CLOSE_UP_M = 800.0
 BASE_MAP_PIXELS = 2048  # across the walk area, enough for an 800 m close-up
@@ -85,14 +85,17 @@ def load_grid(root: Path) -> Grid:
         return Grid(f["xs"], f["ys"], f["azimuths_deg"], f["elevation_deg"])
 
 
+def read_site_config() -> SiteConfig:
+    return SiteConfig.model_validate(yaml.safe_load(SITE_CONFIG.read_text()))
+
+
 def main() -> None:
     root = data_root()
     grid = load_grid(root)
     ring_labels = sorted(root.glob(RING_GLOB))
     if len(ring_labels) != 12:
         raise SystemExit(f"expected the 12 ring frames in {root / 'navcam'}")
-    site = SiteConfig.model_validate(yaml.safe_load(SITE_CONFIG.read_text()))
-    base_map = read_layer_image(root / site.files["base_map"], pixels_across=BASE_MAP_PIXELS)
+    base_map = read_base_map(root)
     for labels in ([path for path in ring_labels if path.stem == SINGLE], ring_labels):
         fix = horizon_fix(labels, grid, root, base_map)
         print(
@@ -103,6 +106,11 @@ def main() -> None:
         )
 
 
+def read_base_map(root: Path) -> LayerImage:
+    site = read_site_config()
+    return read_layer_image(root / site.files["base_map"], pixels_across=BASE_MAP_PIXELS)
+
+
 def horizon_fix(
     labels: list[Path],
     grid: Grid,
@@ -111,9 +119,13 @@ def horizon_fix(
     *,
     terrain: TerrainType = TERRAIN,
     overlay_prefix: str = "p3-02",
+    script: str = "locate/horizon/fix.py",
+    extra_inputs: tuple[Path, ...] = (),
 ) -> FixResult:
     """One fix from the frames of one stop, scored and written with its overlay
-    in results/horizon/overlays/<overlay_prefix>-<photo id>.png."""
+    in results/horizon/overlays/<overlay_prefix>-<photo id>.png. Its provenance
+    names script and every file read, plus extra_inputs (such as the terrain
+    its terrain type came from)."""
     started = time.perf_counter()
     frames = [read_frame(path) for path in labels]
     photo_id = frames[0].photo_id
@@ -133,13 +145,15 @@ def horizon_fix(
         position=Point(x=grid.xs[match.ix], y=grid.ys[match.iy]),
         heading_deg=match.heading_deg,
         uncertainty_m=uncertainty,
-        confidence_pct=0.0,  # not measured until the hidden-pile test (P3-03)
+        confidence_pct=0.0,  # what confidence measures is still open in the contracts
         time_per_fix_s=round(elapsed, 2),
         terrain_type=terrain,
         simulated=False,
         overlay=overlay.relative_to(REPO_ROOT).as_posix(),
         truth=None,
-        provenance=fix_provenance(labels, root, SITE_CONFIG, base_map),
+        provenance=fix_provenance(
+            labels, root, SITE_CONFIG, base_map, script=script, extra_inputs=extra_inputs
+        ),
     )
     first = frames[0]
     east, north = first.camera_offset_m()
@@ -298,7 +312,13 @@ def _draw_fix(ax, fix: FixResult) -> None:
 
 
 def fix_provenance(
-    labels: list[Path], root: Path, site_config: Path, base_map: LayerImage
+    labels: list[Path],
+    root: Path,
+    site_config: Path,
+    base_map: LayerImage,
+    *,
+    script: str = "locate/horizon/fix.py",
+    extra_inputs: tuple[Path, ...] = (),
 ) -> Provenance:
     """Every file a fix and its overlay read: the grid, the answer key, the
     frames, the site config and the base map. Data files are recorded from
@@ -306,9 +326,9 @@ def fix_provenance(
     inputs = [root / GRID, root / PLACES]
     for label in labels:
         inputs += [label, label.with_suffix(".IMG")]
-    inputs += [site_config, *base_map.files]
+    inputs += [site_config, *base_map.files, *extra_inputs]
     return Provenance(
-        script="locate/horizon/fix.py",
+        script=script,
         commit=git_commit(),
         inputs=[{"path": _recorded(path, root), "sha256": sha256_file(path)} for path in inputs],
     )

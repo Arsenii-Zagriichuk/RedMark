@@ -1,9 +1,9 @@
-"""Each tested stop's terrain type and hollow label, from made-up 1 m terrain."""
+"""Each tested stop's terrain type and hollow flag, from made-up 1 m terrain."""
 
 import numpy as np
 
 from contracts.models.common import TerrainType
-from locate.horizon.terrain_labels import is_hollow, terrain_type
+from locate.horizon.stop_terrain import is_hollow, terrain_type
 
 RES_M = 1.0
 HALF = 60  # a 121 m window round the stop
