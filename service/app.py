@@ -1,6 +1,6 @@
 """The local service the app talks to (P1-02). Run: `uv run uvicorn service.app:app --reload`.
 
-It serves the contract files (layers and their tiles, conditions, fix results, test
+It serves the contract files (site configs, layers and their tiles, conditions, fix results, test
 summaries, overlay images) and forwards route and simulation requests to Person 4's
 engines. An engine plugs in by existing: `route/engine.py` with `plan(request: dict) ->
 dict` and `sim/engine.py` with `simulate(request: dict) -> dict`. Until then the stub
@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+import yaml
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -156,6 +157,13 @@ def create_app(settings: Settings) -> FastAPI:
     def layer_file(site: str, name: str, file: str) -> FileResponse:
         folder = settings.data_root / _name(site) / "layers" / _name(name)
         return FileResponse(_inside(folder, file))
+
+    @app.get("/sites/{site}")
+    def site_config(request: Request, site: str) -> JSONResponse:
+        path = root / "sites" / f"{_name(site)}.yaml"
+        if not path.is_file():
+            raise HTTPException(404, f"no site config for {site}")
+        return respond(request, None, yaml.safe_load(path.read_text()), "site")
 
     @app.get("/conditions/{sol}")
     def conditions(request: Request, sol: str) -> JSONResponse:
