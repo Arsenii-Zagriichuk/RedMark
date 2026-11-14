@@ -38,7 +38,7 @@ package = false
 default-groups = ["dev", "prep"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "prep", "locate", "contracts/scoring", "sim", "route"]
+testpaths = ["tests", "prep", "locate", "layers", "contracts/scoring", "sim", "route"]
 pythonpath = ["."]
 addopts = "-ra"
 
