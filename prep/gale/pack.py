@@ -1,7 +1,9 @@
 """The Gale walk-area pack's pure parts: walk area, site config, frame check, chemistry."""
 
+import bisect
 import csv
 import re
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -38,9 +40,14 @@ def site_config(
     base_camp: tuple[float, float],
     walk_radius_m: float,
     files: dict[str, str],
-    replayed_sol: int | None,
+    current: dict,
 ) -> dict:
-    """sites/gale.yaml. Science targets are added in P2-03, the sol by Person 4."""
+    """sites/gale.yaml, rewritten over `current`, the config on disk.
+
+    The pack owns the geometry and its own `files` entries. What later tickets
+    add is kept: the sol (Person 4), science targets (P2-03), checkpoints and
+    any other files.
+    """
     min_x, min_y, max_x, max_y = walk_area(habitat, walk_radius_m)
     return {
         "site": "gale",
@@ -49,10 +56,10 @@ def site_config(
         "bounds": {"min_x": min_x, "min_y": min_y, "max_x": max_x, "max_y": max_y},
         "habitat": {"x": habitat[0], "y": habitat[1]},
         "base_camp": {"x": base_camp[0], "y": base_camp[1]},
-        "science_targets": [],
-        "checkpoints": [],
-        "files": files,
-        "replayed_sol": replayed_sol,
+        "science_targets": current.get("science_targets") or [],
+        "checkpoints": current.get("checkpoints") or [],
+        "files": (current.get("files") or {}) | files,
+        "replayed_sol": current.get("replayed_sol"),
     }
 
 
@@ -137,6 +144,72 @@ def best_move(
     }
 
 
+def shading(heights: np.ndarray, res: float, azimuth_deg: float) -> np.ndarray:
+    """How steeply each cell faces light from `azimuth_deg` (clockwise from north).
+
+    The slope along the light's direction, positive where the ground tilts
+    towards the light: a photo's brightness follows it.
+    """
+    dz_south, dz_east = np.gradient(heights, res)  # rows run south
+    a = np.radians(azimuth_deg)
+    return -(np.sin(a) * dz_east - np.cos(a) * dz_south)
+
+
+def slope_degrees(heights: np.ndarray, res: float) -> np.ndarray:
+    dz_south, dz_east = np.gradient(heights, res)
+    return np.degrees(np.arctan(np.hypot(dz_east, dz_south)))
+
+
+def photo_move_on_terrain(
+    photo: np.ndarray,
+    photo_grid: PixelGrid,
+    heights: np.ndarray,
+    terrain_grid: PixelGrid,
+    search_m: float,
+    coarse: int = 4,
+) -> dict:
+    """How far the terrain must move (east, north, metres) to line up with the photo.
+
+    Both on grids of one pixel size. The photo's brightness follows the
+    terrain's shading; the light's azimuth is unknown, so every 30 degrees is
+    tried. Each azimuth is searched on `coarse`-times larger pixels, the best
+    match of all wins, and the move is refined at full size within one coarse
+    pixel of it.
+    """
+    res = photo_grid.res
+    coarse_photo = _block_mean(photo, coarse)
+    coarse_photo_grid = PixelGrid(photo_grid.left, photo_grid.top, res * coarse)
+    coarse_terrain_grid = PixelGrid(terrain_grid.left, terrain_grid.top, res * coarse)
+    rough = {}
+    for az in range(0, 360, 30):
+        shade = _block_mean(shading(heights, res, az), coarse)
+        rough[az] = best_move(shade, coarse_terrain_grid, coarse_photo, coarse_photo_grid, search_m)
+    best_az = max(rough, key=lambda az: rough[az]["r"])
+    east, north = rough[best_az]["move_m"]
+    shade = shading(heights, res, best_az)
+    fine = best_move(
+        shade,
+        PixelGrid(terrain_grid.left + east, terrain_grid.top + north, res),
+        photo,
+        photo_grid,
+        res * coarse,
+    )
+    return {
+        "azimuth_deg": best_az,
+        "move_m": [round(east + fine["move_m"][0], 3), round(north + fine["move_m"][1], 3)],
+        "r": fine["r"],
+        "r_unmoved": best_move(shade, terrain_grid, photo, photo_grid, 0.0)["r"],
+    }
+
+
+def _block_mean(a: np.ndarray, k: int) -> np.ndarray:
+    rows, cols = a.shape[0] // k, a.shape[1] // k
+    blocks = a[: rows * k, : cols * k].reshape(rows, k, cols, k)
+    with np.errstate(invalid="ignore"), warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)  # all-NaN blocks stay NaN
+        return np.nanmean(blocks, axis=(1, 3))
+
+
 def _block_correlation(coarse, fine, factor, col0, row0) -> float:
     # Skip coarse rows and columns whose block starts before the fine image.
     skip_rows, skip_cols = max(0, -(row0 // factor)), max(0, -(col0 // factor))
@@ -204,57 +277,114 @@ def rover_positions(places_csv: Path, bounds: Bounds) -> list[dict]:
     return positions
 
 
-def rover_poses(places_interp_csv: Path) -> dict[tuple[int, int], tuple[float, float]]:
-    """Curiosity's position at every (site, drive), from PLACES' interpolated table.
-
-    A drive with several poses keeps its first: they sit within 0.2 m.
-    """
-    poses: dict[tuple[int, int], tuple[float, float]] = {}
+def rover_track(places_interp_csv: Path) -> list[dict]:
+    """Every rover pose in PLACES' every-drive table, in order: sol, site, drive, x, y."""
+    track = []
     with places_interp_csv.open(newline="") as f:
         for r in csv.DictReader(f):
             if r["frame"] == "ROVER":
-                key = (int(r["site"]), int(r["drive"]))
-                poses.setdefault(key, (float(r["easting"]), float(r["northing"])))
-    return poses
+                track.append(
+                    {
+                        "sol": int(r["sol"]),
+                        "sclk": float(r["sclk"]),
+                        "site": int(r["site"]),
+                        "drive": int(r["drive"]),
+                        "x": float(r["easting"]),
+                        "y": float(r["northing"]),
+                    }
+                )
+    return sorted(track, key=lambda p: (p["sol"], p["sclk"]))
 
 
-# An APXS source file name: ...ESC<sol, 4 digits><site, 3><drive, 4>...
-_APXS_POSE = re.compile(r"ESC\d{4}(\d{3})(\d{4})")
+def rover_sols_inside(places_interp_csv: Path, bounds: Bounds) -> tuple[int, int]:
+    """The first and last sol Curiosity stood inside `bounds`, from PLACES."""
+    min_x, min_y, max_x, max_y = bounds
+    sols = []
+    with places_interp_csv.open(newline="") as f:
+        for r in csv.DictReader(f):
+            x, y = float(r["easting"]), float(r["northing"])
+            if r["frame"] == "ROVER" and min_x <= x <= max_x and min_y <= y <= max_y:
+                sols.append(int(r["sol"]))
+    return min(sols), max(sols)
 
 
-def apxs_points(
-    apxs_csvs: list[Path], poses: dict[tuple[int, int], tuple[float, float]], bounds: Bounds
-) -> list[dict]:
-    """Every APXS measurement inside `bounds`, in sol order, at the rover's position.
+# An APXS table name: msl_apxs_concentrations_<first sol>_<last sol>.csv
+_APXS_TABLE = re.compile(r"_(\d+)_(\d+)\.csv$")
 
-    The rover's site and drive come from the measurement's source file names.
-    APXS sits on the arm, so the target is within about 2 m of that position.
+
+def apxs_tables_for(tables: list[str], sols: tuple[int, int]) -> list[str]:
+    """The tables whose sol range overlaps `sols`, in the order given."""
+    first, last = sols
+    chosen = []
+    for name in tables:
+        start, end = (int(n) for n in _APXS_TABLE.search(name).groups())
+        if start <= last and end >= first:
+            chosen.append(name)
+    return chosen
+
+
+def apxs_points(apxs_csvs: list[Path], track: list[dict], bounds: Bounds) -> list[dict]:
+    """Every APXS measurement inside `bounds`, in sol order, where the rover stood.
+
+    The rover stands where its last drive before the measurement's sol ended
+    (PLACES gives the sol each pose was reached). check_apxs_placement holds
+    this against the source-file names where those can be trusted; in the sol
+    3193 to 4133 table they are scrambled, so they are not used to place.
+    APXS sits on the arm, so the target is within about 2 m.
     Concentrations are copied as published (oxides in wt%, Ni, Zn and Br in ppm).
     """
     min_x, min_y, max_x, max_y = bounds
+    sols = [p["sol"] for p in track]
     points = []
     for path in apxs_csvs:
-        with path.open(newline="") as f:
+        with path.open(newline="", encoding="utf-8-sig") as f:
             rows = csv.reader(f)
             header = next(rows)
-            # Concentrations and their errors run from Na2O to Br_err; the last
-            # field, named in some tables and not others, lists the source files.
+            # Concentrations and their errors run from Na2O to Br_err.
             values = header[header.index("Na2O") : header.index("Br_err") + 1]
             for row in rows:
+                if not row:
+                    continue
                 record = dict(zip(header, row, strict=False))
-                found = {(int(s), int(d)) for s, d in _APXS_POSE.findall(row[-1])}
-                if len(found) != 1:
-                    raise ValueError(f"{record['target']}: source files name {found or 'no'} poses")
-                site, drive = found.pop()
-                if (site, drive) not in poses:
-                    raise ValueError(
-                        f"{record['target']}: PLACES has no position for {site}/{drive}"
-                    )
-                x, y = poses[(site, drive)]
-                if min_x <= x <= max_x and min_y <= y <= max_y:
+                sol = int(record["sol"])
+                before = bisect.bisect_left(sols, sol) - 1
+                if before < 0:
+                    raise ValueError(f"{record['target']}: PLACES has no pose before sol {sol}")
+                pose = track[before]
+                if min_x <= pose["x"] <= max_x and min_y <= pose["y"] <= max_y:
                     points.append(
-                        {"sol": int(record["sol"]), "target": record["target"]}
-                        | {"site": site, "drive": drive, "x": x, "y": y}
+                        {"sol": sol, "target": record["target"]}
+                        | {k: pose[k] for k in ("site", "drive", "x", "y")}
                         | {k: float(record[k]) for k in values}
                     )
     return sorted(points, key=lambda p: p["sol"])
+
+
+# An APXS source file name: ...ESC<sol, 4 digits><site, 3><drive, 4>...
+_APXS_FILE = re.compile(r"ESC(\d{4})(\d{3})(\d{4})")
+# An overnight or multi-sol measurement's files can start a sol or two after its row's sol.
+_FILE_SOL_SLACK = 2
+
+
+def check_apxs_placement(apxs_csvs: list[Path], track: list[dict]) -> dict:
+    """How often placing by sol gives the site and drive the source-file names give.
+
+    Only rows whose file names carry their own sol (within two sols) are checked.
+    """
+    sols = [p["sol"] for p in track]
+    checked = same = elsewhere = 0
+    for path in apxs_csvs:
+        with path.open(newline="", encoding="utf-8-sig") as f:
+            rows = csv.reader(f)
+            next(rows)
+            for row in rows:
+                if not row:
+                    continue
+                file_sol, site, drive = (int(n) for n in _APXS_FILE.search(row[-1]).groups())
+                if abs(file_sol - int(row[0])) > _FILE_SOL_SLACK:
+                    elsewhere += 1
+                    continue
+                pose = track[bisect.bisect_left(sols, int(row[0])) - 1]
+                checked += 1
+                same += (pose["site"], pose["drive"]) == (site, drive)
+    return {"rows_checked": checked, "same_pose": same, "files_name_another_sol": elsewhere}

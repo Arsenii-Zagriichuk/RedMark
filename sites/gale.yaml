@@ -1,6 +1,6 @@
 # Written by prep/gale/build_pack.py (P2-01). Do not edit by hand: change
-# prep/gale/walk_area.yaml and rerun. The replayed sol is Person 4's and is
-# kept on rerun; science targets come in P2-03.
+# prep/gale/walk_area.yaml and rerun. A rerun rewrites the geometry and the
+# pack's own files; the sol, science targets, checkpoints and other files stay.
 site: gale
 name: Gale crater boxwork
 projection: +proj=eqc +lat_ts=0 +lon_0=0 +R=3396190 +units=m +no_defs

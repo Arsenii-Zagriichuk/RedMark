@@ -1,0 +1,2 @@
+sol,target,fit_type,start_time,gnorm,sh_tavg,lifetime,Fe_FWHM,Na2O,Na2O_err,MgO,MgO_err,Al2O3,Al2O3_err,SiO2,SiO2_err,P2O5,P2O5_err,SO3,SO3_err,Cl,Cl_err,K2O,K2O_err,CaO,CaO_err,TiO2,TiO2_err,Cr2O3,Cr2O3_err,MnO,MnO_err,FeO,FeO_err,Ni,Ni_err,Zn,Zn_err,Br,Br_err,Notes,data products
+3194,Bregout,RGFit_v2,03195M00:47:28,55.2,-66.4,4:00:00,158.4,2.54,0.14,6.35,0.17,8.32,0.19,44.01,0.54,1.11,0.07,9.33,0.12,1.15,0.02,0.72,0.02,6.25,0.07,1.05,0.03,0.31,0.01,0.24,0.01,18.31,0.2,1003,55,840,30,281,10,,APB_743735451ESC39001022428_______M1.DAT:APB_743739730ESC39001022428_______M1.DAT

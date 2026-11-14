@@ -20,8 +20,11 @@ from prep.gale.pack import (
     fit_pixel_grid,
     grow,
     offset_in_pixels,
+    photo_move_on_terrain,
     rover_positions,
+    shading,
     site_config,
+    slope_degrees,
     walk_area,
 )
 
@@ -81,8 +84,14 @@ def test_the_walk_area_is_the_square_holding_the_walk_radius():
     assert grow((0.0, 0.0, 10.0, 10.0), 5.0) == (-5.0, -5.0, 15.0, 15.0)
 
 
-def test_site_config_validates_and_keeps_person_4s_sol():
-    files = {"photo_map": "gale/crops/photo-map-25cm.tif"}
+def test_site_config_validates_and_keeps_what_later_tickets_added():
+    # On disk: Person 4's sol, P2-03's targets, a checkpoint and someone else's file.
+    current = {
+        "replayed_sol": 4600,
+        "science_targets": [{"id": "ridge-1", "name": "Ridge", "position": {"x": 1, "y": 2}}],
+        "checkpoints": [{"id": "cp-1", "position": {"x": 3, "y": 4}}],
+        "files": {"base_map": "gale/layers/base", "photo_map": "old/photo.tif"},
+    }
 
     config = site_config(
         name="Gale crater boxwork",
@@ -90,8 +99,8 @@ def test_site_config_validates_and_keeps_person_4s_sol():
         habitat=(8142700.0, -285150.0),
         base_camp=(8142600.0, -285250.0),
         walk_radius_m=2000.0,
-        files=files,
-        replayed_sol=4600,
+        files={"photo_map": "gale/crops/photo-map-25cm.tif"},
+        current=current,
     )
 
     SiteConfig.model_validate(config)
@@ -105,9 +114,28 @@ def test_site_config_validates_and_keeps_person_4s_sol():
     assert config["habitat"] == {"x": 8142700.0, "y": -285150.0}
     assert config["base_camp"] == {"x": 8142600.0, "y": -285250.0}
     assert config["replayed_sol"] == 4600
-    assert config["files"] == files
-    # Science targets come in P2-03.
+    assert config["science_targets"] == current["science_targets"]
+    assert config["checkpoints"] == current["checkpoints"]
+    # The pack's own files are rewritten; everyone else's stay.
+    assert config["files"] == {
+        "base_map": "gale/layers/base",
+        "photo_map": "gale/crops/photo-map-25cm.tif",
+    }
+
+
+def test_a_first_site_config_starts_with_no_targets_or_checkpoints():
+    config = site_config(
+        name="Gale",
+        projection="+proj=eqc +lat_ts=0 +lon_0=0 +R=3396190 +units=m +no_defs",
+        habitat=(0.0, 0.0),
+        base_camp=(10.0, 0.0),
+        walk_radius_m=2000.0,
+        files={},
+        current={},
+    )
+
     assert config["science_targets"] == [] and config["checkpoints"] == []
+    assert config["replayed_sol"] is None
 
 
 def test_the_shift_that_best_lines_a_coarse_layer_up_with_a_fine_one_is_found():
@@ -177,3 +205,63 @@ def test_heights_without_terrain_under_them_are_left_out():
 
     assert result["count"] == 1
     assert result["median_m"] == pytest.approx(-0.2)
+
+
+def test_shading_is_bright_on_slopes_facing_the_light():
+    # A plane rising 0.1 m per metre eastward faces west.
+    x = np.arange(20, dtype=float) * 2.0
+    heights = np.tile(0.1 * x, (20, 1))
+
+    assert shading(heights, 2.0, azimuth_deg=270.0)[10, 10] == pytest.approx(0.1)
+    assert shading(heights, 2.0, azimuth_deg=90.0)[10, 10] == pytest.approx(-0.1)
+    # Light from the north sees no tilt north-south.
+    assert shading(heights, 2.0, azimuth_deg=0.0)[10, 10] == pytest.approx(0.0)
+
+
+def test_slope_of_a_plane_rising_one_in_ten_is_its_arctangent():
+    rows = np.arange(30, dtype=float) * 1.0
+    heights = np.tile(0.1 * rows, (30, 1)).T  # rising southward (down the rows)
+
+    # atan(0.1) = 5.7106 degrees.
+    assert slope_degrees(heights, 1.0)[15, 15] == pytest.approx(5.7106, abs=1e-3)
+
+
+def _hills(n: int, res: float) -> np.ndarray:
+    """Irregular ground: 40 waves of random direction and length, so no shift repeats it."""
+    rng = np.random.default_rng(2)
+    y, x = np.mgrid[0:n, 0:n] * res
+    heights = np.zeros((n, n))
+    for _ in range(40):
+        angle, length, phase = rng.uniform(0, np.pi), rng.uniform(15, 120), rng.uniform(0, 6.3)
+        heights += np.sin((x * np.cos(angle) + y * np.sin(angle)) / length * 2 * np.pi + phase)
+    return heights
+
+
+def test_a_photo_map_placed_off_its_terrain_is_found_off():
+    # Terrain on a 2 m grid from (0, 0). The photo shows its shading lit from
+    # the west-north-west, but starting at terrain column 20 and row 5 while its
+    # grid claims (0, 0): the terrain must move 40 m west and 10 m north to
+    # line up with it.
+    res = 2.0
+    heights = _hills(400, res)
+    photo = shading(heights, res, azimuth_deg=300.0)[5 : 5 + 300, 20 : 20 + 300]
+
+    found = photo_move_on_terrain(
+        photo, PixelGrid(0.0, 0.0, res), heights, PixelGrid(0.0, 0.0, res), search_m=80.0
+    )
+
+    assert found["move_m"] == pytest.approx([-40.0, 10.0])
+    assert found["r"] == pytest.approx(1.0)
+
+
+def test_a_photo_map_on_its_terrain_needs_no_move():
+    res = 2.0
+    heights = _hills(300, res)
+    photo = shading(heights, res, azimuth_deg=300.0)
+
+    found = photo_move_on_terrain(
+        photo, PixelGrid(0.0, 0.0, res), heights, PixelGrid(0.0, 0.0, res), search_m=80.0
+    )
+
+    assert found["move_m"] == pytest.approx([0.0, 0.0])
+    assert found["azimuth_deg"] == 300

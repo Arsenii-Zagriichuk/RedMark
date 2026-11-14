@@ -103,7 +103,7 @@ def download(url: str, dest: Path) -> Path:
     if dest.exists() and dest.stat().st_size > 0:
         return dest
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=600) as response, written_atomically(dest) as part:
+    with urllib.request.urlopen(request, timeout=120) as response, written_atomically(dest) as part:
         with part.open("wb") as f:
             while block := response.read(1 << 20):
                 f.write(block)

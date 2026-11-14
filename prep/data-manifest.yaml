@@ -25,6 +25,38 @@ files:
   checksum_algorithm: sha256
   credit: 'THEMIS quantitative thermal inertia mosaic: USGS Astrogeology Science Center;
     THEMIS: NASA/JPL-Caltech/Arizona State University'
+- name: MSL APXS concentrations, sols 3193 to 4133
+  path: gale/source/apxs/msl_apxs_concentrations_3193_4133.csv
+  size_bytes: 114919
+  source_url: https://pds-geosciences.wustl.edu/msl/msl-m-apxs-4_5-rdr-v1/mslapx_1xxx/extras/msl_apxs_concentrations_3193_4133.csv
+  checksum: 6fc9b6aba1e81e76e0915314aa784a9e062b0b2fb643c4f6bf3b202c11c97e03
+  checksum_algorithm: sha256
+  credit: MSL APXS RDR (MSL-M-APXS-4/5-RDR-V1.0), NASA/JPL-Caltech, PDS Geosciences
+    Node
+- name: MSL APXS concentrations, sols 4134 to 4257
+  path: gale/source/apxs/msl_apxs_concentrations_4134_4257.csv
+  size_bytes: 19403
+  source_url: https://pds-geosciences.wustl.edu/msl/msl-m-apxs-4_5-rdr-v1/mslapx_1xxx/extras/msl_apxs_concentrations_4134_4257.csv
+  checksum: 12b3f0c63d7e8517e04a8294feab55b55ea8eeae284a522f478e0dd8dc1b3371
+  checksum_algorithm: sha256
+  credit: MSL APXS RDR (MSL-M-APXS-4/5-RDR-V1.0), NASA/JPL-Caltech, PDS Geosciences
+    Node
+- name: MSL APXS concentrations, sols 4258 to 4354
+  path: gale/source/apxs/msl_apxs_concentrations_4258_4354.csv
+  size_bytes: 15135
+  source_url: https://pds-geosciences.wustl.edu/msl/msl-m-apxs-4_5-rdr-v1/mslapx_1xxx/extras/msl_apxs_concentrations_4258_4354.csv
+  checksum: 186327806b5404ada1928934cf36073d66cc6d9907697fd377dea69a1f77b607
+  checksum_algorithm: sha256
+  credit: MSL APXS RDR (MSL-M-APXS-4/5-RDR-V1.0), NASA/JPL-Caltech, PDS Geosciences
+    Node
+- name: MSL APXS concentrations, sols 4355 to 4488
+  path: gale/source/apxs/msl_apxs_concentrations_4355_4488.csv
+  size_bytes: 16041
+  source_url: https://pds-geosciences.wustl.edu/msl/msl-m-apxs-4_5-rdr-v1/mslapx_1xxx/extras/msl_apxs_concentrations_4355_4488.csv
+  checksum: 948181ebe282db28771604aff432ee9f1249c8c378481108b438817fdf0a27db
+  checksum_algorithm: sha256
+  credit: MSL APXS RDR (MSL-M-APXS-4/5-RDR-V1.0), NASA/JPL-Caltech, PDS Geosciences
+    Node
 - name: MSL APXS concentrations, sols 4489 to 4612
   path: gale/source/apxs/msl_apxs_concentrations_4489_4612.csv
   size_bytes: 18155
