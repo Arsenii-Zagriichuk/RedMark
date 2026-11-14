@@ -22,7 +22,7 @@ _SNAP = 1e-6
 
 
 def crop_on_source_grid(
-    source: Path, bounds: Bounds, out: Path, projection: str, source_id: str = ""
+    source: Path, bounds: Bounds, out: Path, projection: str, source_id: str
 ) -> Bounds:
     """Write the source pixels covering `bounds` to `out`; return the crop's bounds.
 

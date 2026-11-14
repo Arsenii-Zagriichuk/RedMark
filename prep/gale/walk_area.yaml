@@ -2,6 +2,7 @@
 # prep/gale/build_pack.py, which writes sites/gale.yaml from it.
 #
 # Chosen on 14 Nov 2026 from Curiosity's PLACES positions and the 1 m terrain.
+# The figures below were measured once, when choosing; the build does not use them.
 # Curiosity crossed the boxwork from about (8143700, -284100) to
 # (8143200, -285340), sols 4500 to 4865. The habitat sits on an open, flat
 # patch about 480 m west of that track and 540 m from the boxwork cells

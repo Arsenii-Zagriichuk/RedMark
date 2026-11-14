@@ -44,7 +44,7 @@ def test_a_known_pixel_lands_at_its_place_in_the_crop(tmp_path: Path):
     source = _source(tmp_path / "source.tif")
     out = tmp_path / "crop.tif"
 
-    crop_on_source_grid(source, (1010.0, 1980.0, 1030.0, 1995.0), out, SITE_PROJ)
+    crop_on_source_grid(source, (1010.0, 1980.0, 1030.0, 1995.0), out, SITE_PROJ, "test source")
 
     # The marked pixel's centre is x = 1000.5 + 20.5 = 1021.0,
     # y = 2000 - 10.5 = 1989.5. The crop starts at source col 9 (left edge
@@ -62,7 +62,9 @@ def test_the_crop_covers_the_bounds_snapped_out_to_whole_source_pixels(tmp_path:
     source = _source(tmp_path / "source.tif")
     out = tmp_path / "crop.tif"
 
-    covered = crop_on_source_grid(source, (1010.0, 1980.0, 1030.0, 1995.0), out, SITE_PROJ)
+    covered = crop_on_source_grid(
+        source, (1010.0, 1980.0, 1030.0, 1995.0), out, SITE_PROJ, "test source"
+    )
 
     # West and east snap out to the source's half-metre pixel edges.
     assert covered == (1009.5, 1980.0, 1030.5, 1995.0)
@@ -75,12 +77,16 @@ def test_a_source_in_another_projection_is_refused(tmp_path: Path):
     source = _source(tmp_path / "source.tif", crs="+proj=eqc +lat_ts=18.4663 +R=3396190")
 
     with pytest.raises(ValueError, match="projection"):
-        crop_on_source_grid(source, (1010.0, 1980.0, 1030.0, 1995.0), tmp_path / "c.tif", SITE_PROJ)
+        crop_on_source_grid(
+            source, (1010.0, 1980.0, 1030.0, 1995.0), tmp_path / "c.tif", SITE_PROJ, "test source"
+        )
 
 
 def test_bounds_past_the_edge_of_the_source_are_refused(tmp_path: Path):
     source = _source(tmp_path / "source.tif")
 
     with pytest.raises(ValueError, match="outside"):
-        crop_on_source_grid(source, (990.0, 1980.0, 1030.0, 1995.0), tmp_path / "c.tif", SITE_PROJ)
+        crop_on_source_grid(
+            source, (990.0, 1980.0, 1030.0, 1995.0), tmp_path / "c.tif", SITE_PROJ, "test source"
+        )
     assert not (tmp_path / "c.tif").exists()

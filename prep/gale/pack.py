@@ -131,6 +131,22 @@ def places_grids(places_csv: Path) -> dict[str, PixelGrid]:
     }
 
 
+def compare_heights(places_m: list[float], terrain_m: list[float], within_m: float) -> dict:
+    """How well the terrain's heights at Curiosity's stops match PLACES' elevations.
+
+    A sideways shift between the two frames shows up as height differences on
+    slopes; stops with no terrain under them are left out.
+    """
+    diff = np.asarray(terrain_m, dtype=float) - np.asarray(places_m, dtype=float)
+    diff = diff[np.isfinite(diff)]
+    return {
+        "count": int(diff.size),
+        "median_m": round(float(np.median(diff)), 3),
+        "share_within": round(float(np.mean(np.abs(diff) <= within_m)), 3),
+        "within_m": within_m,
+    }
+
+
 def rover_positions(places_csv: Path, bounds: Bounds) -> list[dict]:
     """Curiosity's localised positions inside `bounds`, in drive order."""
     min_x, min_y, max_x, max_y = bounds
@@ -146,6 +162,7 @@ def rover_positions(places_csv: Path, bounds: Bounds) -> list[dict]:
                         "drive": int(r["drive"]),
                         "x": x,
                         "y": y,
+                        "z": float(r["elevation"]),
                     }
                 )
     return positions

@@ -15,6 +15,7 @@ from contracts.models.site import SiteConfig
 from prep.gale.pack import (
     PixelGrid,
     best_shift,
+    compare_heights,
     fit_pixel_grid,
     grow,
     offset_in_pixels,
@@ -70,6 +71,7 @@ def test_rover_positions_inside_the_bounds_come_from_rover_rows_only():
         "drive": 2370,
         "x": 8143139.321,
         "y": -284766.85,
+        "z": -3632.81,
     }
 
 
@@ -114,11 +116,41 @@ def test_the_shift_that_best_lines_a_coarse_layer_up_with_a_fine_one_is_found():
     fine = rng.normal(size=(120, 120))
     origin = (20, 20)  # the coarse grid's top-left corner on the fine grid (col, row)
     start_row, start_col = origin[1] + 3, origin[0] - 2
-    coarse = fine[start_row : start_row + 80, start_col : start_col + 80]
-    coarse = coarse.reshape(20, 4, 20, 4).mean(axis=(1, 3))
+    coarse = np.array(
+        [
+            [
+                fine[
+                    start_row + 4 * i : start_row + 4 * i + 4,
+                    start_col + 4 * j : start_col + 4 * j + 4,
+                ].mean()
+                for j in range(20)
+            ]
+            for i in range(20)
+        ]
+    )
 
     found = best_shift(coarse, fine, factor=4, origin_px=origin, search_px=6)
 
     assert found["shift_px"] == (-2, 3)
     assert found["r"] == pytest.approx(1.0)
     assert found["r_unshifted"] < 0.5
+
+
+def test_terrain_heights_at_curiosity_agree_with_places_elevations():
+    # PLACES elevations of five stops, and the terrain read at the same spots:
+    # off by -0.1, 0.0, +0.2, +0.1 and +3.0 m (the last on a steep edge).
+    places = [-3632.8, -3630.0, -3628.5, -3627.0, -3620.0]
+    terrain = [-3632.9, -3630.0, -3628.3, -3626.9, -3617.0]
+
+    result = compare_heights(places, terrain, within_m=0.5)
+
+    assert result["median_m"] == pytest.approx(0.1)
+    assert result["share_within"] == pytest.approx(0.8)
+    assert result["count"] == 5
+
+
+def test_heights_without_terrain_under_them_are_left_out():
+    result = compare_heights([-3630.0, -3631.0], [float("nan"), -3631.2], within_m=0.5)
+
+    assert result["count"] == 1
+    assert result["median_m"] == pytest.approx(-0.2)

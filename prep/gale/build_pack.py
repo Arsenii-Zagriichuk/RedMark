@@ -43,6 +43,7 @@ from prep.gale.crop import Bounds, crop_is_current, crop_on_source_grid
 from prep.gale.pack import (
     PixelGrid,
     best_shift,
+    compare_heights,
     grow,
     offset_in_pixels,
     places_grids,
@@ -50,7 +51,6 @@ from prep.gale.pack import (
     site_config,
     walk_area,
 )
-from prep.jezero.pack import merge_manifest
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -95,6 +95,10 @@ OUT = "gale/crops"
 EVIDENCE = REPO_ROOT / "prep" / "gale" / "evidence"
 OVERLAY_PX = 2000  # long side of the downsampled base map in each overlay
 ZOOM_HALF_M = 300  # half-width of the full-detail zoom panels
+# Frame check: the terrain under Curiosity's stops must match PLACES' elevation
+# within half a metre at 9 in 10 stops, with the median under half a metre.
+HEIGHT_WITHIN_M = 0.5
+HEIGHT_SHARE = 0.9
 # The THEMIS offset search: every 25 m shift up to 300 m (three THEMIS pixels) each way.
 OFFSET_STEP_M = 25.0
 OFFSET_SEARCH_M = 300.0
@@ -132,12 +136,12 @@ def build(root: Path) -> None:
 
     positions = rover_positions(root / PLACES, asked)
     with (out / "rover-positions.csv").open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["sol", "site", "drive", "x", "y"])
+        writer = csv.DictWriter(f, fieldnames=["sol", "site", "drive", "x", "y", "z"])
         writer.writeheader()
         writer.writerows(positions)
     print(f"rover positions in the crops: {len(positions)}")
 
-    frame_check = _frame_check(root)
+    frame_check = _frame_check(root, crops, positions)
     print(f"frame check: {json.dumps(frame_check)}")
     ti_offset = _thermal_inertia_offset(root, crops)
     print(f"thermal inertia offset (not corrected): {json.dumps(ti_offset)}")
@@ -177,14 +181,30 @@ def build(root: Path) -> None:
     _write_site_config(spec, habitat, base_camp)
     _write_manifest(root, checksums)
     if not frame_check["passed"]:
-        sys.exit("frame check failed: PLACES and the crops are not on the same grid")
+        sys.exit("frame check failed: PLACES and the crops do not share one frame")
     print(f"pack written to {out}")
 
 
-def _frame_check(root: Path) -> dict:
-    """Is PLACES' orthophoto and terrain grid our photo map's and terrain's grid?"""
+def _frame_check(root: Path, crops: dict, positions: list[dict]) -> dict:
+    """Do Curiosity's PLACES positions and our crops share one frame?
+
+    Two checks. PLACES' orthophoto and terrain grids must be our maps' grids,
+    a whole number of pixels apart. And the terrain's height at each of
+    Curiosity's stops must match PLACES' elevation there: a whole-pixel shift
+    between the frames would pass the first check but fail this one on slopes.
+    """
     fitted = places_grids(root / PLACES)
     result: dict = {"passed": True}
+    with rasterio.open(root / crops["terrain"]["path"]) as src:
+        terrain = [
+            float(v[0]) if v[0] != src.nodata else float("nan")
+            for v in src.sample([(p["x"], p["y"]) for p in positions])
+        ]
+    heights = compare_heights([p["z"] for p in positions], terrain, within_m=HEIGHT_WITHIN_M)
+    result["heights"] = heights
+    result["passed"] &= (
+        abs(heights["median_m"]) < HEIGHT_WITHIN_M and heights["share_within"] >= HEIGHT_SHARE
+    )
     for kind, key in (("map", "photo_map"), ("dem", "terrain")):
         with rasterio.open(root / SOURCES[key]["file"]) as src:
             ours = PixelGrid(src.bounds.left, src.bounds.top, src.res[0])
@@ -465,9 +485,9 @@ def _write_manifest(root: Path, checksums: dict[str, str]) -> None:
     path = REPO_ROOT / "prep" / "data-manifest.yaml"
     text = path.read_text()
     comments = "".join(line + "\n" for line in text.splitlines() if line.startswith("#"))
-    merged = yaml.safe_load(text) or {}
-    for entry in entries:
-        merged = merge_manifest(merged, [entry], replace_prefix=entry["path"])
+    files = {f["path"]: f for f in (yaml.safe_load(text) or {}).get("files") or []}
+    files.update({e["path"]: e for e in entries})
+    merged = {"files": sorted(files.values(), key=lambda f: f["path"])}
     DataManifest.model_validate(merged)
     path.write_text(comments + yaml.safe_dump(merged, sort_keys=False, allow_unicode=True))
 
