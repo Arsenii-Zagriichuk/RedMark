@@ -49,7 +49,15 @@ def load_landmarks(terrain: Terrain, walk_area: Bounds, places: Path) -> list[La
             )
         else:
             raise ValueError(f"landmark {entry['id']}: no summit_of, skyline_point or rim")
-        landmarks.append(Landmark(entry["id"], entry["title"], points, entry["body_radius_m"]))
+        landmarks.append(
+            Landmark(
+                entry["id"],
+                entry["title"],
+                points,
+                entry["body_radius_m"],
+                in_sentence=entry.get("in_sentence"),
+            )
+        )
     return landmarks
 
 

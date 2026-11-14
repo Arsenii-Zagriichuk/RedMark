@@ -1,10 +1,13 @@
 """The Gale pack's overlay images: each source on the base map, to check by eye."""
 
+import json
+import math
 from pathlib import Path
 
 import matplotlib
 import numpy as np
 import rasterio
+from PIL import Image
 from rasterio.enums import Resampling
 
 from prep.common import Bounds
@@ -12,7 +15,7 @@ from prep.gale.rasters import read_window
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.patches import Circle, Rectangle  # noqa: E402
+from matplotlib.patches import Circle, Patch, Rectangle  # noqa: E402
 
 OVERLAY_PX = 2000  # long side of the downsampled base map in each overlay
 ZOOM_HALF_M = 300  # half-width of the full-detail zoom panels
@@ -206,6 +209,110 @@ def chemistry(root, crops, walk, habitat, positions, chemistry, folder) -> None:
     )
     zoom.set_title("Along the track: each point within about 2 m of its target (arm reach)")
     _save(fig, folder / "chemistry.png")
+
+
+def slope_layer(root, photo, layer, walk, habitat, folder) -> None:
+    """The slope layer's own tiles on the photo map: whole walk area and the habitat."""
+    meta = json.loads((layer / "layer.json").read_text())
+    image, extent = _read_small(photo)
+    fig, (wide, zoom) = plt.subplots(1, 2, figsize=(22, 11), gridspec_kw={"wspace": 0.08})
+    _show_gray(wide, image, extent)
+    colours, c_extent = _mosaic(layer, 2)
+    wide.imshow(colours, alpha=0.55, extent=c_extent)
+    _walk_area_patches(wide, walk, habitat)
+    wide.set_xlim(walk[0], walk[2])
+    wide.set_ylim(walk[1], walk[3])
+    wide.legend(
+        handles=[Patch(color=e["color"], label=e["label"]) for e in meta["legend"]],
+        loc="lower left",
+        fontsize=9,
+    )
+    wide.set_title(
+        "Slope tiles at zoom 2 (each 4 m pixel the mean of its 1 m slopes), 55% on the base map"
+    )
+    x, y = habitat
+    box = (x - ZOOM_HALF_M, y - ZOOM_HALF_M, x + ZOOM_HALF_M, y + ZOOM_HALF_M)
+    detail, p_extent = read_window(photo, box)
+    _show_gray(zoom, detail, p_extent)
+    colours, c_extent = _mosaic(layer, meta["tiles"]["max_zoom"], box)
+    zoom.imshow(colours, alpha=0.45, extent=c_extent)
+    zoom.set_xlim(p_extent[0], p_extent[1])
+    zoom.set_ylim(p_extent[2], p_extent[3])
+    zoom.plot(*habitat, "*", c="cyan", ms=16, mec="black")
+    zoom.set_title("At the habitat, 1 m tiles at 45%: steep bands follow ridge and mesa edges")
+    _save(fig, folder / "slope.png")
+
+
+def base_tiles(photo, layer, walk, habitat, positions, folder) -> None:
+    """The base layer's tiles placed only by layer.json, beside the crop placed by its
+    own GeoTIFF transform, with Curiosity's positions on both."""
+    meta = json.loads((layer / "layer.json").read_text())
+    fig, (wide, tiles, crop) = plt.subplots(1, 3, figsize=(30, 10.5), gridspec_kw={"wspace": 0.1})
+    overview, o_extent = _mosaic(layer, 3)
+    _show_gray(wide, overview, o_extent)
+    step = _tile_metres(meta, 3)
+    for edge in np.arange(walk[0], walk[2] + 1, step):
+        wide.axvline(edge, c="orange", lw=0.6)
+    for edge in np.arange(walk[1], walk[3] + 1, step):
+        wide.axhline(edge, c="orange", lw=0.6)
+    xs, ys = [p[0] for p in positions], [p[1] for p in positions]
+    wide.plot(xs, ys, "o", c="red", ms=2.5, label="Curiosity (PLACES)")
+    wide.plot(*habitat, "*", c="cyan", ms=16, mec="black", label="habitat")
+    wide.legend(loc="lower left", fontsize=9)
+    wide.set_title("Base layer tiles at zoom 3 (2 m), placed by layer.json; orange: tile edges")
+    # Full detail round Curiosity's last stop in the walk area, on the boxwork.
+    x, y = positions[-1]
+    box = (x - 60, y - 60, x + 60, y + 60)
+    detail, t_extent = _mosaic(layer, meta["tiles"]["max_zoom"], box)
+    pixels, p_extent = read_window(photo, box)
+    for ax, image, extent, what in (
+        (tiles, detail, t_extent, "base layer tiles at 25 cm, placed by layer.json"),
+        (crop, pixels, p_extent, "the photo-map crop, placed by its GeoTIFF transform"),
+    ):
+        _show_gray(ax, image, extent)
+        ax.plot(xs, ys, "o", c="red", ms=5)
+        ax.set_xlim(box[0], box[2])
+        ax.set_ylim(box[1], box[3])
+        ax.set_title(f"{what}; red: Curiosity (PLACES)")
+    _save(fig, folder / "base-tiles.png")
+
+
+def _mosaic(layer: Path, zoom: int, box: Bounds | None = None) -> tuple[np.ndarray, tuple]:
+    """A layer's tiles at `zoom` pasted together by the layer contract's rule (pixel
+    size doubles each zoom down; tile x, y from the north-west corner of the bounds),
+    only those overlapping `box` if given. Returns the image and its extent."""
+    meta = json.loads((layer / "layer.json").read_text())
+    b, t = meta["bounds"], meta["tiles"]
+    size = t["tile_size"]
+    tile_m = _tile_metres(meta, zoom)
+    columns = math.ceil((b["max_x"] - b["min_x"]) / tile_m)
+    rows = math.ceil((b["max_y"] - b["min_y"]) / tile_m)
+    x0, y0, x1, y1 = 0, 0, columns - 1, rows - 1
+    if box is not None:
+        x0 = max(0, math.floor((box[0] - b["min_x"]) / tile_m))
+        x1 = min(columns - 1, math.floor((box[2] - b["min_x"]) / tile_m))
+        y0 = max(0, math.floor((b["max_y"] - box[3]) / tile_m))
+        y1 = min(rows - 1, math.floor((b["max_y"] - box[1]) / tile_m))
+    pasted = None
+    for x in range(x0, x1 + 1):
+        for y in range(y0, y1 + 1):
+            path = t["path"].replace("{z}", str(zoom)).replace("{x}", str(x)).replace("{y}", str(y))
+            tile = np.asarray(Image.open(layer / path))
+            if pasted is None:
+                shape = ((y1 - y0 + 1) * size, (x1 - x0 + 1) * size, *tile.shape[2:])
+                pasted = np.zeros(shape, dtype=tile.dtype)
+            row, col = (y - y0) * size, (x - x0) * size
+            pasted[row : row + size, col : col + size] = tile
+    west, north = b["min_x"] + x0 * tile_m, b["max_y"] - y0 * tile_m
+    extent = (west, west + (x1 - x0 + 1) * tile_m, north - (y1 - y0 + 1) * tile_m, north)
+    return pasted, extent
+
+
+def _tile_metres(meta: dict, zoom: int) -> float:
+    """The ground span of one tile at `zoom`, by layer.json's rule: at max_zoom one
+    pixel is resolution_m, and each zoom down doubles it."""
+    t = meta["tiles"]
+    return t["tile_size"] * meta["resolution_m"] * 2 ** (t["max_zoom"] - zoom)
 
 
 def _read_small(path: Path, float_data: bool = False) -> tuple[np.ndarray, tuple]:
