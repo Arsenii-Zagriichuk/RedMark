@@ -15,3 +15,5 @@ npm run dev --prefix app        # the app
 npm test --prefix app           # the API client tests (vitest)
 npm run lint --prefix app       # oxlint
 ```
+
+**Plan screen map (P1-03).** `src/plan/PlanScreen.tsx` loads the site config, layer files and replayed sol (demo steps `plan.site`, `plan.layers`, `plan.conditions`) and draws them with deck.gl in local metres (`src/map/`): the base photo map and one colour layer as tiles, chosen per zoom from each `layer.json`; habitat, base camp, science targets and checkpoints; the 2 km walk limit; and pan, zoom, north-up and 3D tilt. Draping on 3D terrain waits for an elevation layer from Person 2. Restart `npm run dev` after recording new demo steps, so demo mode bundles them.

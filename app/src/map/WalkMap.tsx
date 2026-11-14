@@ -1,0 +1,332 @@
+// The Gale map (P1-03): deck.gl in local metres, the base photo map and one colour layer as
+// tiles, the habitat, base camp, science targets and checkpoints from the site config, the
+// 2 km walk limit, and pan, zoom, north-up and 3D tilt. Draping on 3D terrain waits for an
+// elevation layer from Person 2.
+import { FlyToInterpolator, MapView, WebMercatorViewport, type MapViewState } from "@deck.gl/core";
+import { BitmapLayer } from "@deck.gl/layers";
+import DeckGL from "@deck.gl/react";
+import type { LayerMeta } from "@contracts/layer";
+import type { Point, SiteConfig } from "@contracts/site";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  FlagIcon,
+  HouseIcon,
+  LayersIcon,
+  MinusIcon,
+  NorthIcon,
+  PlusIcon,
+} from "../ui/icons";
+import {
+  formatResolution,
+  fromLngLat,
+  metresPerPixel,
+  tileZoomFor,
+  tilesIn,
+  toLngLat,
+  WALK_LIMIT_M,
+  zoomToFit,
+  type LngLat,
+} from "./geo";
+
+export interface PointsShown {
+  targets: boolean;
+  checkpoints: boolean;
+  habitatAndCamp: boolean;
+}
+
+interface Props {
+  site: SiteConfig;
+  origin: Point;
+  baseLayer: LayerMeta | undefined;
+  colourLayer: LayerMeta | undefined;
+  points: PointsShown;
+  selectedTargetId: string | null;
+  onSelectTarget: (id: string) => void;
+  layersOpen: boolean;
+  onToggleLayers: () => void;
+  fileUrl: (path: string) => string;
+  status: string | null;
+}
+
+const MAP_VIEW = new MapView({ id: "map", repeat: false });
+const TILT_DEGREES = 50;
+const MAX_DETAIL_TILES = 150;
+const COLOUR_OPACITY = 0.85;
+const SCALE_STEPS_M = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
+const SCALE_TARGET_PX = 100;
+
+/** The map's size: first from the page, then from deck.gl, so markers and tiles agree. */
+function useSize<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) setSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, size, setSize] as const;
+}
+
+function rasterLayers(
+  layer: LayerMeta,
+  site: SiteConfig,
+  viewport: WebMercatorViewport,
+  origin: Point,
+  fileUrl: (path: string) => string,
+  opacity: number,
+) {
+  const url = (path: string) => fileUrl(`/layers/${site.site}/${layer.name}/${path}`);
+  const [minLng, minLat, maxLng, maxLat] = viewport.getBounds();
+  const southWest = fromLngLat([minLng, minLat], origin);
+  const northEast = fromLngLat([maxLng, maxLat], origin);
+  const view = { west: southWest.x, south: southWest.y, east: northEast.x, north: northEast.y };
+  const whole = {
+    west: layer.bounds.min_x,
+    south: layer.bounds.min_y,
+    east: layer.bounds.max_x,
+    north: layer.bounds.max_y,
+  };
+  const overview = tilesIn(layer, layer.tiles.min_zoom, whole, url);
+  const screen = metresPerPixel(viewport.zoom) / window.devicePixelRatio;
+  let zoom = tileZoomFor(layer, screen);
+  let detail = zoom > layer.tiles.min_zoom ? tilesIn(layer, zoom, view, url) : [];
+  while (detail.length > MAX_DETAIL_TILES && zoom > layer.tiles.min_zoom) {
+    zoom -= 1;
+    detail = tilesIn(layer, zoom, view, url);
+  }
+  return [...overview, ...detail].map((tile) => {
+    const [west, south, east, north] = tile.bounds;
+    const [w, s] = toLngLat({ x: west, y: south }, origin);
+    const [e, n] = toLngLat({ x: east, y: north }, origin);
+    return new BitmapLayer({
+      id: tile.key,
+      image: tile.url,
+      bounds: [w, s, e, n],
+      opacity,
+      textureParameters: { minFilter: "linear", magFilter: "linear" },
+    });
+  });
+}
+
+function ScaleBar({ zoom }: { zoom: number }) {
+  const mpp = metresPerPixel(zoom);
+  const metres = SCALE_STEPS_M.reduce((best, step) =>
+    Math.abs(step / mpp - SCALE_TARGET_PX) < Math.abs(best / mpp - SCALE_TARGET_PX) ? step : best,
+  );
+  return (
+    <div className="map__scale">
+      <span>{metres >= 1000 ? `${metres / 1000} km` : `${metres} m`}</span>
+      <div className="map__scale-bar" style={{ width: `${metres / mpp}px` }} />
+    </div>
+  );
+}
+
+export function WalkMap(props: Props) {
+  const { site, origin, baseLayer, colourLayer, points, selectedTargetId } = props;
+  const [containerRef, size, setSize] = useSize<HTMLDivElement>();
+  const [viewState, setViewState] = useState<MapViewState | null>(null);
+
+  // Frame the walk area once the map knows its size.
+  useEffect(() => {
+    if (viewState || !size.width || !size.height) return;
+    const fit = zoomToFit(WALK_LIMIT_M * 2.2, Math.min(size.width, size.height));
+    setViewState({ longitude: 0, latitude: 0, zoom: fit, pitch: 0, bearing: 0 });
+  }, [size, viewState]);
+
+  // Fly to a science target when it is picked.
+  useEffect(() => {
+    const target = site.science_targets.find((candidate) => candidate.id === selectedTargetId);
+    if (!target) return;
+    const [longitude, latitude] = toLngLat(target.position, origin);
+    setViewState((current) =>
+      current && {
+        ...current,
+        longitude,
+        latitude,
+        transitionDuration: 700,
+        transitionInterpolator: new FlyToInterpolator(),
+      },
+    );
+  }, [selectedTargetId, site, origin]);
+
+  const viewport = useMemo(
+    () =>
+      viewState && size.width && size.height
+        ? new WebMercatorViewport({ ...viewState, width: size.width, height: size.height })
+        : null,
+    [viewState, size],
+  );
+
+  const layers = useMemo(() => {
+    if (!viewport) return [];
+    return [
+      ...(baseLayer ? rasterLayers(baseLayer, site, viewport, origin, props.fileUrl, 1) : []),
+      ...(colourLayer
+        ? rasterLayers(colourLayer, site, viewport, origin, props.fileUrl, COLOUR_OPACITY)
+        : []),
+    ];
+  }, [viewport, baseLayer, colourLayer, site, origin, props.fileUrl]);
+
+  const project = (point: Point) => {
+    const [x = 0, y = 0] = viewport?.project(toLngLat(point, origin)) ?? [];
+    return { left: x, top: y };
+  };
+
+  const walkLimit = useMemo(() => {
+    if (!viewport) return "";
+    return Array.from({ length: 121 }, (_, index) => {
+      const angle = (index / 120) * 2 * Math.PI;
+      const ring: LngLat = toLngLat(
+        {
+          x: origin.x + WALK_LIMIT_M * Math.sin(angle),
+          y: origin.y + WALK_LIMIT_M * Math.cos(angle),
+        },
+        origin,
+      );
+      const [x = 0, y = 0] = viewport.project(ring);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+  }, [viewport, origin]);
+
+  const change = (patch: Partial<MapViewState>) =>
+    setViewState((current) => current && { ...current, ...patch, transitionDuration: 300 });
+
+  return (
+    <div className="map" ref={containerRef}>
+      {viewState && (
+        <DeckGL
+          views={MAP_VIEW}
+          viewState={viewState}
+          onViewStateChange={({ viewState: next }) => setViewState(next as MapViewState)}
+          onResize={({ width, height }) => setSize({ width, height })}
+          controller={{ dragRotate: true, touchRotate: true }}
+          layers={layers}
+        />
+      )}
+
+      {viewport && (
+        <div className="map__overlay">
+          <svg width={size.width} height={size.height} aria-hidden="true">
+            <polyline
+              points={walkLimit}
+              fill="none"
+              stroke="#f2f5fa"
+              strokeWidth={1.5}
+              strokeDasharray="10 8"
+              opacity={0.6}
+            />
+          </svg>
+
+          {points.checkpoints &&
+            site.checkpoints.map((checkpoint, index) => (
+              <div key={checkpoint.id} className="marker" style={project(checkpoint.position)}>
+                <div className="symbol-checkpoint" title={checkpoint.id}>
+                  {index + 1}
+                </div>
+              </div>
+            ))}
+
+          {points.habitatAndCamp && site.habitat && (
+            <div className="marker" style={{ ...project(site.habitat), zIndex: 7 }}>
+              <div className="symbol-habitat">
+                <HouseIcon />
+              </div>
+              <span className="marker__label">Habitat</span>
+            </div>
+          )}
+          {points.habitatAndCamp && site.base_camp && (
+            <div className="marker" style={{ ...project(site.base_camp), zIndex: 7 }}>
+              <div className="symbol-camp">
+                <FlagIcon />
+              </div>
+              <span className="marker__label">Base camp</span>
+            </div>
+          )}
+
+          {points.targets &&
+            site.science_targets.map((target) => {
+              const selected = target.id === selectedTargetId;
+              return (
+                <button
+                  key={target.id}
+                  type="button"
+                  className="marker marker--clickable"
+                  style={{ ...project(target.position), zIndex: selected ? 9 : 8 }}
+                  onClick={() => props.onSelectTarget(target.id)}
+                  aria-label={target.name}
+                >
+                  <div className={`symbol-target${selected ? " symbol-target--selected" : ""}`} />
+                  <span className="marker__label">{target.name}</span>
+                </button>
+              );
+            })}
+        </div>
+      )}
+
+      {colourLayer && (
+        <span className="map__badge label">
+          {colourLayer.name} · {formatResolution(colourLayer.resolution_m)}
+        </span>
+      )}
+
+      <div className="map__controls">
+        <button
+          type="button"
+          aria-label="Layers"
+          className={`control${props.layersOpen ? " control--on" : ""}`}
+          onClick={props.onToggleLayers}
+        >
+          <LayersIcon />
+        </button>
+        <button
+          type="button"
+          aria-label="North up"
+          className="control"
+          onClick={() => change({ bearing: 0 })}
+          style={{ transform: `rotate(${-(viewState?.bearing ?? 0)}deg)` }}
+        >
+          <NorthIcon />
+        </button>
+        <div className="map__zoom">
+          <button
+            type="button"
+            aria-label="Zoom in"
+            className="control"
+            onClick={() => change({ zoom: (viewState?.zoom ?? 0) + 1 })}
+          >
+            <PlusIcon />
+          </button>
+          <button
+            type="button"
+            aria-label="Zoom out"
+            className="control"
+            onClick={() => change({ zoom: (viewState?.zoom ?? 0) - 1 })}
+          >
+            <MinusIcon />
+          </button>
+        </div>
+        <button
+          type="button"
+          aria-label="2D or 3D"
+          className={`control${viewState?.pitch ? " control--on" : ""}`}
+          onClick={() => change({ pitch: viewState?.pitch ? 0 : TILT_DEGREES })}
+        >
+          3D
+        </button>
+      </div>
+
+      {baseLayer && (
+        <span className="map__caption label" style={{ color: "#f2f5fa" }}>
+          {baseLayer.title} · {baseLayer.source[0].name} ·{" "}
+          {formatResolution(baseLayer.resolution_m)} · {WALK_LIMIT_M / 1000} km walk limit dashed
+        </span>
+      )}
+      {viewState && <ScaleBar zoom={viewState.zoom} />}
+      {props.status && <div className="map__status">{props.status}</div>}
+    </div>
+  );
+}
