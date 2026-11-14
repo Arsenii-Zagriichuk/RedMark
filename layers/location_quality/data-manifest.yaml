@@ -1,0 +1,67 @@
+# Data files Person 3's layer 5 (landmark visibility) reads. Schema: contracts/schemas/data_manifest.json.
+files:
+  - name: MSL Gale DEM mosaic, 1 m, v3
+    path: MSL_Gale_DEM_Mosaic_1m_v3.tif
+    size_bytes: 3868256546
+    source_url: https://planetarymaps.usgs.gov/mosaic/Mars/MSL/MSL_Gale_DEM_Mosaic_1m_v3.tif
+    checksum: c481ae885b4827af68fbdb428e9fac8a824d6828aebfba492577ba39bf55e42e
+    checksum_algorithm: sha256
+    credit: Calef, F. J. III and Parker, T. (2016), MSL Gale Merged DEM 1m v3, USGS Astrogeology Science Center.
+  - name: Mars HRSC and MOLA blended DEM, global 200 m v2, cropped to 134–141.5°E, 2–9°S
+    path: terrain/Gale_HRSC_MOLA_BlendDEM_200mp_v2_crop.tif
+    size_bytes: 9226023
+    source_url: https://planetarymaps.usgs.gov/mosaic/Mars/HRSC_MOLA_Blend/Mars_HRSC_MOLA_BlendDEM_Global_200mp_v2.tif
+    checksum: 9e1d9a84dac565794a5cacf1122ca530a3caf5b80df7a4875b06e30060632caf
+    checksum_algorithm: sha256
+    credit: Fergason, R. L., Hare, T. M. and Laura, J. (2018), HRSC and MOLA Blended Digital Elevation Model at 200m v2, USGS Astrogeology Science Center.
+  - name: MSL PLACES rover localizations (localized_pos.csv), for Curiosity's position at the sol 4611 stop that places Mishe Mokwa
+    path: places/localized_pos.csv
+    size_bytes: 349568
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/msl_places/data_localizations/localized_pos.csv
+    checksum: d456ce9025ca71673af8b9f72a78dc508f5d963cbac74fa68eeac88a4c7c3a3b
+    checksum_algorithm: sha256
+    credit: MSL PLACES localization archive, NASA/JPL-Caltech, PDS Imaging Node.
+  # Upper row of the sol 4611 Navcam mosaic (sequence NCAM00722, site 117, drive 2730), NASA's PIA26632,
+  # which names Mishe Mokwa, Texoli, upper Mount Sharp and the crater rim. Drawn by plot_landmark_check.py.
+  - name: MSL Navcam frame NRB_806844618ILT_F1172730NCAM00722M1, sol 4611 (image)
+    path: navcam/sol4611/NRB_806844618ILT_F1172730NCAM00722M1.IMG
+    size_bytes: 2142208
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL04611/NRB_806844618ILT_F1172730NCAM00722M1.IMG
+    checksum: 3c3286f455d8d32dc47934e72866278a5ccda9d9fc577dcac723a546edfe37b7
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_806844618ILT_F1172730NCAM00722M1, sol 4611 (label)
+    path: navcam/sol4611/NRB_806844618ILT_F1172730NCAM00722M1.LBL
+    size_bytes: 26377
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL04611/NRB_806844618ILT_F1172730NCAM00722M1.LBL
+    checksum: 869f1bc79f39c42f3de6fcc0e8733c3662338cbb6c7f630ea992115e2a6c3702
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_806844774ILT_F1172730NCAM00722M1, sol 4611 (image)
+    path: navcam/sol4611/NRB_806844774ILT_F1172730NCAM00722M1.IMG
+    size_bytes: 2142208
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL04611/NRB_806844774ILT_F1172730NCAM00722M1.IMG
+    checksum: 99f3e7d17aa3f407dda2cebb324b463e73183ae7c2b16c43023f7a763a7b113f
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_806844774ILT_F1172730NCAM00722M1, sol 4611 (label)
+    path: navcam/sol4611/NRB_806844774ILT_F1172730NCAM00722M1.LBL
+    size_bytes: 26377
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL04611/NRB_806844774ILT_F1172730NCAM00722M1.LBL
+    checksum: 0d0b2f49502c7e66858772fb33a07899e5f7d0f02a24ef1daca0be1b1d5c9bc3
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_806844805ILT_F1172730NCAM00722M1, sol 4611 (image)
+    path: navcam/sol4611/NRB_806844805ILT_F1172730NCAM00722M1.IMG
+    size_bytes: 2142208
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL04611/NRB_806844805ILT_F1172730NCAM00722M1.IMG
+    checksum: 275ac6aa957eb01178ef9cf5e9fa96e3a93c9de11407cb72000f69e91c2339f4
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_806844805ILT_F1172730NCAM00722M1, sol 4611 (label)
+    path: navcam/sol4611/NRB_806844805ILT_F1172730NCAM00722M1.LBL
+    size_bytes: 26375
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL04611/NRB_806844805ILT_F1172730NCAM00722M1.LBL
+    checksum: 88b146afcf9614120bf04f811c259c12fe4898ca8501074d6f1428e144933f4e
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
