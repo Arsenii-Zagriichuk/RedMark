@@ -640,3 +640,18 @@ def test_science_visits_same_cell_targets_by_a_safe_detour():
     assert all(target in route.path for target in targets)
     assert route.extra_time_vs_fastest_s == pytest.approx(17.429355, abs=0.000001)
     assert all(c.passed for c in route.limit_checks)
+
+
+def test_the_cart_does_not_need_a_safe_walk_back_to_the_habitat():
+    g = two_steep_cells_4_m_grid((4, 5))
+    start, goal, habitat = Point(x=18, y=30), Point(x=18, y=34), Point(x=19, y=23.9)
+
+    route = plan_on_grid(
+        g, start, goal, habitat, DEFAULT_LIMITS, mode=Mode.cart, uncertainty_m=3.55
+    )
+
+    assert route.path == [start, goal]
+    assert route.total_time_s == pytest.approx(7.2)
+    assert route.walk_back_margin_s == 0
+    assert not {"walk_back", "daylight"} & {c.limit for c in route.limit_checks}
+    assert all(c.passed for c in route.limit_checks)

@@ -264,9 +264,10 @@ def _respond(
     max_walk_s = limits.max_walk_h * 3600
     if total_s > max_walk_s:
         raise NoSafeRoute(f"the fastest safe path takes {total_s / 3600:.1f} h")
-    if not all(math.isfinite(stop.home_s) for stop in stops):
+    home_reachable = all(math.isfinite(stop.home_s) for stop in stops)
+    if not home_reachable and not rules.cart:
         raise NoSafeRoute("part of the route has no safe path back to the habitat")
-    walk_back_margin_s = _spare_s(max_walk_s, stops)
+    walk_back_margin_s = _spare_s(max_walk_s, stops) if home_reachable else 0.0
     checks = []
     if not rules.cart:
         if walk_back_margin_s < 0:
