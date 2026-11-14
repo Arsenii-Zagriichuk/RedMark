@@ -4,14 +4,16 @@ Three tiers, finest first:
 
 - the 1 m Gale terrain, in a window round the walk area, for the near skyline;
 - a 10 m copy of the whole Gale file (averaged), for the middle distance;
-- MOLA at 463 m for everything beyond the Gale file: the top of Mount Sharp
-  and most of the crater rim.
+- the HRSC and MOLA blended terrain at 200 m for everything beyond the Gale
+  file: the top of Mount Sharp and most of the crater rim.
 
-Both files are equirectangular on the 3,396,190 m sphere with true scale at
-the equator, the same frame as the site map, so no reprojection is needed.
-MOLA is shifted by the median height difference where the two overlap, so
-the two sources join without a step. The 10 m copy and the MOLA crop are
-cached next to the grid, since reading the whole 1 m file takes minutes.
+All are on the 3,396,190 m sphere. The Gale file is equirectangular with true
+scale at the equator, the same frame as the site map; the blended crop is in
+degrees of longitude and latitude, which on that sphere is the same frame
+scaled by 59,274.7 m per degree, so no resampling is needed. The far tier is
+shifted by the median height difference where it overlaps the Gale file, so
+the two join without a step. The 10 m copy and the far crop are cached next
+to the grid, since reading the whole 1 m file takes minutes.
 """
 
 from collections.abc import Callable
@@ -24,45 +26,71 @@ from rasterio.enums import Resampling
 from rasterio.windows import Window, from_bounds
 
 from contracts.models.common import Bounds
-from locate.horizon.render import Raster, Terrain, Tier
+from locate.horizon.render import MARS_RADIUS_M, Raster, Terrain, Tier
 
 GALE_DEM = "MSL_Gale_DEM_Mosaic_1m_v3.tif"
-MOLA_DEM = "Mars_MGS_MOLA_DEM_mosaic_global_463m.tif"
+FAR_DEM = "terrain/Gale_HRSC_MOLA_BlendDEM_200mp_v2_crop.tif"
 MID_RES_M = 10.0
 NEAR_REACH_M = 1_000.0
 FAR_REACH_M = 120_000.0
+METRES_PER_DEGREE = MARS_RADIUS_M * np.pi / 180
 
 
 @dataclass(frozen=True)
 class GaleTerrain:
     terrain: Terrain
-    mola_offset_m: float
-    """Added to MOLA heights to join them to the Gale terrain."""
+    far_offset_m: float
+    """Added to the far tier's heights to join them to the Gale terrain."""
     tier_res_m: tuple[float, ...]
 
 
 def load_gale_terrain(data_root: Path, walk_area: Bounds, cache_dir: Path) -> GaleTerrain:
-    near = _read_window(data_root / GALE_DEM, _grow(walk_area, NEAR_REACH_M))
+    near = read_heights(data_root / GALE_DEM, _grow(walk_area, NEAR_REACH_M))
     mid = _cached(
         cache_dir / f"gale-{MID_RES_M:.0f}m.npz", lambda: _read_decimated(data_root / GALE_DEM)
     )
-    far = _grow(walk_area, FAR_REACH_M)
-    mola = _cached(
-        cache_dir / f"mola-{far.min_x:.0f}_{far.min_y:.0f}_{far.max_x:.0f}_{far.max_y:.0f}.npz",
-        lambda: _read_window(data_root / MOLA_DEM, far),
+    reach = _grow(walk_area, FAR_REACH_M)
+    far = _cached(
+        cache_dir
+        / f"far-200m-{reach.min_x:.0f}_{reach.min_y:.0f}_{reach.max_x:.0f}_{reach.max_y:.0f}.npz",
+        lambda: read_heights(data_root / FAR_DEM, reach),
     )
-    offset = mola_offset(mid, mola)
-    mola = Raster(mola.heights + np.float32(offset), mola.left, mola.top, mola.res)
-    terrain = Terrain([Tier(near, NEAR_REACH_M), Tier(mid), Tier(mola)])
-    return GaleTerrain(terrain, offset, (near.res, mid.res, mola.res))
+    offset = height_offset(mid, far)
+    far = Raster(far.heights + np.float32(offset), far.left, far.top, far.res)
+    terrain = Terrain([Tier(near, NEAR_REACH_M), Tier(mid), Tier(far)])
+    return GaleTerrain(terrain, offset, (near.res, mid.res, far.res))
 
 
-def mola_offset(gale: Raster, mola: Raster) -> float:
-    """Median of Gale minus MOLA height at the MOLA cells the Gale file covers."""
-    rows, cols = np.indices(mola.heights.shape)
-    x = mola.left + (cols.ravel() + 0.5) * mola.res
-    y = mola.top - (rows.ravel() + 0.5) * mola.res
-    diff = gale.sample(x, y) - mola.heights.ravel()
+def read_heights(path: Path, bounds: Bounds) -> Raster:
+    """Heights inside bounds (map metres), as a raster in map metres.
+
+    Works for files in the site's equirectangular metres and for files in
+    degrees on the same sphere.
+    """
+    with rasterio.open(path) as src:
+        scale = METRES_PER_DEGREE if src.crs.is_geographic else 1.0
+        window = from_bounds(
+            bounds.min_x / scale,
+            bounds.min_y / scale,
+            bounds.max_x / scale,
+            bounds.max_y / scale,
+            src.transform,
+        )
+        window = window.round_offsets().round_lengths()
+        window = window.intersection(Window(0, 0, src.width, src.height))
+        heights = src.read(1, window=window, masked=True).astype(np.float32).filled(np.nan)
+        transform = src.window_transform(window)
+    return Raster(
+        heights, left=transform.c * scale, top=transform.f * scale, res=transform.a * scale
+    )
+
+
+def height_offset(gale: Raster, other: Raster) -> float:
+    """Median of Gale minus the other height at the other's cells the Gale file covers."""
+    rows, cols = np.indices(other.heights.shape)
+    x = other.left + (cols.ravel() + 0.5) * other.res
+    y = other.top - (rows.ravel() + 0.5) * other.res
+    diff = gale.sample(x, y) - other.heights.ravel()
     return float(np.nanmedian(diff))
 
 
@@ -73,16 +101,6 @@ def _grow(bounds: Bounds, margin_m: float) -> Bounds:
         max_x=bounds.max_x + margin_m,
         max_y=bounds.max_y + margin_m,
     )
-
-
-def _read_window(path: Path, bounds: Bounds) -> Raster:
-    with rasterio.open(path) as src:
-        window = from_bounds(bounds.min_x, bounds.min_y, bounds.max_x, bounds.max_y, src.transform)
-        window = window.round_offsets().round_lengths()
-        window = window.intersection(Window(0, 0, src.width, src.height))
-        heights = src.read(1, window=window, masked=True).astype(np.float32).filled(np.nan)
-        transform = src.window_transform(window)
-    return Raster(heights, left=transform.c, top=transform.f, res=transform.a)
 
 
 def _read_decimated(path: Path) -> Raster:

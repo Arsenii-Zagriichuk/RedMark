@@ -5,7 +5,7 @@ skyline and cache it in $REDMARK_DATA/gale/horizon/:
 
 - grid.npz: xs, ys (map metres), azimuths_deg, ground_m (ground height at each
   spot) and elevation_deg[iy, ix, iaz], the horizon elevation in degrees;
-- grid-meta.json: spacing, ray settings, computing time, the MOLA height
+- grid-meta.json: spacing, ray settings, computing time, the far-terrain height
   offset, and the script, commit and input checksums that wrote it.
 
 Run with `uv run python -m locate.horizon.grid`. The walk area comes from
@@ -25,7 +25,7 @@ import yaml
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
 from locate.horizon.render import skyline
-from locate.horizon.sources import FAR_REACH_M, GALE_DEM, MOLA_DEM, load_gale_terrain
+from locate.horizon.sources import FAR_DEM, FAR_REACH_M, GALE_DEM, load_gale_terrain
 
 SPACING_M = 100.0
 AZIMUTH_STEP_DEG = 0.25
@@ -52,14 +52,16 @@ def spots_along(low: float, high: float, spacing: float) -> np.ndarray:
 def main() -> None:
     site = SiteConfig.model_validate(yaml.safe_load((REPO_ROOT / "sites/gale.yaml").read_text()))
     root = data_root()
-    missing = [name for name in (GALE_DEM, MOLA_DEM) if not (root / name).exists()]
+    missing = [name for name in (GALE_DEM, FAR_DEM) if not (root / name).exists()]
     if missing:
         sys.exit(f"{', '.join(missing)} not in {root}: set REDMARK_DATA to the data folder")
     out_dir = root / "gale" / "horizon"
     started = time.perf_counter()
     gale = load_gale_terrain(root, site.bounds, out_dir / "cache")
     loaded = time.perf_counter()
-    print(f"terrain loaded in {loaded - started:.0f} s; MOLA offset {gale.mola_offset_m:+.1f} m")
+    print(
+        f"terrain loaded in {loaded - started:.0f} s; far-terrain offset {gale.far_offset_m:+.1f} m"
+    )
 
     xs = spots_along(site.bounds.min_x, site.bounds.max_x, SPACING_M)
     ys = spots_along(site.bounds.min_y, site.bounds.max_y, SPACING_M)
@@ -100,7 +102,7 @@ def main() -> None:
         "ray_samples": int(distances.size),
         "ray_reach_m": [NEAREST_M, float(distances[-1])],
         "tier_res_m": list(gale.tier_res_m),
-        "mola_offset_m": round(gale.mola_offset_m, 2),
+        "far_offset_m": round(gale.far_offset_m, 2),
         "missing_directions": int(np.isnan(elevation).sum()),
         "terrain_load_s": round(loaded - started, 1),
         "compute_s": round(finished - loaded, 1),
@@ -108,7 +110,7 @@ def main() -> None:
             "script": "locate/horizon/grid.py",
             "commit": _commit(),
             "inputs": [
-                {"path": name, "sha256": _sha256(root / name)} for name in (GALE_DEM, MOLA_DEM)
+                {"path": name, "sha256": _sha256(root / name)} for name in (GALE_DEM, FAR_DEM)
             ]
             + [{"path": "sites/gale.yaml", "sha256": _sha256(REPO_ROOT / "sites/gale.yaml")}],
         },
