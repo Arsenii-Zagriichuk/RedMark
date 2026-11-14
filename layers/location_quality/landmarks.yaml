@@ -4,6 +4,7 @@
 # layers/location_quality/landmarks.py; the positions found go in layer5-gale.json.
 #
 # Each landmark is one or more points; a cell sees the landmark if its eye sees any of them.
+# in_sentence is how lost-mode directions name it mid-sentence; the title when left out.
 # Ground within body_radius_m of a point is the landmark itself and never hides it.
 #
 # Three ways to find a point:
@@ -15,6 +16,7 @@
 landmarks:
   - id: mount_sharp_peak
     title: Upper Mount Sharp peak
+    in_sentence: the upper Mount Sharp peak
     # The pale peak NASA's sol 4611 Navcam mosaic (PIA26632, sequence NCAM00722 at site 117,
     # drive 2730) names behind the buttes: the bright dome on the skyline from about 80° to 110°,
     # highest at 98°. The mountain's true summit, further south-east, is hidden behind nearer
@@ -38,6 +40,7 @@ landmarks:
     body_radius_m: 300
   - id: crater_rim
     title: Gale crater rim
+    in_sentence: the Gale crater rim
     # The rim across the crater floor, west through north to north-east of the walk area
     # (Mount Sharp fills the south and east), every 10°.
     rim: {from_deg: 240, to_deg: 60, step_deg: 10, nearest_m: 15000, farthest_m: 80000}
