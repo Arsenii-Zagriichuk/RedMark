@@ -3,20 +3,20 @@
   "site": "jezero",
   "method": "drone",
   "position": {
-    "x": 4354124.482046038,
-    "y": 1092270.7713404913
+    "x": 4354123.935861943,
+    "y": 1092270.6046349343
   },
-  "heading_deg": 88.63528185545387,
+  "heading_deg": 90.52753327850316,
   "uncertainty_m": 10.0,
   "confidence_pct": 0.0,
-  "time_per_fix_s": 0.85,
+  "time_per_fix_s": 2.3,
   "terrain_type": "textured",
   "simulated": false,
   "overlay": "results/drone/overlays/HNM_0152_0680432606_392FDR_N0100001HELI02756_0000LUJ05-loftr.png",
   "truth": null,
   "provenance": {
     "script": "locate/drone/first_fix.py",
-    "commit": "f010f1d997bb5c82a550c99ab20963c6a3278084",
+    "commit": "8f9e0cd5cd90fd71a56e2f41790531f5aa21e532",
     "inputs": [
       {
         "path": "jezero/source/helicam/sol-00152/HNM_0152_0680432606_392FDR_N0100001HELI02756_0000LUJ05.xml",
@@ -37,6 +37,14 @@
       {
         "path": "jezero/pack/frames.csv",
         "sha256": "fe7f45bebb33a54a219ce816055aa1f7e7c38f896e4452685a3634eee36453ad"
+      },
+      {
+        "path": "results/drone/fixes/HNM_0152_0680432590_271FDR_N0100001HELI02270_0000LUJ05.json",
+        "sha256": "19b665fa6e41c72a5037b55e52071273b57c6b39beb6ac11287771022aea8920"
+      },
+      {
+        "path": "jezero/source/helicam/sol-00152/HNM_0152_0680432590_271FDR_N0100001HELI02270_0000LUJ05.xml",
+        "sha256": "82d5ad6eb868cc866a105ae5c29a59243769688ce3fa141f361b0cb2a77eece3"
       },
       {
         "path": "weights/mbl-mars/loftr/V1/finetuned/2024_08_23-05_52_53.pt",
