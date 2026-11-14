@@ -91,7 +91,7 @@ def test_retry_preserves_published_overlay_and_hashes_the_prior_used(tmp_path, m
     monkeypatch.setattr(
         first_fix, "read_drone_frame", lambda label: SimpleNamespace(flight=10, sclk=int(label))
     )
-    monkeypatch.setattr(first_fix, "_onboard", lambda frame, waypoints: (10.0, 20.0))
+    monkeypatch.setattr(first_fix, "frame_onboard", lambda frame, waypoints: (10.0, 20.0))
     monkeypatch.setattr(matchers, "pick_device", lambda: SimpleNamespace(type="cpu"))
     monkeypatch.setattr(matchers, "loftr_matcher", lambda weights, device: None)
     pixels = np.full((8, 8), 127, dtype=np.uint8)

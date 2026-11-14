@@ -54,23 +54,84 @@ def _frame_row(frames_csv: Path, stem: str) -> dict:
     raise SystemExit(f"{stem} is not in {frames_csv}; pick a frame from the Jezero pack")
 
 
-def _draw_overlay(
+def draw_overlay(
     window: MapWindow,
     ground: GroundView,
-    estimate: DroneFix,
+    estimate: DroneFix | None,
     onboard: tuple[float, float],
     title: str,
     out: Path,
     fix: FixResult,
+    counts: tuple[int, int] | None = None,
 ) -> None:
     """The map window with the straightened photo laid on it by the fit, as a
     checkerboard of photo and map squares (where the fit is right, rocks and
     ridges run on across the squares' edges), its outline, the agreeing
     matches, the onboard position and the fix; the straightened photo itself
-    on the left."""
+    on the left. A scored fix also shows the answer key's position and heading
+    (magenta). With no estimate (the matcher did not lock) the map window is
+    drawn alone, with the fix where it was searched for; `counts` then gives
+    the matches and agreeing matches found."""
+    k = OVERLAY_SCALE
+    base = np.repeat(np.repeat(window.image, k, axis=0), k, axis=1).astype(np.float64)
+    gray = base if estimate is None else _photo_on_map(window, ground, estimate, base)
+    canvas = Image.fromarray(gray.astype(np.uint8)).convert("RGB")
+    draw = ImageDraw.Draw(canvas)
+
+    def to_px(xy: np.ndarray) -> list[tuple[float, float]]:
+        """Map metres to overlay pixels, whose corners sit at k times the window's."""
+        return [tuple(p) for p in (window.to_px(xy) + 0.5) * k]
+
+    def heading_line(x: float, y: float, heading_deg: float, colour: tuple[int, int, int]):
+        heading = np.radians(heading_deg)
+        draw.line((x, y, x + 40 * np.sin(heading), y - 40 * np.cos(heading)), fill=colour, width=3)
+
+    if estimate is not None:
+        for px, py in to_px(estimate.inlier_xy):
+            draw.ellipse((px - 2, py - 2, px + 2, py + 2), fill=(0, 200, 255))
+        outline = to_px(estimate.outline_xy)
+        if outline:
+            draw.line(outline + outline[:1], fill=(255, 40, 40), width=3)
+    position = np.array([fix.position.x, fix.position.y])
+    (fx, fy), (ox, oy) = to_px(np.array([position, onboard]))
+    draw.line((ox - 9, oy - 9, ox + 9, oy + 9), fill=(255, 220, 0), width=3)
+    draw.line((ox - 9, oy + 9, ox + 9, oy - 9), fill=(255, 220, 0), width=3)
+    draw.ellipse((fx - 8, fy - 8, fx + 8, fy + 8), outline=(40, 255, 40), width=3)
+    heading_line(fx, fy, fix.heading_deg, (40, 255, 40))
+    if fix.truth is not None:
+        # On top, with arms past the fix's circle, so a fix right on it still shows it.
+        magenta = (255, 60, 255)
+        ((tx, ty),) = to_px(np.array([fix.truth.position.x, fix.truth.position.y]))
+        draw.line((tx - 14, ty, tx + 14, ty), fill=magenta, width=2)
+        draw.line((tx, ty - 14, tx, ty + 14), fill=magenta, width=2)
+    metre = k / window.resolution
+    x0, y0 = 20, canvas.height - 30
+    draw.rectangle((x0, y0, x0 + 20 * metre, y0 + 6), fill=(255, 255, 255))
+    draw.text((x0, y0 - 16), "20 m", fill=(255, 255, 255))
+
+    left = Image.fromarray(np.repeat(np.repeat(ground.image, k, axis=0), k, axis=1)).convert("RGB")
+    sheet = Image.new("RGB", (left.width + canvas.width + 10, max(left.height, canvas.height) + 70))
+    sheet.paste(left, (0, 70))
+    sheet.paste(canvas, (left.width + 10, 70))
+    text = ImageDraw.Draw(sheet)
+    for i, line in enumerate(title.splitlines()):
+        text.text((10, 8 + 14 * i), line, fill=(255, 255, 0))
+    matches, inliers = counts if counts is not None else (estimate.matches, estimate.inliers)
+    metadata = PngImagePlugin.PngInfo()
+    metadata.add_itxt("fix_result", fix.model_dump_json())
+    metadata.add_text("matches", str(matches))
+    metadata.add_text("inliers", str(inliers))
+    with written_atomically(out) as partial:
+        sheet.save(partial, format="PNG", pnginfo=metadata)
+
+
+def _photo_on_map(
+    window: MapWindow, ground: GroundView, estimate: DroneFix, base: np.ndarray
+) -> np.ndarray:
+    """`base` (the window at OVERLAY_SCALE) with the photo laid on it by the fit
+    in alternate checkerboard squares."""
     k = OVERLAY_SCALE
     rows, cols = window.image.shape
-    base = np.repeat(np.repeat(window.image, k, axis=0), k, axis=1).astype(np.float64)
 
     # Each overlay pixel's place in the ground view, through the fit's inverse.
     a, b = estimate.to_window
@@ -92,52 +153,15 @@ def _draw_overlay(
     matched[on_photo] = np.quantile(base[on_photo], ranks)
     gray = base.copy()
     gray[photo_square] = matched[photo_square]
-    canvas = Image.fromarray(gray.astype(np.uint8)).convert("RGB")
-    draw = ImageDraw.Draw(canvas)
-
-    def to_px(xy: np.ndarray) -> list[tuple[float, float]]:
-        """Map metres to overlay pixels, whose corners sit at k times the window's."""
-        return [tuple(p) for p in (window.to_px(xy) + 0.5) * k]
-
-    for px, py in to_px(estimate.inlier_xy):
-        draw.ellipse((px - 2, py - 2, px + 2, py + 2), fill=(0, 200, 255))
-    outline = to_px(estimate.outline_xy)
-    if outline:
-        draw.line(outline + outline[:1], fill=(255, 40, 40), width=3)
-    (fx, fy), (ox, oy) = to_px(np.array([estimate.position, onboard]))
-    draw.line((ox - 9, oy - 9, ox + 9, oy + 9), fill=(255, 220, 0), width=3)
-    draw.line((ox - 9, oy + 9, ox + 9, oy - 9), fill=(255, 220, 0), width=3)
-    draw.ellipse((fx - 8, fy - 8, fx + 8, fy + 8), outline=(40, 255, 40), width=3)
-    heading = np.radians(estimate.heading_deg)
-    draw.line(
-        (fx, fy, fx + 40 * np.sin(heading), fy - 40 * np.cos(heading)), fill=(40, 255, 40), width=3
-    )
-    metre = k / window.resolution
-    x0, y0 = 20, canvas.height - 30
-    draw.rectangle((x0, y0, x0 + 20 * metre, y0 + 6), fill=(255, 255, 255))
-    draw.text((x0, y0 - 16), "20 m", fill=(255, 255, 255))
-
-    left = Image.fromarray(np.repeat(np.repeat(ground.image, k, axis=0), k, axis=1)).convert("RGB")
-    sheet = Image.new("RGB", (left.width + canvas.width + 10, max(left.height, canvas.height) + 70))
-    sheet.paste(left, (0, 70))
-    sheet.paste(canvas, (left.width + 10, 70))
-    text = ImageDraw.Draw(sheet)
-    for i, line in enumerate(title.splitlines()):
-        text.text((10, 8 + 14 * i), line, fill=(255, 255, 0))
-    metadata = PngImagePlugin.PngInfo()
-    metadata.add_itxt("fix_result", fix.model_dump_json())
-    metadata.add_text("matches", str(estimate.matches))
-    metadata.add_text("inliers", str(estimate.inliers))
-    with written_atomically(out) as partial:
-        sheet.save(partial, format="PNG", pnginfo=metadata)
+    return gray
 
 
-def _label(jezero: Path, row: dict) -> Path:
+def label_path(jezero: Path, row: dict) -> Path:
     stem = row["product"].removesuffix(".IMG")
     return jezero / "source" / "helicam" / f"sol-{int(row['sol']):05d}" / f"{stem}.xml"
 
 
-def _onboard(frame: DroneFrame, waypoints: Path) -> tuple[float, float]:
+def frame_onboard(frame: DroneFrame, waypoints: Path) -> tuple[float, float]:
     return onboard_position(
         frame, takeoff_position(json.loads(waypoints.read_text()), frame.flight)
     )
@@ -148,7 +172,7 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
     jezero = root / "jezero"
     frames_csv = jezero / "pack" / "frames.csv"
     row = _frame_row(frames_csv, stem)
-    label = _label(jezero, row)
+    label = label_path(jezero, row)
     crop = jezero / "pack" / "crops" / row["crop"]
     waypoints = jezero / "source" / "nasa" / "m20_heli_waypoints.json"
     inputs = [label, label.with_suffix(".IMG"), crop, waypoints, frames_csv]
@@ -159,7 +183,7 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
     previous = None
     if previous_stem:
         previous_row = _frame_row(frames_csv, previous_stem)
-        previous_label = _label(jezero, previous_row)
+        previous_label = label_path(jezero, previous_row)
         previous_frame = read_drone_frame(previous_label.read_text())
         if previous_frame.flight != frame.flight:
             raise SystemExit(f"--previous {previous_stem} must be from the same flight as {stem}")
@@ -183,7 +207,7 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
             )
         previous = PreviousPhoto(
             fix=(prior.position.x, prior.position.y),
-            onboard=_onboard(previous_frame, waypoints),
+            onboard=frame_onboard(previous_frame, waypoints),
         )
         inputs += [previous_fix, previous_label]
         captured_checksums[previous_fix] = hashlib.sha256(prior_bytes).hexdigest()
@@ -194,7 +218,7 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
     started = time.perf_counter()
     with rasterio.open(label) as src:
         raw = src.read(1)
-    onboard = _onboard(frame, waypoints)
+    onboard = frame_onboard(frame, waypoints)
     centre = search_centre(onboard, previous)
     ground, window, drone_fix = fix_frame(raw, frame, crop, centre, matcher)
     seconds = preparation_s + (time.perf_counter() - started)
@@ -231,7 +255,7 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
         overlay=recorded(overlay),
         provenance=made_by,
     )
-    _draw_overlay(window, ground, drone_fix, onboard, title, overlay, fix)
+    draw_overlay(window, ground, drone_fix, onboard, title, overlay, fix)
     path = RESULTS / "fixes" / f"{stem}.json"
     with written_atomically(path) as partial:
         partial.write_text(fix.model_dump_json(indent=2) + "\n", encoding="utf-8")

@@ -30,7 +30,21 @@ plus `matches` and `inliers` metadata. A LightGlue fix can seed `--previous`
 the same way a LoFTR fix can. Run the preferred matcher last when comparing
 both on the same frame so its result is the one read from `fixes/`.
 
-Until P2-06 measures them on the answer key, every drone fix carries an uncertainty circle of 10 m (the project's drone target) and a confidence of 0%, as named constants in `fix.py`. What other owners need to know before they use the results is in `results/drone/README.md`.
+Every drone fix carries an uncertainty circle of 10 m (the project's drone target) and a confidence of 0%, as named constants in `fix.py`. They are not fitted to the answer key, since the key is the test; the drone test reports how often the 10 m circle holds the truth. What other owners need to know before they use the results is in `results/drone/README.md`.
+
+## Drone test at Jezero (P2-06)
+
+```bash
+REDMARK_DATA=~/redmark-data uv run --group gpu python -m locate.drone.score_jezero [--matcher lightglue]
+```
+
+Runs the matcher on every frame of Person 4's answer key (P4-01, read with `route.answer_key.read_answer_key`) and scores each fix through the shared scorer. It needs the Jezero pack, the PDS labels, JPL's weights and `$REDMARK_DATA/jezero/answer-key/` (`keys/`, `overlays/`, `flights.json`).
+
+- **Order and search.** Each flight's keyed frames run in time order. A flight's first frame is searched around the onboard position; each later one around the previous fix, moved as the drone thinks it moved since (as in `first_fix.py`).
+- **No lock.** A frame the matcher cannot lock on (fewer than 15 matches agree) gets a fix at its search centre, the position the crew would still have, and it is scored. A miss counts against the numbers rather than dropping out. Its overlay says NO LOCK.
+- **Tuning flight.** P2-05 chose the tiling and match limits on flight 10's frames, so flight 10 is the tuning flight (`TUNING_FLIGHTS`): a key on it is refused. The flights share airfields, so a key whose ground a flight 10 frame may have seen is also left out and listed in the output. The check uses each frame's reach (how far its straightened view sees, 35–45 m) plus 20 m for flight 10's onboard positions drifting. On the pack this leaves 20 frames that can be keyed: flight 9's first 8, flight 11's last 6 and flight 15's first 6.
+- **Output.** A scored fix result per frame in `results/drone/fixes/<frame>.json` (with `truth`), its overlay in `results/drone/overlays/<frame>-<matcher>-<run-id>.png`, and the test summary `results/drone/drone-jezero.json`: median error and the share within 1, 5 and 10 m, overall, by terrain type (Person 4's by-eye tags) and for hard mode (sand ripples, `hard_mode`). The run prints JPL's benchmark beside them: 89.4% within 5 m and 99.8% within 10 m. Like `first_fix.py`, nothing is written unless the fix code and `route/answer_key.py` are committed.
+- **Overlay.** As in P2-05, plus the answer key's position as a magenta cross, and the error in the title.
 
 ## Simulated Gale drone fix (P2-07)
 
@@ -42,4 +56,4 @@ There are no drone photos of Gale, so `gale_view.py` cuts one from the Gale 25 c
 
 The photo comes from the same map it is matched to, so it shows the pipeline, not accuracy. The fix result has `simulated: true` and `truth: null`, every image carries a SIMULATED banner, and no error is computed. Needs the code committed, like `first_fix.py`. It stops if the fix lands outside the site or more than 5 m off the route, and prints the demo step whose cached route the fix sits on (`plan.route.fastest.<target>.20`): that entry must be recorded from the same site config and route engine (`prep/gale/demo_cache.py`), or the Drone fix screen shows the crew off the walk. Its provenance lists the route engine's inputs as well: the slope, sand and ridge layers, the conditions file and, when it exists, Person 3's layer 5 checkpoint candidates. What it writes is in `results/drone/README.md`.
 
-Tests: `uv run pytest locate/drone`. They need no GPU or data. One end-to-end test uses a frozen synthetic frame rendered by NASA VICAR from the flight 10 label and runs straightening, window selection, matching and the shared scorer. Another scores a fix against its own key and expects zero error. The Gale tests cut a photo from a synthetic map and expect the fix back where it was cut and the suit markers back on the astronauts' map positions.
+Tests: `uv run pytest locate/drone`. They need no GPU or data. The drone test's tests run the fixture frame through the whole test to a summary, score a no-lock frame at its search centre, and check that Person 4's tie-point fit, given the matcher's own points, finds the matcher's position and heading. One end-to-end test uses a frozen synthetic frame rendered by NASA VICAR from the flight 10 label and runs straightening, window selection, matching and the shared scorer. Another scores a fix against its own key and expects zero error. The Gale tests cut a photo from a synthetic map and expect the fix back where it was cut and the suit markers back on the astronauts' map positions.

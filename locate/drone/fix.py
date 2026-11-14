@@ -19,9 +19,10 @@ import numpy as np
 from contracts.models.common import Method, Point, Provenance, SiteId, TerrainType
 from contracts.models.fix_result import FixResult
 
-# The uncertainty circle and confidence can only be measured on the answer key
-# (P2-06). Until then every drone fix carries these: the project's 5–10 m
-# drone target as the circle, and no claimed confidence.
+# Every drone fix carries these: the project's 5–10 m drone target as the
+# circle, and no claimed confidence. They are not fitted to the answer key,
+# which is the test (tuning on it would see its ground); the drone test
+# (score_jezero.py) reports the circle's measured coverage, within_10m_pct.
 UNCALIBRATED_UNCERTAINTY_M = 10.0
 UNCALIBRATED_CONFIDENCE_PCT = 0.0
 
@@ -105,6 +106,15 @@ class DroneFix:
     to_window: tuple[complex, complex]  # (a, b): window pixel = a * view pixel + b, complex
 
 
+class NoFix(ValueError):
+    """The matcher did not lock: too few matches agree on one fit, or its scale is off."""
+
+    def __init__(self, message: str, matches: int, inliers: int):
+        super().__init__(message)
+        self.matches = matches
+        self.inliers = inliers
+
+
 def locate_on_map(ground: GroundView, window: MapWindow, matcher: Matcher) -> DroneFix:
     if not np.isclose(ground.resolution, window.resolution):
         raise ValueError("the ground view and the map window must share one scale")
@@ -113,9 +123,11 @@ def locate_on_map(ground: GroundView, window: MapWindow, matcher: Matcher) -> Dr
     matches = Matches(found.query_xy[keep], found.reference_xy[keep])
     a, b, inliers = _fit_similarity(matches.query_xy, matches.reference_xy)
     if not MIN_SCALE <= abs(a) <= MAX_SCALE or inliers.sum() < MIN_INLIERS:
-        raise ValueError(
+        raise NoFix(
             f"no fix: {inliers.sum()} of {len(inliers)} matches agree ({MIN_INLIERS} needed)"
-            f" at scale {abs(a):.2f} ({MIN_SCALE} to {MAX_SCALE} allowed)"
+            f" at scale {abs(a):.2f} ({MIN_SCALE} to {MAX_SCALE} allowed)",
+            matches=len(inliers),
+            inliers=int(inliers.sum()),
         )
 
     def carry(px: np.ndarray) -> np.ndarray:
@@ -249,13 +261,35 @@ def build_fix_result(
     provenance: Provenance,
 ) -> FixResult:
     """A real (not simulated) drone fix at Jezero, not yet scored."""
-    x, y = estimate.position
+    return jezero_fix_result(
+        photo_id=photo_id,
+        position=estimate.position,
+        heading_deg=estimate.heading_deg,
+        time_per_fix_s=time_per_fix_s,
+        terrain_type=terrain_type,
+        overlay=overlay,
+        provenance=provenance,
+    )
+
+
+def jezero_fix_result(
+    *,
+    photo_id: str,
+    position: tuple[float, float],
+    heading_deg: float,
+    time_per_fix_s: float,
+    terrain_type: TerrainType,
+    overlay: str,
+    provenance: Provenance,
+) -> FixResult:
+    """A real (not simulated) drone fix at Jezero at `position`, not yet scored."""
+    x, y = position
     return FixResult(
         photo_id=photo_id,
         site=SiteId.jezero,
         method=Method.drone,
         position=Point(x=x, y=y),
-        heading_deg=estimate.heading_deg,
+        heading_deg=heading_deg,
         uncertainty_m=UNCALIBRATED_UNCERTAINTY_M,
         confidence_pct=UNCALIBRATED_CONFIDENCE_PCT,
         time_per_fix_s=time_per_fix_s,
