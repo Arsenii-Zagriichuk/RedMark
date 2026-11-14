@@ -18,8 +18,15 @@ from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import dijkstra
 
 from contracts.models.common import Point
-from contracts.models.route_request import Limits
-from contracts.models.route_response import Leg, LimitCheck, RouteResponse
+from contracts.models.route_request import Limits, Mode
+from contracts.models.route_response import (
+    Leg,
+    LimitCheck,
+    RouteResponse,
+)
+from contracts.models.route_response import (
+    Mode as ResponseMode,
+)
 
 # Tobler's hiking function: speed falls by exp(-3.5 * tan(slope)) against flat ground. The
 # slope layer has no direction, so every slope is walked as uphill, the slower case.
@@ -80,7 +87,7 @@ def plan_on_grid(
     habitat: Point,
     limits: Limits,
     *,
-    mode: str = "fastest",
+    mode: Mode = Mode.fastest,
     daylight_s: float | None = None,
     targets: Sequence[Point] = (),
 ) -> RouteResponse:
@@ -90,17 +97,30 @@ def plan_on_grid(
     daylight_s is the time from the walk's start to sunset. The cart cannot cross a ridge,
     and the walk-back rule and daylight limit are crew rules, so they don't apply to it.
     """
-    cart = mode == "cart"
+    cart = mode == Mode.cart
     blocked = blocked_cells(grid, habitat, limits)
     if cart:
         blocked |= grid.ridge
     if grid.cell(start) == grid.cell(goal):
         raise HTTPException(422, "start and goal are in the same planning cell")
+    mapped_targets: list[Point] = []
+    for target in targets:
+        try:
+            grid.cell(target)
+        except NoSafeRoute:
+            continue
+        mapped_targets.append(target)
+    targets = mapped_targets
     walk_s = _walk_seconds_per_cell(grid, limits.planning_speed_kmh)
     field = _Field(grid, walk_s, blocked, [habitat, start, *targets])
     rules = _Rules(habitat, limits, daylight_s, cart)
-    fastest = _respond(grid, rules, _route(field, [start, goal]), "cart" if cart else "fastest")
-    if mode != "science":
+    fastest = _respond(
+        grid,
+        rules,
+        _route(field, [start, goal]),
+        ResponseMode.cart if cart else ResponseMode.fastest,
+    )
+    if mode != Mode.science:
         return fastest
 
     # Walking times between every pair of waypoints, worked out once (indexes into stops).
@@ -118,7 +138,7 @@ def plan_on_grid(
 
     def keeps_limits(waypoints: Sequence[Point]) -> RouteResponse | None:
         try:
-            return _respond(grid, rules, _route(field, waypoints), "science")
+            return _respond(grid, rules, _route(field, waypoints), ResponseMode.science)
         except NoSafeRoute:
             return None
 
@@ -132,7 +152,7 @@ def plan_on_grid(
         # Drop the target whose visit costs the most time, then try again.
         chosen.remove(min(order, key=lambda t: tour_s([i for i in order if i != t])))
     else:
-        science = fastest.model_copy(update={"mode": "science"})
+        science = fastest.model_copy(update={"mode": ResponseMode.science})
     return science.model_copy(
         update={"extra_time_vs_fastest_s": science.total_time_s - fastest.total_time_s}
     )
@@ -211,7 +231,9 @@ def _route(field: _Field, waypoints: Sequence[Point]) -> list[_Stop]:
     return stops
 
 
-def _respond(grid: CostGrid, rules: _Rules, stops: list[_Stop], mode: str) -> RouteResponse:
+def _respond(
+    grid: CostGrid, rules: _Rules, stops: list[_Stop], mode: ResponseMode
+) -> RouteResponse:
     """The route as a RouteResponse, or NoSafeRoute if it breaks a hard limit."""
     limits, habitat = rules.limits, rules.habitat
     total_m = sum(_metres(a.point, b.point) for a, b in zip(stops, stops[1:], strict=False))

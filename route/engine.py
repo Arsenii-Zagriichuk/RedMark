@@ -7,7 +7,7 @@ import json
 import yaml
 
 from contracts.models.conditions import Conditions
-from contracts.models.route_request import RouteRequest
+from contracts.models.route_request import Mode, RouteRequest
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
 from route.layers import load_grid
@@ -62,6 +62,6 @@ def plan(request: dict) -> dict:
         route_request.limits,
         mode=mode,
         daylight_s=daylight,
-        targets=[t.position for t in site.science_targets] if mode == "science" else (),
+        targets=[t.position for t in site.science_targets] if mode == Mode.science else (),
     )
     return response.model_dump(mode="json")

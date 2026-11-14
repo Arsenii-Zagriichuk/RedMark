@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException
 
 from contracts.models.common import Point
-from contracts.models.route_request import Limits
+from contracts.models.route_request import Limits, Mode
 from route.planner import CostGrid, NoSafeRoute, plan_on_grid
 
 DEFAULT_LIMITS = Limits(
@@ -353,7 +353,7 @@ def test_the_crew_climbs_a_ridge_the_cart_drives_round():
     start, goal, habitat = centre(g, 1, 0), centre(g, 1, 6), centre(g, 6, 0)
 
     crew_route = plan_on_grid(g, start, goal, habitat, DEFAULT_LIMITS)
-    cart_route = plan_on_grid(g, start, goal, habitat, DEFAULT_LIMITS, mode="cart")
+    cart_route = plan_on_grid(g, start, goal, habitat, DEFAULT_LIMITS, mode=Mode.cart)
 
     assert any(g.ridge[c] for c in cells(g, crew_route.path))
     assert (6, 3) in cells(g, cart_route.path)
@@ -368,7 +368,7 @@ def test_the_cart_never_slips_through_a_diagonal_ridge():
 
     with pytest.raises(NoSafeRoute):
         plan_on_grid(
-            g, centre(g, 0, 0), centre(g, 6, 6), centre(g, 0, 0), DEFAULT_LIMITS, mode="cart"
+            g, centre(g, 0, 0), centre(g, 6, 6), centre(g, 0, 0), DEFAULT_LIMITS, mode=Mode.cart
         )
 
 
@@ -381,7 +381,7 @@ def test_the_cart_route_has_no_crew_only_limit_checks():
         centre(g, 1, 6),
         centre(g, 6, 0),
         DEFAULT_LIMITS,
-        mode="cart",
+        mode=Mode.cart,
         daylight_s=1e6,
     )
 
@@ -397,7 +397,7 @@ def test_the_science_route_passes_a_target_and_reports_its_extra_time():
     g = grid(np.zeros((35, 101)), cell_m=10.0)
     start, goal, target = centre(g, 31, 0), centre(g, 31, 100), centre(g, 1, 50)
 
-    route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, mode="science", targets=[target])
+    route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, mode=Mode.science, targets=[target])
 
     assert route.mode == "science"
     assert target in route.path
@@ -417,7 +417,7 @@ def test_the_science_route_drops_a_target_the_walk_has_no_time_for():
     # does not; dropping far (2247 s left) saves more than dropping near (2520 s left).
     limits = DEFAULT_LIMITS.model_copy(update={"max_walk_h": 4400 / 3600})
 
-    route = plan_on_grid(g, start, goal, start, limits, mode="science", targets=[near, far])
+    route = plan_on_grid(g, start, goal, start, limits, mode=Mode.science, targets=[near, far])
 
     assert near in route.path and far not in route.path
     assert route.extra_time_vs_fastest_s == pytest.approx(447.35, abs=0.05)
@@ -429,7 +429,7 @@ def test_the_cart_cannot_start_on_a_ridge():
 
     with pytest.raises(NoSafeRoute):
         plan_on_grid(
-            g, centre(g, 1, 3), centre(g, 1, 6), centre(g, 6, 0), DEFAULT_LIMITS, mode="cart"
+            g, centre(g, 1, 3), centre(g, 1, 6), centre(g, 6, 0), DEFAULT_LIMITS, mode=Mode.cart
         )
 
 
@@ -439,7 +439,7 @@ def test_the_science_route_skips_a_target_on_ground_too_steep_to_walk():
     g = grid(slope, cell_m=10.0)
     start, goal, steep = centre(g, 31, 0), centre(g, 31, 100), centre(g, 1, 50)
 
-    route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, mode="science", targets=[steep])
+    route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, mode=Mode.science, targets=[steep])
 
     assert steep not in route.path
     assert route.extra_time_vs_fastest_s == pytest.approx(0)
@@ -453,7 +453,7 @@ def test_a_target_beyond_the_distance_limit_does_not_cost_the_science_route_its_
     beyond = Point(x=goal.x + 4.9, y=goal.y)
     limits = DEFAULT_LIMITS.model_copy(update={"max_distance_from_habitat_m": 1001})
 
-    route = plan_on_grid(g, start, goal, start, limits, mode="science", targets=[near, beyond])
+    route = plan_on_grid(g, start, goal, start, limits, mode=Mode.science, targets=[near, beyond])
 
     assert near in route.path and beyond not in route.path
     assert route.extra_time_vs_fastest_s == pytest.approx(447.35, abs=0.05)
@@ -462,7 +462,44 @@ def test_a_target_beyond_the_distance_limit_does_not_cost_the_science_route_its_
 def test_a_science_route_with_no_targets_is_still_the_science_route():
     g, start, goal = flat_kilometre()
 
-    route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, mode="science", targets=[])
+    route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, mode=Mode.science, targets=[])
 
     assert route.mode == "science"
+    assert route.extra_time_vs_fastest_s == 0
+
+
+@pytest.mark.parametrize(
+    "outside",
+    [
+        Point(x=-5, y=35),
+        Point(x=1015, y=35),
+        Point(x=505, y=-5),
+        Point(x=505, y=355),
+    ],
+    ids=["west", "east", "south", "north"],
+)
+def test_an_unmapped_target_does_not_cost_the_science_route_its_safe_target(outside):
+    g = grid(np.zeros((35, 101)), cell_m=10.0)
+    start, goal, near = centre(g, 31, 0), centre(g, 31, 100), centre(g, 1, 50)
+
+    route = plan_on_grid(
+        g, start, goal, start, DEFAULT_LIMITS, mode=Mode.science, targets=[outside, near]
+    )
+
+    assert near in route.path and outside not in route.path
+    # The safe target adds 248.53 m over the 1 km fastest route, at 1.8 s/m.
+    assert route.extra_time_vs_fastest_s == pytest.approx(447.35, abs=0.05)
+    assert all(c.passed for c in route.limit_checks)
+
+
+def test_a_science_route_with_only_unmapped_targets_keeps_its_mode_and_zero_extra_time():
+    g, start, goal = flat_kilometre()
+    outside = [Point(x=-5, y=15), Point(x=505, y=35)]
+
+    route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, mode=Mode.science, targets=outside)
+
+    assert route.mode == "science"
+    assert route.path[0] == start and route.path[-1] == goal
+    assert route.total_distance_m == pytest.approx(1000)
+    assert route.total_time_s == pytest.approx(1800)
     assert route.extra_time_vs_fastest_s == 0
