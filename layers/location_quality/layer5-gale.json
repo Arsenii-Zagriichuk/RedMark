@@ -182,10 +182,10 @@
   ],
   "score_raster": "gale/rasters/location_quality.tif",
   "terrain_load_s": 3.8,
-  "compute_s": 82.6,
+  "compute_s": 81.7,
   "provenance": {
     "script": "layers/location_quality/build.py",
-    "commit": "adfb1b5b1630791283e21286bfdafd5bd3c64efd",
+    "commit": "ed71e5bdf8012455ae77bb6c604baa0f31b30b65",
     "inputs": [
       {
         "path": "MSL_Gale_DEM_Mosaic_1m_v3.tif",
