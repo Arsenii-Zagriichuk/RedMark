@@ -120,7 +120,8 @@ export function LabScreen({ onBack }: { onBack: () => void }) {
 
   const tests = useMemo(() => chartTests(summaries), [summaries]);
   const photos = useMemo(() => photoList(fixes), [fixes]);
-  const selected = photos.find((photo) => photo.photo_id === selectedId) ?? photos[0];
+  const keyOf = (photo: TestedPhoto) => `${photo.method}/${photo.photo_id}`;
+  const selected = photos.find((photo) => keyOf(photo) === selectedId) ?? photos[0];
 
   // The selected photo's site map: its config and base map, loaded once per site.
   const siteId = selected?.site;
@@ -152,7 +153,12 @@ export function LabScreen({ onBack }: { onBack: () => void }) {
       y: (site.bounds.min_y + site.bounds.max_y) / 2,
     };
   }, [siteMap]);
-  const fitTo = useMemo(() => (selected ? [selected.predicted, selected.truth] : null), [selected]);
+  // Frame the pair only when another photo is picked, not on every results reload.
+  const selectedKey = selected ? keyOf(selected) : null;
+  const fitTo = useMemo(
+    () => (selected ? [selected.predicted, selected.truth] : null),
+    [selectedKey],
+  );
 
   return (
     <div className="lab">
@@ -162,7 +168,7 @@ export function LabScreen({ onBack }: { onBack: () => void }) {
             ‹
           </button>
           <div>
-            <div className="directions__crumbs">Measured on hidden photos</div>
+            <div className="directions__crumbs">Measured against the answer key</div>
             <h2 className="directions__title">Test lab</h2>
           </div>
         </div>
@@ -188,10 +194,10 @@ export function LabScreen({ onBack }: { onBack: () => void }) {
           </div>
           {photos.map((photo) => (
             <PhotoRow
-              key={photo.photo_id}
+              key={keyOf(photo)}
               photo={photo}
-              on={photo.photo_id === selected?.photo_id}
-              onClick={() => setSelectedId(photo.photo_id)}
+              on={selected !== undefined && keyOf(photo) === keyOf(selected)}
+              onClick={() => setSelectedId(keyOf(photo))}
             />
           ))}
         </div>

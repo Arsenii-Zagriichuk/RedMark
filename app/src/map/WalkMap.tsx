@@ -191,6 +191,7 @@ export function WalkMap(props: Props) {
 
   // Frame the chosen route when it arrives.
   const { fitTo } = props;
+  const hasSize = size.width > 0 && size.height > 0;
   useEffect(() => {
     if (!fitTo?.length || !size.width || !size.height) return;
     const xs = fitTo.map((point) => point.x);
@@ -208,8 +209,9 @@ export function WalkMap(props: Props) {
         transitionInterpolator: new FlyToInterpolator(),
       },
     );
-    // Only a new set of points re-frames the view; resizing keeps the user's view.
-  }, [fitTo, origin]);
+    // New points re-frame the view, and so does the map first getting its size; later
+    // resizes keep the user's view.
+  }, [fitTo, origin, hasSize]);
 
   // Follow the crew, heading up, until the user drags the map; Recenter follows again.
   const { crew } = props;
