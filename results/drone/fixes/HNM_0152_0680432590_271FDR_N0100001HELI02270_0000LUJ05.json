@@ -1,0 +1,51 @@
+{
+  "photo_id": "HNM_0152_0680432590_271FDR_N0100001HELI02270_0000LUJ05",
+  "site": "jezero",
+  "method": "drone",
+  "position": {
+    "x": 4354135.398277164,
+    "y": 1092271.9584914953
+  },
+  "heading_deg": 87.03732021017845,
+  "uncertainty_m": 10.0,
+  "confidence_pct": 0.0,
+  "time_per_fix_s": 3.11,
+  "terrain_type": "textured",
+  "simulated": false,
+  "overlay": "results/drone/overlays/HNM_0152_0680432590_271FDR_N0100001HELI02270_0000LUJ05-lightglue.png",
+  "truth": null,
+  "provenance": {
+    "script": "locate/drone/first_fix.py",
+    "commit": "8f9e0cd5cd90fd71a56e2f41790531f5aa21e532",
+    "inputs": [
+      {
+        "path": "jezero/source/helicam/sol-00152/HNM_0152_0680432590_271FDR_N0100001HELI02270_0000LUJ05.xml",
+        "sha256": "82d5ad6eb868cc866a105ae5c29a59243769688ce3fa141f361b0cb2a77eece3"
+      },
+      {
+        "path": "jezero/source/helicam/sol-00152/HNM_0152_0680432590_271FDR_N0100001HELI02270_0000LUJ05.IMG",
+        "sha256": "3a9685577c9c6405fee19f249d05cf28471badff33d679156854965f9df2e682"
+      },
+      {
+        "path": "jezero/pack/crops/flight-10.tif",
+        "sha256": "3a69f3bf0a7487bfa9d00d4286f4c69ea99f15c7b26d3a32fc84deb7dd05bd81"
+      },
+      {
+        "path": "jezero/source/nasa/m20_heli_waypoints.json",
+        "sha256": "457b536b6851259d2dfd1ee75c076ca95f4ad7f5f1cbd49c880564c3cf5d787b"
+      },
+      {
+        "path": "jezero/pack/frames.csv",
+        "sha256": "fe7f45bebb33a54a219ce816055aa1f7e7c38f896e4452685a3634eee36453ad"
+      },
+      {
+        "path": "weights/torch-hub/checkpoints/depth-save.pth",
+        "sha256": "9c2ee4ded238892dfa51569941372601e35e4a74aa6f84ea80053d2ab1c07abe"
+      },
+      {
+        "path": "weights/torch-hub/checkpoints/disk_lightglue_v0-1_arxiv-pth",
+        "sha256": "b5b21d47ea24f2c5e501aec9c91b9716e4c8c3429a4dc1e615c133c4c9378335"
+      }
+    ]
+  }
+}

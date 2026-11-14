@@ -10,7 +10,9 @@
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "oxlint --deny-warnings",
+    "test": "vitest run"
   },
   "dependencies": {
     "react": "^19.3.1",
@@ -21,7 +23,9 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "json-schema-to-typescript": "^16.0.0",
+    "oxlint": "1.91.0",
     "typescript": "^7.0.2",
-    "vite": "^8.3.8"
+    "vite": "^8.3.8",
+    "vitest": "5.1.0"
   }
 }
