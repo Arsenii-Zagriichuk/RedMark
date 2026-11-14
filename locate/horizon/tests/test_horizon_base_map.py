@@ -55,3 +55,10 @@ def test_the_coarsest_zoom_that_keeps_enough_pixels_is_read(tmp_path):
     layer = read_layer_image(tmp_path, pixels_across=4)
     assert layer.image.shape[:2] == (4, 4)
     assert layer.image[..., :3].max() == 0.0
+
+
+def test_the_files_read_are_listed_for_provenance(tmp_path):
+    write_layer(tmp_path)
+    layer = read_layer_image(tmp_path, pixels_across=8)
+    tiles = [tmp_path / "tiles" / "1" / str(x) / f"{y}.png" for x in range(2) for y in range(2)]
+    assert sorted(layer.files) == sorted([tmp_path / "layer.json", *tiles])

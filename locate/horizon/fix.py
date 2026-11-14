@@ -49,6 +49,7 @@ from locate.horizon.sources import git_commit, sha256_file  # noqa: E402
 
 GRID = "gale/horizon/grid.npz"
 PLACES = "places/localized_pos.csv"
+SITE_CONFIG = REPO_ROOT / "sites" / "gale.yaml"
 RING_GLOB = "navcam/NRB_*ILT_S0981520NCAM00266M1.LBL"
 # Picked before any fix was run: the frame facing the slopes of Mount Sharp.
 SINGLE = "NRB_721967057ILT_S0981520NCAM00266M1"
@@ -86,7 +87,7 @@ def main() -> None:
     ring_labels = sorted(root.glob(RING_GLOB))
     if len(ring_labels) != 12:
         raise SystemExit(f"expected the 12 ring frames in {root / 'navcam'}")
-    site = SiteConfig.model_validate(yaml.safe_load((REPO_ROOT / "sites/gale.yaml").read_text()))
+    site = SiteConfig.model_validate(yaml.safe_load(SITE_CONFIG.read_text()))
     base_map = read_layer_image(root / site.files["base_map"], pixels_across=BASE_MAP_PIXELS)
     for labels in ([path for path in ring_labels if path.stem == SINGLE], ring_labels):
         fix = horizon_fix(labels, grid, root, base_map)
@@ -125,7 +126,7 @@ def horizon_fix(labels: list[Path], grid: Grid, root: Path, base_map: LayerImage
         simulated=False,
         overlay=overlay.relative_to(REPO_ROOT).as_posix(),
         truth=None,
-        provenance=_provenance(labels, root),
+        provenance=fix_provenance(labels, root, SITE_CONFIG, base_map),
     )
     first = frames[0]
     east, north = first.camera_offset_m()
@@ -283,18 +284,29 @@ def _draw_fix(ax, fix: FixResult) -> None:
     ax.plot(truth.x, truth.y, "mx", ms=10, mew=2, label="true position (PLACES)")
 
 
-def _provenance(labels: list[Path], root: Path) -> Provenance:
+def fix_provenance(
+    labels: list[Path], root: Path, site_config: Path, base_map: LayerImage
+) -> Provenance:
+    """Every file a fix and its overlay read: the grid, the answer key, the
+    frames, the site config and the base map. Data files are recorded from
+    REDMARK_DATA, repo files from the repo root."""
     inputs = [root / GRID, root / PLACES]
     for label in labels:
         inputs += [label, label.with_suffix(".IMG")]
+    inputs += [site_config, *base_map.files]
     return Provenance(
         script="locate/horizon/fix.py",
         commit=git_commit(),
-        inputs=[
-            {"path": path.relative_to(root).as_posix(), "sha256": sha256_file(path)}
-            for path in inputs
-        ],
+        inputs=[{"path": _recorded(path, root), "sha256": sha256_file(path)} for path in inputs],
     )
+
+
+def _recorded(path: Path, root: Path) -> str:
+    path = path.resolve()
+    for base in (root.resolve(), REPO_ROOT):
+        if path.is_relative_to(base):
+            return path.relative_to(base).as_posix()
+    raise ValueError(f"{path} is neither in REDMARK_DATA nor in the repo")
 
 
 if __name__ == "__main__":

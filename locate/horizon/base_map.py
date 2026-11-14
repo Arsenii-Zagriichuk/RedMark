@@ -22,6 +22,8 @@ class LayerImage:
     """RGBA, row 0 at the north edge; transparent where a tile is missing."""
     extent: tuple[float, float, float, float]
     """Left, right, bottom, top in map metres, as matplotlib's imshow takes it."""
+    files: tuple[Path, ...]
+    """Every file read: layer.json and the tiles, for provenance."""
 
 
 def read_layer_image(folder: Path, *, pixels_across: int) -> LayerImage:
@@ -43,19 +45,21 @@ def read_layer_image(folder: Path, *, pixels_across: int) -> LayerImage:
     down = math.ceil((bounds.max_y - bounds.min_y) / tile_m - 1e-9)
     size = tiles.tile_size
     image = np.zeros((down * size, across * size, 4), np.float32)
+    files = [folder / "layer.json"]
     for x in range(across):
         for y in range(down):
             path = folder / tiles.path.format(z=zoom, x=x, y=y)
             if path.exists():
                 tile = _rgba(plt.imread(path))
                 image[y * size : (y + 1) * size, x * size : (x + 1) * size] = tile
+                files.append(path)
     extent = (
         bounds.min_x,
         bounds.min_x + across * tile_m,
         bounds.max_y - down * tile_m,
         bounds.max_y,
     )
-    return LayerImage(layer.title, image, extent)
+    return LayerImage(layer.title, image, extent, tuple(files))
 
 
 def _resolution(layer: LayerMeta, zoom: int) -> float:
