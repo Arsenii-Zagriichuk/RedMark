@@ -136,7 +136,12 @@ describe("demo mode", () => {
     expect(demoCache.length).toBeGreaterThan(0);
     for (const entry of demoCache) {
       const { method, path, body } = entry.request;
-      expect(await client.call(entry.step, method, path, body)).toEqual(entry.response);
+      const replay = client.call(entry.step, method, path, body);
+      if (entry.status >= 400) {
+        await expect(replay).rejects.toEqual(new ApiError(entry.status, entry.step, entry.response));
+      } else {
+        expect(await replay).toEqual(entry.response);
+      }
     }
     expect(fetchFn).not.toHaveBeenCalled();
   });
