@@ -422,3 +422,24 @@ def test_the_science_route_drops_a_target_the_walk_has_no_time_for():
     assert near in route.path and far not in route.path
     assert route.extra_time_vs_fastest_s == pytest.approx(447.35, abs=0.05)
     assert all(c.passed for c in route.limit_checks)
+
+
+def test_the_cart_cannot_start_on_a_ridge():
+    g = ridge_wall_with_gap()
+
+    with pytest.raises(NoSafeRoute):
+        plan_on_grid(
+            g, centre(g, 1, 3), centre(g, 1, 6), centre(g, 6, 0), DEFAULT_LIMITS, cart=True
+        )
+
+
+def test_the_science_route_skips_a_target_on_ground_too_steep_to_walk():
+    slope = np.zeros((35, 101))
+    slope[1, 50] = 30
+    g = grid(slope, cell_m=10.0)
+    start, goal, steep = centre(g, 31, 0), centre(g, 31, 100), centre(g, 1, 50)
+
+    route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, targets=[steep])
+
+    assert steep not in route.path
+    assert route.extra_time_vs_fastest_s == pytest.approx(0)

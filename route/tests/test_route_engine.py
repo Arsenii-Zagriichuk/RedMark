@@ -87,3 +87,11 @@ def test_daylight_runs_from_first_light_to_sunset_on_the_replayed_sol():
     assert daylight_s(conditions) == pytest.approx(42538.1, abs=0.1)
     conditions["steps"][0]["sun_elevation_deg"] = -1.0
     assert daylight_s(conditions) == pytest.approx(38839.2, abs=0.1)
+
+
+def test_a_sol_whose_sun_never_rises_has_no_daylight():
+    conditions = json.loads((REPO_ROOT / "conditions/4600.json").read_text())
+    for step in conditions["steps"]:
+        step["sun_elevation_deg"] = -5.0
+
+    assert daylight_s(conditions) == 0

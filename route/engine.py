@@ -18,10 +18,13 @@ SOL_S = 88775.244
 
 
 def daylight_s(conditions: dict) -> float:
-    """Seconds from first light (the first step with the sun above the horizon) to sunset."""
+    """Seconds from first light (the first step with the sun above the horizon) to sunset;
+    0 when the sun never rises."""
     replayed = Conditions.model_validate(conditions)
-    first_light = next(step.lmst for step in replayed.steps if step.sun_elevation_deg > 0)
-    return (_lmst_h(replayed.sunset_lmst) - _lmst_h(first_light)) * SOL_S / 24
+    first_light = next((s.lmst for s in replayed.steps if s.sun_elevation_deg > 0), None)
+    if first_light is None:
+        return 0.0
+    return max(_lmst_h(replayed.sunset_lmst) - _lmst_h(first_light), 0.0) * SOL_S / 24
 
 
 def _lmst_h(lmst: str) -> float:

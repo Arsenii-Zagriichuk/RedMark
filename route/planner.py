@@ -102,24 +102,29 @@ def plan_on_grid(
     if not targets:
         return fastest
 
-    def tour_s(order: Sequence[Point]) -> float:
-        waypoints = [start, *order, goal]
-        return sum(field.time(a, b) for a, b in zip(waypoints, waypoints[1:], strict=False))
+    # Walking times between every pair of waypoints, worked out once (indexes into stops).
+    stops = [start, *targets, goal]
+    hop_s = {
+        (i, j): field.time(stops[i], stops[j])
+        for i in range(len(stops) - 1)
+        for j in range(1, len(stops))
+        if i != j
+    }
 
-    def quickest(chosen: list[Point]) -> tuple[Point, ...]:
-        return min(itertools.permutations(chosen), key=tour_s)
+    def tour_s(order: Sequence[int]) -> float:
+        visits = [0, *order, len(stops) - 1]
+        return sum(hop_s[a, b] for a, b in zip(visits, visits[1:], strict=False))
 
-    chosen = [t for t in targets if math.isfinite(tour_s([t]))]
+    chosen = [i for i in range(1, len(stops) - 1) if math.isfinite(tour_s([i]))]
     while chosen:
-        order = quickest(chosen)
+        order = min(itertools.permutations(chosen), key=tour_s)
+        waypoints = [start, *(stops[i] for i in order), goal]
         try:
-            science = _respond(grid, rules, _route(field, [start, *order, goal]), "science")
+            science = _respond(grid, rules, _route(field, waypoints), "science")
             break
         except NoSafeRoute:
             # Drop the target whose visit costs the most time, then try again.
-            chosen.remove(
-                min(chosen, key=lambda t: tour_s(quickest([c for c in chosen if c != t])))
-            )
+            chosen.remove(min(order, key=lambda t: tour_s([i for i in order if i != t])))
     else:
         science = fastest.model_copy(update={"mode": "science"})
     return science.model_copy(
@@ -158,7 +163,7 @@ class _Field:
         self.seconds = seconds.reshape(len(self.origins), *self.shape)
 
     def _origin(self, p: Point) -> int:
-        return next(i for i, o in enumerate(self.origins) if o is p)
+        return next(i for i, o in enumerate(self.origins) if o == p)
 
     def _to_centre_s(self, p: Point, cell: tuple[int, int]) -> float:
         return _metres(p, self.grid.centre(*cell)) * self.pace[cell]
