@@ -9,14 +9,14 @@
   "heading_deg": 88.63528185545387,
   "uncertainty_m": 10.0,
   "confidence_pct": 0.0,
-  "time_per_fix_s": 0.86,
+  "time_per_fix_s": 0.85,
   "terrain_type": "textured",
   "simulated": false,
   "overlay": "results/drone/overlays/HNM_0152_0680432606_392FDR_N0100001HELI02756_0000LUJ05-loftr.png",
   "truth": null,
   "provenance": {
     "script": "locate/drone/first_fix.py",
-    "commit": "98e0f3b627a73bbb8c7f8dd2d2ab3539365d2628",
+    "commit": "f010f1d997bb5c82a550c99ab20963c6a3278084",
     "inputs": [
       {
         "path": "jezero/source/helicam/sol-00152/HNM_0152_0680432606_392FDR_N0100001HELI02756_0000LUJ05.xml",
