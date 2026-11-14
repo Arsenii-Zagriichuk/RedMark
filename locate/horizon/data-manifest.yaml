@@ -1,4 +1,4 @@
-# Data files Person 3's horizon grid reads. Schema: contracts/schemas/data_manifest.json.
+# Data files Person 3's horizon grid and horizon fixes read. Schema: contracts/schemas/data_manifest.json.
 files:
   - name: MSL Gale DEM mosaic, 1 m, v3
     path: MSL_Gale_DEM_Mosaic_1m_v3.tif
@@ -35,3 +35,172 @@ files:
     checksum: 228b1438a6615a607bdc665676c7ade0e91aab24c04bec654a614f059ec6daaa
     checksum_algorithm: sha256
     credit: NASA/JPL-Caltech, MSL Navcam mosaics, PDS Imaging Node.
+  # Navcam horizon ring at sol 3655 (site 98, drive 1520), read by the first horizon fix (P3-02). Tuning pile.
+  - name: MSL Navcam frame NRB_721967002ILT_S0981520NCAM00266M1, sol 3655 (image)
+    path: navcam/NRB_721967002ILT_S0981520NCAM00266M1.IMG
+    size_bytes: 1093632
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967002ILT_S0981520NCAM00266M1.IMG
+    checksum: 4fa971eb4033952c9b7f88854e4c6b891ed0ac0115bf52da2ade746db89f16ad
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967002ILT_S0981520NCAM00266M1, sol 3655 (label)
+    path: navcam/NRB_721967002ILT_S0981520NCAM00266M1.LBL
+    size_bytes: 25808
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967002ILT_S0981520NCAM00266M1.LBL
+    checksum: ec7781e368f2c22a35fc5a00a108b94bc4dbb218776884245a34e8e52462a528
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967032ILT_S0981520NCAM00266M1, sol 3655 (image)
+    path: navcam/NRB_721967032ILT_S0981520NCAM00266M1.IMG
+    size_bytes: 1093632
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967032ILT_S0981520NCAM00266M1.IMG
+    checksum: 7e8b90e66b611db0e01e06284efd9368af612bc0b5a4f6989f46f62ced07a3a3
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967032ILT_S0981520NCAM00266M1, sol 3655 (label)
+    path: navcam/NRB_721967032ILT_S0981520NCAM00266M1.LBL
+    size_bytes: 25842
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967032ILT_S0981520NCAM00266M1.LBL
+    checksum: ac7eebd02057af1d589320e09a6eb28d766972a72390a8c8cacb0a00543f972e
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967057ILT_S0981520NCAM00266M1, sol 3655 (image)
+    path: navcam/NRB_721967057ILT_S0981520NCAM00266M1.IMG
+    size_bytes: 1093632
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967057ILT_S0981520NCAM00266M1.IMG
+    checksum: 27da92e44650d1cd21c326c44ce0736fc419db61af05ed7ed453eb5c7687d264
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967057ILT_S0981520NCAM00266M1, sol 3655 (label)
+    path: navcam/NRB_721967057ILT_S0981520NCAM00266M1.LBL
+    size_bytes: 25723
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967057ILT_S0981520NCAM00266M1.LBL
+    checksum: c1d7ee42c8aae44357a49c6e161f40ff6863c827d69c246cbcf6345a26754149
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967088ILT_S0981520NCAM00266M1, sol 3655 (image)
+    path: navcam/NRB_721967088ILT_S0981520NCAM00266M1.IMG
+    size_bytes: 1093632
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967088ILT_S0981520NCAM00266M1.IMG
+    checksum: 94b353cdbc4cf3d0332f15682715897d929780a7da13e2a75002f692f902f715
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967088ILT_S0981520NCAM00266M1, sol 3655 (label)
+    path: navcam/NRB_721967088ILT_S0981520NCAM00266M1.LBL
+    size_bytes: 25828
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967088ILT_S0981520NCAM00266M1.LBL
+    checksum: 1e59b31baa94d9d36edfa3f4d203c16f58c265b090e3a59ffe45e3db5c52c84c
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967112ILT_S0981520NCAM00266M1, sol 3655 (image)
+    path: navcam/NRB_721967112ILT_S0981520NCAM00266M1.IMG
+    size_bytes: 1093632
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967112ILT_S0981520NCAM00266M1.IMG
+    checksum: 6d5128611ce06591de52c7d43ce9a5c777b3150ef6f52d9861476029b9986564
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967112ILT_S0981520NCAM00266M1, sol 3655 (label)
+    path: navcam/NRB_721967112ILT_S0981520NCAM00266M1.LBL
+    size_bytes: 25791
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967112ILT_S0981520NCAM00266M1.LBL
+    checksum: b2bad3b617d28084ba6abb31ebcd318bab1b9e7734a7291a6685883a16a41bf2
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967136ILT_S0981520NCAM00266M1, sol 3655 (image)
+    path: navcam/NRB_721967136ILT_S0981520NCAM00266M1.IMG
+    size_bytes: 1093632
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967136ILT_S0981520NCAM00266M1.IMG
+    checksum: 3e5c40b90812af162a820fd09c0757667cc22b16dacc5e3f1b3fa3458ba61a1e
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967136ILT_S0981520NCAM00266M1, sol 3655 (label)
+    path: navcam/NRB_721967136ILT_S0981520NCAM00266M1.LBL
+    size_bytes: 25786
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967136ILT_S0981520NCAM00266M1.LBL
+    checksum: 364dd6e326c2a69099c7020d2b40d6fccdd1f60d437f4d7556439904cb7a3b0e
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967167ILT_S0981520NCAM00266M1, sol 3655 (image)
+    path: navcam/NRB_721967167ILT_S0981520NCAM00266M1.IMG
+    size_bytes: 1093632
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967167ILT_S0981520NCAM00266M1.IMG
+    checksum: bbcc4305c9d298b10d53a8c5b558f91fc988113542a280f8171673feaaa2ecc5
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967167ILT_S0981520NCAM00266M1, sol 3655 (label)
+    path: navcam/NRB_721967167ILT_S0981520NCAM00266M1.LBL
+    size_bytes: 25792
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967167ILT_S0981520NCAM00266M1.LBL
+    checksum: 107c77d4e547b9d0e8df3ec2a962b2c89af54e9a7ab46e4bee2ef9d22c012bfd
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967191ILT_S0981520NCAM00266M1, sol 3655 (image)
+    path: navcam/NRB_721967191ILT_S0981520NCAM00266M1.IMG
+    size_bytes: 1093632
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967191ILT_S0981520NCAM00266M1.IMG
+    checksum: d1a75a2fff5b74ac43b3f724d6fa15bb1046114f5108c33ae09480f7785cc3bb
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967191ILT_S0981520NCAM00266M1, sol 3655 (label)
+    path: navcam/NRB_721967191ILT_S0981520NCAM00266M1.LBL
+    size_bytes: 25796
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967191ILT_S0981520NCAM00266M1.LBL
+    checksum: 2348cfe24c456b4b25d9d8a10b1773844c1d994d357d86c392dbeff025f88278
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967222ILT_S0981520NCAM00266M1, sol 3655 (image)
+    path: navcam/NRB_721967222ILT_S0981520NCAM00266M1.IMG
+    size_bytes: 1093632
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967222ILT_S0981520NCAM00266M1.IMG
+    checksum: 60e85654ec08684a89af620a32cfdf3d12625bcfaa61cda66f48da79b257d780
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967222ILT_S0981520NCAM00266M1, sol 3655 (label)
+    path: navcam/NRB_721967222ILT_S0981520NCAM00266M1.LBL
+    size_bytes: 25798
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967222ILT_S0981520NCAM00266M1.LBL
+    checksum: 68da6d5918ed7457f00c74077802e14f02c472166e7b839ddb6f3d5353d5d30e
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967252ILT_S0981520NCAM00266M1, sol 3655 (image)
+    path: navcam/NRB_721967252ILT_S0981520NCAM00266M1.IMG
+    size_bytes: 1093632
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967252ILT_S0981520NCAM00266M1.IMG
+    checksum: 1e35ecb7384ff50a877cf4ff43930056e2a730876174f5db40fdb694b44cf0ee
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967252ILT_S0981520NCAM00266M1, sol 3655 (label)
+    path: navcam/NRB_721967252ILT_S0981520NCAM00266M1.LBL
+    size_bytes: 25802
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967252ILT_S0981520NCAM00266M1.LBL
+    checksum: a1d7c462b753ccb32ebf88b85bc7a0b78653d32f50443462cb7dcd5affb57001
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967276ILT_S0981520NCAM00266M1, sol 3655 (image)
+    path: navcam/NRB_721967276ILT_S0981520NCAM00266M1.IMG
+    size_bytes: 1093632
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967276ILT_S0981520NCAM00266M1.IMG
+    checksum: cc049cd62d782c59e3bc8de5c95824c3f27ffedde92747505f63077d0e4c3374
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967276ILT_S0981520NCAM00266M1, sol 3655 (label)
+    path: navcam/NRB_721967276ILT_S0981520NCAM00266M1.LBL
+    size_bytes: 25841
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967276ILT_S0981520NCAM00266M1.LBL
+    checksum: bd1e2d26e364f0cc9ecfa7cea1b562e870b527cf26c3e77f776d9accbfa71b94
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967353ILT_S0981520NCAM00266M1, sol 3655 (image)
+    path: navcam/NRB_721967353ILT_S0981520NCAM00266M1.IMG
+    size_bytes: 1093632
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967353ILT_S0981520NCAM00266M1.IMG
+    checksum: 94fcdacc10ba9b451fb929a785954c327ff95dd6c165b6ef226d651ad7de676b
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  - name: MSL Navcam frame NRB_721967353ILT_S0981520NCAM00266M1, sol 3655 (label)
+    path: navcam/NRB_721967353ILT_S0981520NCAM00266M1.LBL
+    size_bytes: 25809
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/SOL03655/NRB_721967353ILT_S0981520NCAM00266M1.LBL
+    checksum: 61c0dec8b9d79971b34266e8ca5fb3eedbb9ce05353a0c0dba9686f48950ec20
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.

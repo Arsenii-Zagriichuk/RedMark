@@ -39,6 +39,8 @@ The 9 contracts between the parts are JSON Schemas in [contracts/schemas/](contr
 7. **Map work is checked by eye.** Every crop, layer and match writes an overlay image on the base map, and it goes in the pull request's Evidence section.
 8. **Simulated results carry the label.** `simulated` is required with no default, and the app shows every fix through one component that prints the label.
 
+**The checks (P1-15).** CI (`.github/workflows/ci.yml`) runs on every pull request to main: one owner per pull request (`tools/owners.py`, which holds the folder table above), no file over 5 MB, ruff, contract files, generated types, typecheck, app build and every test. `pyproject.toml`, `uv.lock`, `cache/` and `contracts/` are shared: they may come with one owner's change, and a pull request that changes `contracts/schemas/` is a contract change, which may touch both sides. Changes to `contracts/` and the repo root need a code owner's review (`.github/CODEOWNERS`); everything else merges on green CI. The Claude Code hooks in `.claude/settings.json` (they need `jq` and `uv` on your PATH) are the git session guard, the owner guard and formatting on edit. **Set your person number once per clone**, and every worktree reads it: `git config redmark.person <1-4>`.
+
 ## The ticket cycle
 
 Every ticket runs the loop in the [team plan](docs/team-plan.md#the-ticket-cycle-matt-pococks-skills): claim the issue, branch `<type>/<ticket>-<slug>` in a worktree, `/implement <issue>` (it agrees the seams with you, builds with `tdd` at those seams, then runs `code-review`), and open a pull request with the `pr` skill (Summary, Evidence, Merge danger, `Closes #<issue>`). Commits are `type: description (#<issue>)`. The owner squash-merges once CI is green and the overlay has been looked at.
@@ -56,6 +58,7 @@ uv run python -m tools.check_contracts     # just the contract files
 uv run python -m tools.gen_contracts       # regenerate models and types after a schema change
 uv run ruff check . && uv run ruff format --check .
 npm run typecheck --prefix app
+uv run python -m tools.owners check        # does this branch stay in one owner's folders?
 uv run uvicorn service.app:app --reload    # the service
 npm run dev --prefix app                   # the app
 ```
