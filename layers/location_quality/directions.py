@@ -12,6 +12,9 @@ comes from the mean of those angles over the samples that see it:
 
 A leg's direction uses the first landmark, in landmarks.yaml's order, in view
 from at least MIN_SHARE_IN_VIEW of the leg; with none, the leg has no direction.
+Lost mode walks the route back home, so each leg also gets the direction for
+walking it towards its start: the same landmark, its angle turned by 180°, so
+left and right swap, and ahead and behind.
 A landmark of several points (the crater rim) lies at the mean of their bearings.
 Layer 5 only knows what is in view inside the walk area, so each leg also records
 the share of it that lies there; anything less than 1 means the route needs
@@ -84,6 +87,7 @@ def leg_directions(
         start, end = leg["start_index"], leg["end_index"]
         samples = _samples(points[start : end + 1], step_m)
         seen = []
+        chosen = None
         for landmark in landmarks:
             relative = [
                 _wrap(landmark_bearing_deg(landmark, at) - heading)
@@ -91,22 +95,16 @@ def leg_directions(
                 if in_view(masks[landmark.id], cells, at)
             ]
             mean = _wrap(_circular_mean(relative)) if relative else None
-            seen.append(
-                {
-                    "id": landmark.id,
-                    "share_of_leg_in_view": round(len(relative) / len(samples), 3),
-                    "relative_deg": None if mean is None else round(mean, 1),
-                    "side": None if mean is None else _side(mean),
-                }
-            )
-        chosen = next(
-            (
-                (landmark, view)
-                for landmark, view in zip(landmarks, seen, strict=True)
-                if view["share_of_leg_in_view"] >= MIN_SHARE_IN_VIEW
-            ),
-            None,
-        )
+            view = {
+                "id": landmark.id,
+                "share_of_leg_in_view": round(len(relative) / len(samples), 3),
+                "relative_deg": None if mean is None else round(mean, 1),
+                "side": None if mean is None else _side(mean),
+            }
+            seen.append(view)
+            if chosen is None and view["share_of_leg_in_view"] >= MIN_SHARE_IN_VIEW:
+                chosen = landmark, mean
+        side = _side(chosen[1]) if chosen else None
         out.append(
             {
                 "leg": number,
@@ -117,8 +115,9 @@ def leg_directions(
                     sum(_inside(cells, at) for at, _ in samples) / len(samples), 3
                 ),
                 "landmark": chosen[0].id if chosen else None,
-                "side": chosen[1]["side"] if chosen else None,
-                "text": _text(chosen[0], chosen[1]["side"]) if chosen else None,
+                "side": side,
+                "text": _text(chosen[0], side) if chosen else None,
+                "text_back": _text(chosen[0], _side(_wrap(chosen[1] + 180.0))) if chosen else None,
                 "landmarks": seen,
             }
         )

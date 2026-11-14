@@ -79,6 +79,14 @@ def test_walking_north_west_and_south_put_it_ahead_right_and_behind():
     assert one_leg([(50.0, 90.0), (50.0, 10.0)])["text"] == "Keep Texoli behind you"
 
 
+def test_walking_a_leg_back_swaps_left_for_right_and_ahead_for_behind():
+    # Lost mode walks home along the route, so each leg is also walked towards its start.
+    assert one_leg([(10.0, 50.0), (90.0, 50.0)])["text_back"] == "Keep Texoli on your right"
+    assert one_leg([(90.0, 50.0), (10.0, 50.0)])["text_back"] == "Keep Texoli on your left"
+    assert one_leg([(50.0, 10.0), (50.0, 90.0)])["text_back"] == "Keep Texoli behind you"
+    assert one_leg([(50.0, 90.0), (50.0, 10.0)])["text_back"] == "Walk towards Texoli"
+
+
 def test_bearings_wrap_round_north():
     # A landmark at 350° seen while walking at 10° is 20° to the left: ahead.
     north_by_west = Landmark("texoli", "Texoli", ((50.0 - 1763.3, 10_000.0),), 100.0)
@@ -104,6 +112,7 @@ def test_a_leg_with_no_landmark_in_view_has_no_direction():
     leg = one_leg([(10.0, 50.0), (90.0, 50.0)], masks=none)
     assert leg["landmark"] is None
     assert leg["text"] is None
+    assert leg["text_back"] is None
 
 
 def test_a_leg_records_how_much_of_it_lies_inside_the_walk_area():
