@@ -823,7 +823,7 @@ button {
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
-  max-width: min(640px, calc(100% - 700px));
+  max-width: min(640px, calc(100% - 640px));
 }
 
 .walk__banner {
@@ -862,9 +862,9 @@ button {
 .walk__lost {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
-  padding: 16px 20px;
+  padding: 12px 16px;
   background: var(--space-100);
   border: 2px solid var(--nasa-red);
   border-radius: 2px;
@@ -880,7 +880,7 @@ button {
 
 .walk__lost-title {
   color: var(--nasa-red);
-  font: 700 24px/28px var(--font-display);
+  font: 700 20px/24px var(--font-display);
 }
 
 .walk__lost-row {
@@ -890,7 +890,7 @@ button {
 }
 
 .walk__lost-direction {
-  font: 600 22px/28px var(--font-display);
+  font: 600 18px/24px var(--font-display);
 }
 
 .walk__lost-note {
@@ -927,12 +927,15 @@ button {
   top: 24px;
   z-index: 12;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: 8px;
+  max-width: 560px;
 }
 
 .walk .map__controls {
-  top: 96px;
+  top: 128px;
 }
 
 .pill {
