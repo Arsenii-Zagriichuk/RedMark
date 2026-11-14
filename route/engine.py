@@ -62,6 +62,7 @@ def plan(request: dict) -> dict:
         route_request.limits,
         mode=mode,
         daylight_s=daylight,
+        uncertainty_m=route_request.uncertainty_m,
         targets=[t.position for t in site.science_targets] if mode == Mode.science else (),
     )
     return response.model_dump(mode="json")

@@ -45,6 +45,7 @@ CREW_CHECKS = [
     "distance_from_habitat",
     "planning_speed",
     "walk_time",
+    "hazard_margin",
     "walk_back",
     "daylight",
 ]
@@ -59,7 +60,7 @@ def test_all_three_route_modes_come_back_with_their_limit_checks():
 
     assert [c["limit"] for c in routes["fastest"]["limit_checks"]] == CREW_CHECKS
     assert [c["limit"] for c in routes["science"]["limit_checks"]] == CREW_CHECKS
-    assert [c["limit"] for c in routes["cart"]["limit_checks"]] == CREW_CHECKS[:4]
+    assert [c["limit"] for c in routes["cart"]["limit_checks"]] == CREW_CHECKS[:5]
     assert {r["mode"] for r in routes.values()} == {"fastest", "science", "cart"}
     assert routes["fastest"]["extra_time_vs_fastest_s"] is None
     assert routes["science"]["extra_time_vs_fastest_s"] >= 0
