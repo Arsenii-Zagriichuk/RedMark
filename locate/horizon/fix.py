@@ -16,6 +16,8 @@ At one rover stop, sol 3655 (site 98, drive 1520), inside the walk area:
 Two fixes: one frame alone (about 45° of skyline), and all 12 frames of the
 stop's horizon ring combined into 360°, the way a person turns on the spot;
 the ring's frames are placed relative to its first frame using their labels.
+A fix's photo id and heading are those of its reference photo, the first
+frame: the archive id, and the camera pointing in its label.
 
 These frames are tuning pile: the same stop checked the grid in P3-01.
 Run with `uv run python -m locate.horizon.fix`.
@@ -32,11 +34,14 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
+import yaml  # noqa: E402
 
 from contracts.models.common import Method, Point, Provenance, SiteId, TerrainType  # noqa: E402
 from contracts.models.fix_result import FixResult  # noqa: E402
+from contracts.models.site import SiteConfig  # noqa: E402
 from contracts.paths import REPO_ROOT, data_root  # noqa: E402
 from contracts.scoring import score_fix  # noqa: E402
+from locate.horizon.base_map import LayerImage, read_layer_image  # noqa: E402
 from locate.horizon.match import Match, match_skyline  # noqa: E402
 from locate.horizon.navcam import NavcamFrame, pixel_headings, read_frame  # noqa: E402
 from locate.horizon.sky import skyline_rows  # noqa: E402
@@ -45,7 +50,6 @@ from locate.horizon.sources import git_commit, sha256_file  # noqa: E402
 GRID = "gale/horizon/grid.npz"
 PLACES = "places/localized_pos.csv"
 RING_GLOB = "navcam/NRB_*ILT_S0981520NCAM00266M1.LBL"
-RING_ID = "sol3655-site98-drive1520-NCAM00266"
 # Picked before any fix was run: the frame facing the slopes of Mount Sharp.
 SINGLE = "NRB_721967057ILT_S0981520NCAM00266M1"
 # Bedrock all round in the ring frames, checked by eye.
@@ -54,6 +58,7 @@ TERRAIN = TerrainType.textured
 # uncertainty circle; P3-03 calibrates the circle against the answer key.
 CIRCLE_COST_FACTOR = 1.5
 CLOSE_UP_M = 800.0
+BASE_MAP_PIXELS = 2048  # across the walk area, enough for an 800 m close-up
 OVERLAYS = REPO_ROOT / "results" / "horizon" / "overlays"
 FIXES = REPO_ROOT / "results" / "horizon" / "fixes"
 
@@ -81,23 +86,23 @@ def main() -> None:
     ring_labels = sorted(root.glob(RING_GLOB))
     if len(ring_labels) != 12:
         raise SystemExit(f"expected the 12 ring frames in {root / 'navcam'}")
-    cases = [
-        (SINGLE, [path for path in ring_labels if path.stem == SINGLE]),
-        (RING_ID, ring_labels),
-    ]
-    for photo_id, labels in cases:
-        fix = horizon_fix(photo_id, labels, grid, root)
+    site = SiteConfig.model_validate(yaml.safe_load((REPO_ROOT / "sites/gale.yaml").read_text()))
+    base_map = read_layer_image(root / site.files["base_map"], pixels_across=BASE_MAP_PIXELS)
+    for labels in ([path for path in ring_labels if path.stem == SINGLE], ring_labels):
+        fix = horizon_fix(labels, grid, root, base_map)
         print(
-            f"{photo_id}: {fix.truth.position_error_m:.0f} m, heading error "
+            f"{fix.photo_id} ({len(labels)} frames): {fix.truth.position_error_m:.0f} m, "
+            f"heading error "
             f"{fix.truth.heading_error_deg:.2f}°, circle {fix.uncertainty_m:.0f} m, "
             f"{fix.time_per_fix_s:.1f} s"
         )
 
 
-def horizon_fix(photo_id: str, labels: list[Path], grid: Grid, root: Path) -> FixResult:
+def horizon_fix(labels: list[Path], grid: Grid, root: Path, base_map: LayerImage) -> FixResult:
     """One fix from the frames of one stop, scored and written with its overlay."""
     started = time.perf_counter()
     frames = [read_frame(path) for path in labels]
+    photo_id = frames[0].photo_id
     reference = frames[0].heading_deg
     photo = photo_skyline(frames, reference)
     match = match_skyline(
@@ -127,7 +132,7 @@ def horizon_fix(photo_id: str, labels: list[Path], grid: Grid, root: Path) -> Fi
     rover_x, rover_y = rover_position(root / PLACES, first.site, first.drive)
     fix = score_fix(fix, Point(x=rover_x + east, y=rover_y + north), reference)
 
-    draw_overlay(overlay, fix, match, grid, frames, photo)
+    draw_overlay(overlay, fix, match, grid, frames, photo, base_map)
     FIXES.mkdir(parents=True, exist_ok=True)
     (FIXES / f"{photo_id}.json").write_text(
         json.dumps(fix.model_dump(mode="json"), indent=2) + "\n"
@@ -180,12 +185,12 @@ def rover_position(places: Path, site: int, drive: int) -> tuple[float, float]:
     return float(rows[0]["easting"]), float(rows[0]["northing"])
 
 
-def draw_overlay(path, fix, match, grid, frames, photo: PhotoSkyline) -> None:
-    """Photo skyline on the matched calculated skyline, the match cost over the
-    grid with the fix, its circle and the true position, and the frames with
-    the skyline found in each."""
-    fig = plt.figure(figsize=(18, 13))
-    layout = fig.add_gridspec(3, 2, height_ratios=(1, 1.3, 0.9), width_ratios=(1.6, 1))
+def draw_overlay(path, fix, match, grid, frames, photo: PhotoSkyline, base_map) -> None:
+    """Photo skyline on the matched calculated skyline; the fix, its circle and
+    the true position on the base map, over the match cost and close up; and
+    the frames with the skyline found in each."""
+    fig = plt.figure(figsize=(22, 14))
+    layout = fig.add_gridspec(3, 3, height_ratios=(1, 1.3, 0.9))
     skylines = fig.add_subplot(layout[0, :])
     at_matched_heading = (fix.heading_deg + photo.relative_deg) % 360.0
     at_label_heading = (fix.truth.heading_deg + photo.relative_deg) % 360.0
@@ -221,22 +226,38 @@ def draw_overlay(path, fix, match, grid, frames, photo: PhotoSkyline) -> None:
         f"error {fix.truth.heading_error_deg:.2f}°)"
     )
 
-    costs = fig.add_subplot(layout[1, 0])
-    image = _draw_costs(costs, fix, match, grid)
+    on_map = fig.add_subplot(layout[1, 0])
+    on_map.imshow(base_map.image, extent=base_map.extent)
+    _draw_fix(on_map, fix)
+    on_map.set_xlim(base_map.extent[:2])
+    on_map.set_ylim(base_map.extent[2:])
+    on_map.legend(loc="upper right")
+    on_map.set_title(f"Fix on the base map: {base_map.title}")
+    on_map.set_xlabel("map x, metres")
+    on_map.set_ylabel("map y, metres")
+
+    costs = fig.add_subplot(layout[1, 1])
+    half = grid.spacing_m / 2
+    image = costs.imshow(
+        match.cost_deg,
+        origin="lower",
+        extent=(grid.xs[0] - half, grid.xs[-1] + half, grid.ys[0] - half, grid.ys[-1] + half),
+        cmap="viridis_r",
+    )
+    _draw_fix(costs, fix)
     fig.colorbar(image, ax=costs, label="clipped mean skyline difference, degrees")
-    costs.legend(loc="upper right")
     costs.set_title(
         f"Match cost over the {grid.spacing_m:.0f} m grid: "
         f"error {fix.truth.position_error_m:.0f} m, circle {fix.uncertainty_m:.0f} m"
     )
     costs.set_xlabel("map x, metres")
-    costs.set_ylabel("map y, metres")
 
-    zoom = fig.add_subplot(layout[1, 1])
-    _draw_costs(zoom, fix, match, grid)
+    zoom = fig.add_subplot(layout[1, 2])
+    zoom.imshow(base_map.image, extent=base_map.extent)
+    _draw_fix(zoom, fix)
     zoom.set_xlim(truth.x - CLOSE_UP_M, truth.x + CLOSE_UP_M)
     zoom.set_ylim(truth.y - CLOSE_UP_M, truth.y + CLOSE_UP_M)
-    zoom.set_title(f"Close up: {CLOSE_UP_M:.0f} m round the true position")
+    zoom.set_title(f"Base map close up: {CLOSE_UP_M:.0f} m round the true position")
 
     every = max(1, len(frames) // 4)
     strip = layout[2, :].subgridspec(1, len(frames[::every][:4]))
@@ -252,22 +273,14 @@ def draw_overlay(path, fix, match, grid, frames, photo: PhotoSkyline) -> None:
     plt.close(fig)
 
 
-def _draw_costs(ax, fix, match, grid):
-    """The match cost over the grid, with the fix, its circle and the truth."""
-    half = grid.spacing_m / 2
-    image = ax.imshow(
-        match.cost_deg,
-        origin="lower",
-        extent=(grid.xs[0] - half, grid.xs[-1] + half, grid.ys[0] - half, grid.ys[-1] + half),
-        cmap="viridis_r",
-    )
+def _draw_fix(ax, fix: FixResult) -> None:
+    """The fix, its uncertainty circle and the true position."""
     position, truth = fix.position, fix.truth.position
     ax.add_patch(
         plt.Circle((position.x, position.y), fix.uncertainty_m, fill=False, ec="red", lw=1.2)
     )
     ax.plot(position.x, position.y, "r+", ms=14, mew=2, label="fix")
     ax.plot(truth.x, truth.y, "mx", ms=10, mew=2, label="true position (PLACES)")
-    return image
 
 
 def _provenance(labels: list[Path], root: Path) -> Provenance:
