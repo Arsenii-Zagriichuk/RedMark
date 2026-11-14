@@ -1,0 +1,537 @@
+{
+  "test": "ground-gale-attempt",
+  "site": "gale",
+  "method": "ground",
+  "simulated": false,
+  "overall": {
+    "n": 40,
+    "median_error_m": 21.983,
+    "within_1m_pct": 30.0,
+    "within_5m_pct": 32.5,
+    "within_10m_pct": 32.5,
+    "median_heading_error_deg": 0.0,
+    "median_time_per_fix_s": 0.02
+  },
+  "groups": {
+    "textured": {
+      "n": 27,
+      "median_error_m": 25.013,
+      "within_1m_pct": 29.62962962962963,
+      "within_5m_pct": 33.333333333333336,
+      "within_10m_pct": 33.333333333333336,
+      "median_heading_error_deg": 0.0,
+      "median_time_per_fix_s": 0.02
+    },
+    "plain": {
+      "n": 13,
+      "median_error_m": 21.211,
+      "within_1m_pct": 30.76923076923077,
+      "within_5m_pct": 30.76923076923077,
+      "within_10m_pct": 30.76923076923077,
+      "median_heading_error_deg": 0.0,
+      "median_time_per_fix_s": 0.02
+    }
+  },
+  "provenance": {
+    "script": "locate/ground/hidden_test.py",
+    "commit": "34d40d9a6d053dfdbdf36122dd0695a1f46f491e",
+    "inputs": [
+      {
+        "path": "places/localized_pos.csv",
+        "sha256": "d456ce9025ca71673af8b9f72a78dc508f5d963cbac74fa68eeac88a4c7c3a3b"
+      },
+      {
+        "path": "MSL_Gale_DEM_Mosaic_1m_v3.tif",
+        "sha256": "c481ae885b4827af68fbdb428e9fac8a824d6828aebfba492577ba39bf55e42e"
+      },
+      {
+        "path": "hidden/ground/index.csv",
+        "sha256": "1f4b7781ba94d264ce05e03e28d64ac66373d50a66828cb5d22394fe62ccfcb8"
+      },
+      {
+        "path": "sites/gale.yaml",
+        "sha256": "b888e7985e87f3363d2272bcad1df20c09306e49455d19d1be188e11e8a09771"
+      },
+      {
+        "path": "hidden/ground/N_R000_4068_ILT105VRT_S_1684_UNCORM1.LBL",
+        "sha256": "9af74deee157e715fbceeb85ffac4b1f3be6ee1aa9b8e5d85587ff91d4e9c355"
+      },
+      {
+        "path": "hidden/ground/N_R000_4068_ILT105VRT_S_1684_UNCORM1.source-NRB_758628931ILT_F1051684NCAM00353M1.LBL",
+        "sha256": "ce392560cb79a7f8f5f280ed4b78a3eee0549d91e9d0bbc6ec68c236a6389784"
+      },
+      {
+        "path": "hidden/ground/N_R000_4068_ILT105VRT_S_1684_UNCORM1.npz",
+        "sha256": "8ad7fb60075afa6be1881a181dda0bf41ca1a1be7bdd42414f7c76681ef003b1"
+      },
+      {
+        "path": "hidden/ground/N_R000_4078_ILT105VRT_S_2450_UNCORM1.LBL",
+        "sha256": "9fbf47e2aa01c11d81ad20ab6b78b7c862f03cdff0b12f2208c38f30ff903e8f"
+      },
+      {
+        "path": "hidden/ground/N_R000_4078_ILT105VRT_S_2450_UNCORM1.source-NRB_759524666ILT_F1052450NCAM00353M1.LBL",
+        "sha256": "cb2c00dd3b96511ebb0b4a701e536ef21b74546fab14af7cd5edd9e37f8a01d9"
+      },
+      {
+        "path": "hidden/ground/N_R000_4078_ILT105VRT_S_2450_UNCORM1.npz",
+        "sha256": "6dc79532057dcd2c6807b0f72719cbf738ecec87839281e2f257b4e9430c4711"
+      },
+      {
+        "path": "hidden/ground/N_R000_4336_ILT110VRT_S_0000_UNCORM1.LBL",
+        "sha256": "45df35b68e51461d9d69a3d70038b7bda3023d2001f5db99cae5bd2301e39bb5"
+      },
+      {
+        "path": "hidden/ground/N_R000_4336_ILT110VRT_S_0000_UNCORM1.source-NRB_782434168ILT_F1100000NCAM00353M1.LBL",
+        "sha256": "149f74296c830753a0766c10da101ff5480de650e76eefb8add9d331ad68af27"
+      },
+      {
+        "path": "hidden/ground/N_R000_4336_ILT110VRT_S_0000_UNCORM1.npz",
+        "sha256": "b9873bbcd89726c08751dc7457795beaf83c2bf30b03aa6ff73635a543486647"
+      },
+      {
+        "path": "hidden/ground/N_R000_4343_ILT110VRT_S_0624_UNCORM1.LBL",
+        "sha256": "3e55708f715e29bb56a9049801991d69730840d3daba0370207e18a6091d5455"
+      },
+      {
+        "path": "hidden/ground/N_R000_4343_ILT110VRT_S_0624_UNCORM1.source-NRB_783044804ILT_F1100624NCAM00353M1.LBL",
+        "sha256": "8ba7a1a9461ea4ba8dbb4a041c4384264dfee01f85b7f14eb5613634dcb116a6"
+      },
+      {
+        "path": "hidden/ground/N_R000_4343_ILT110VRT_S_0624_UNCORM1.npz",
+        "sha256": "ecf180e1d5bfa9bad9373ee90fae40506b9f01594a92872a5179ed09caeed359"
+      },
+      {
+        "path": "hidden/ground/N_R000_4353_ILT111VRT_S_0000_UNCORM1.LBL",
+        "sha256": "116ed6413d9d2951eff82fcd4cc45377aabf2278a667a60b9eefcfa14f6f4add"
+      },
+      {
+        "path": "hidden/ground/N_R000_4353_ILT111VRT_S_0000_UNCORM1.source-NRB_783938876ILT_F1110000NCAM00353M1.LBL",
+        "sha256": "63653120e3e55a759a4207eff23200daddf913f44e2a735041843c5990e4755f"
+      },
+      {
+        "path": "hidden/ground/N_R000_4353_ILT111VRT_S_0000_UNCORM1.npz",
+        "sha256": "fb47a34daa56e236c4e0db5e5ecbad7e00ab33579b3464e659b480cbb1841084"
+      },
+      {
+        "path": "hidden/ground/N_R000_4360_ILT111VRT_S_0570_UNCORM1.LBL",
+        "sha256": "57be97d6caa9f9a615911a72be86f8ff16a34056e2a8549f4edf1e6cd75c153a"
+      },
+      {
+        "path": "hidden/ground/N_R000_4360_ILT111VRT_S_0570_UNCORM1.source-NRB_784553731ILT_F1110570NCAM00353M1.LBL",
+        "sha256": "a165340ee93564f40e5a2e1ce2b172ceacb3d7bf4268e78dfb3b4657ba136ec3"
+      },
+      {
+        "path": "hidden/ground/N_R000_4360_ILT111VRT_S_0570_UNCORM1.npz",
+        "sha256": "e450ee79c800a681ef615c7b42ba80c2487141e890e92999bbfa01b3c4c1eaeb"
+      },
+      {
+        "path": "hidden/ground/N_R000_4371_ILT111VRT_S_1290_UNCORM1.LBL",
+        "sha256": "fd8374d4ec9880758e08f620dc61032c7226cc498042af002fd7bd676a9fa8f6"
+      },
+      {
+        "path": "hidden/ground/N_R000_4371_ILT111VRT_S_1290_UNCORM1.source-NRB_785528183ILT_F1111290NCAM00353M1.LBL",
+        "sha256": "3aedc75d4949ccfe364ff180376c4e5c7eb99fbbc2d0a8f6455fa80cca93d09f"
+      },
+      {
+        "path": "hidden/ground/N_R000_4371_ILT111VRT_S_1290_UNCORM1.npz",
+        "sha256": "bd8eb807494c11705019af4d764dd8b675b1b26a4c8c8b2b5ff36cd3c580e645"
+      },
+      {
+        "path": "hidden/ground/N_R000_4382_ILT111VRT_S_2124_UNCORM1.LBL",
+        "sha256": "714e42b636ce823a1579e87d4614d15f7ca3a2e61266b949800fc2538701b08c"
+      },
+      {
+        "path": "hidden/ground/N_R000_4382_ILT111VRT_S_2124_UNCORM1.source-NRB_786516427ILT_F1112124NCAM00353M1.LBL",
+        "sha256": "6903bc59003992b70ada4f84284324d9678f926ee4b270cadae935d24243e8f8"
+      },
+      {
+        "path": "hidden/ground/N_R000_4382_ILT111VRT_S_2124_UNCORM1.npz",
+        "sha256": "19d38ac046c3f00c70c68f3ac49a89e1a11e6e70536773f831a0264e821d63ed"
+      },
+      {
+        "path": "hidden/ground/N_R000_4394_ILT112VRT_S_0228_UNCORM1.LBL",
+        "sha256": "d576ae2bdf9db341d9d256e8bb23616758b3b75389f8f1bedb790809b14a6c41"
+      },
+      {
+        "path": "hidden/ground/N_R000_4394_ILT112VRT_S_0228_UNCORM1.source-NRB_787576530ILT_F1120228NCAM00353M1.LBL",
+        "sha256": "a2ac69388cec158db817bce8945c0f387de9e94c37a14dcdd9b38b3fe5ba2160"
+      },
+      {
+        "path": "hidden/ground/N_R000_4394_ILT112VRT_S_0228_UNCORM1.npz",
+        "sha256": "cf554538ce877bb1a4be6f481a2387712ba1cfd29f7e844f05cbef5d468ea780"
+      },
+      {
+        "path": "hidden/ground/N_R000_4414_ILT112VRT_S_0798_UNCORM1.LBL",
+        "sha256": "2cbd506f9bb013c46fa8dbea39d78619193e3435a9e8bbc42ebaba21d1a101fc"
+      },
+      {
+        "path": "hidden/ground/N_R000_4414_ILT112VRT_S_0798_UNCORM1.source-NRB_789346254ILT_F1120798NCAM00353M1.LBL",
+        "sha256": "69b93614a7cb84becff59752ca342ab013319aee89bdfa7bfe8980e3bf2104f9"
+      },
+      {
+        "path": "hidden/ground/N_R000_4414_ILT112VRT_S_0798_UNCORM1.npz",
+        "sha256": "291ccfc01d4c2eccb6f93be8ea868bf8283a0d3eaef0b57a37a7e06f732d06a7"
+      },
+      {
+        "path": "hidden/ground/N_R000_4435_ILT112VRT_S_2148_UNCORM1.LBL",
+        "sha256": "0b659f4fccf70ab0f78cdd7e3977beb99addcec7295f88fe57c433221bdc2724"
+      },
+      {
+        "path": "hidden/ground/N_R000_4435_ILT112VRT_S_2148_UNCORM1.source-NRB_791212621ILT_F1122148NCAM00346M1.LBL",
+        "sha256": "1f9468405217aba8e4cc340d987fbe003991c39cdb8650f96e4812682799a61d"
+      },
+      {
+        "path": "hidden/ground/N_R000_4435_ILT112VRT_S_2148_UNCORM1.npz",
+        "sha256": "6817100717765dea09e66d702386c69fdc95656a130676888f4ece7075ebf06b"
+      },
+      {
+        "path": "hidden/ground/N_R000_4442_ILT112VRT_S_2826_UNCORM1.LBL",
+        "sha256": "7f1a81b7312df21f16b463a4b9130da5b2f9666d0da81843c9126238ef11894c"
+      },
+      {
+        "path": "hidden/ground/N_R000_4442_ILT112VRT_S_2826_UNCORM1.source-NRB_791831361ILT_F1122826NCAM00353M1.LBL",
+        "sha256": "15eee34e3e5bb2c9b4cf19534f2ad4636076bfd8b3f42b54bf69c53a5482bf47"
+      },
+      {
+        "path": "hidden/ground/N_R000_4442_ILT112VRT_S_2826_UNCORM1.npz",
+        "sha256": "8c39cd99b1e9f32ab4e59c73057d5b467f6585476a6fdd43c27148bedda8caf8"
+      },
+      {
+        "path": "hidden/ground/N_R000_4449_ILT113VRT_S_0558_UNCORM1.LBL",
+        "sha256": "73c8854e358f2172b592cb66f730a8d1601f85242fe66e1c59568145e5b8d4b5"
+      },
+      {
+        "path": "hidden/ground/N_R000_4449_ILT113VRT_S_0558_UNCORM1.source-NRB_792452483ILT_F1130558NCAM00353M1.LBL",
+        "sha256": "a1c7324377457b7a2403c5621c4c33298f258b54c4e6955560125a05b10f6694"
+      },
+      {
+        "path": "hidden/ground/N_R000_4449_ILT113VRT_S_0558_UNCORM1.npz",
+        "sha256": "a6ac6b3580fad0ea662f62b112acbf45731b976fbe13c6789fd6ee37e422bbab"
+      },
+      {
+        "path": "hidden/ground/N_R000_4456_ILT113VRT_S_1440_UNCORM1.LBL",
+        "sha256": "df02760ba510f4f20870866112e32d06d70881c08c771e273df00a0221fe41f8"
+      },
+      {
+        "path": "hidden/ground/N_R000_4456_ILT113VRT_S_1440_UNCORM1.source-NRB_793081919ILT_F1131440NCAM00353M1.LBL",
+        "sha256": "5aa66fc5a73bb1cdf913ec3cedee14c1a85abd9d3f3be7c89bc2690d7e60ed8e"
+      },
+      {
+        "path": "hidden/ground/N_R000_4456_ILT113VRT_S_1440_UNCORM1.npz",
+        "sha256": "ae86f29aa1cc52f4a01658684ed85b8c1c58bd71eb3c0cafa3e0765104711da0"
+      },
+      {
+        "path": "hidden/ground/N_R000_4466_ILT113VRT_S_2394_UNCORM1.LBL",
+        "sha256": "fc48d430a76b83c81199563f9f44748b186c7a393ec410fd951540be801e2d40"
+      },
+      {
+        "path": "hidden/ground/N_R000_4466_ILT113VRT_S_2394_UNCORM1.source-NRB_793969396ILT_F1132394NCAM00353M1.LBL",
+        "sha256": "486bfefc904ab573a4617611f3b166803d9976138a38532098909d4c677f657e"
+      },
+      {
+        "path": "hidden/ground/N_R000_4466_ILT113VRT_S_2394_UNCORM1.npz",
+        "sha256": "ebae93f36eb913e37490f8594a7a66d2b371dc077aa7abe4ea5d03b53a249fa2"
+      },
+      {
+        "path": "hidden/ground/N_R000_4484_ILT114VRT_S_0918_UNCORM1.LBL",
+        "sha256": "c96d349994b0b4da7173726bc2764728105fb2d9da9bf267234eb5a35d940e5e"
+      },
+      {
+        "path": "hidden/ground/N_R000_4484_ILT114VRT_S_0918_UNCORM1.source-NRB_795567026ILT_F1140918NCAM00353M1.LBL",
+        "sha256": "da702aa726ebeb5a131829ba9d1b087995878df84b69a9626c6249495dea2631"
+      },
+      {
+        "path": "hidden/ground/N_R000_4484_ILT114VRT_S_0918_UNCORM1.npz",
+        "sha256": "0908072127f3f6ad142aae2b0eab05d590bea4f04aa108ee5184d59ba850ce52"
+      },
+      {
+        "path": "hidden/ground/N_R000_4491_ILT114VRT_S_1560_UNCORM1.LBL",
+        "sha256": "afcd589fbf9b2b84fe706198f65d7f6f74fcc434caeacca1aaeb78a07becf4ae"
+      },
+      {
+        "path": "hidden/ground/N_R000_4491_ILT114VRT_S_1560_UNCORM1.source-NRB_796189510ILT_F1141560NCAM00353M1.LBL",
+        "sha256": "d1b2d638fb726d5d2a129ccfd678a2594f7b11f84fff4fb8c92555952a50f0ac"
+      },
+      {
+        "path": "hidden/ground/N_R000_4491_ILT114VRT_S_1560_UNCORM1.npz",
+        "sha256": "4f1907b99fc80fb8459a35e4158817e6b7ba9dda2c4646c4b6959ed34a41ab17"
+      },
+      {
+        "path": "hidden/ground/N_R000_4498_ILT114VRT_S_2292_UNCORM1.LBL",
+        "sha256": "42e1a12bd743eac3082d94f010ec384b45f6122839c669454212e696b4fe5469"
+      },
+      {
+        "path": "hidden/ground/N_R000_4498_ILT114VRT_S_2292_UNCORM1.source-NRB_796811475ILT_F1142292NCAM00353M1.LBL",
+        "sha256": "e1651b036844296a9b8a8dc3afd261a2100f6f6648e1689a048fb69d90bce65c"
+      },
+      {
+        "path": "hidden/ground/N_R000_4498_ILT114VRT_S_2292_UNCORM1.npz",
+        "sha256": "21b4bc61450ee54650c0f80dd5eeb66715a359c157fcc4e32858a42e011127bb"
+      },
+      {
+        "path": "hidden/ground/N_R000_4507_ILT115VRT_S_0390_UNCORM1.LBL",
+        "sha256": "14990055312c2ace026893155b935b03eee259b5d4d8e3fa44ec9b1f320eed2e"
+      },
+      {
+        "path": "hidden/ground/N_R000_4507_ILT115VRT_S_0390_UNCORM1.source-NRB_797610344ILT_F1150390NCAM00353M1.LBL",
+        "sha256": "8d53ad6dd09a1bea2286b60bc1b87cc94711ba57953a44a104a6b9f43184ad9c"
+      },
+      {
+        "path": "hidden/ground/N_R000_4507_ILT115VRT_S_0390_UNCORM1.npz",
+        "sha256": "ecd6d4b78385117ed713d85bdfee899429aeb1bdd2e3e9b6f128467e204e2c75"
+      },
+      {
+        "path": "hidden/ground/N_R000_4514_ILT115VRT_S_1320_UNCORM1.LBL",
+        "sha256": "41f04ead5a7c926a2b2965ab6a9461333cd92bc4bcbe66d198101aee63ba918a"
+      },
+      {
+        "path": "hidden/ground/N_R000_4514_ILT115VRT_S_1320_UNCORM1.source-NRB_798226635ILT_F1151320NCAM00353M1.LBL",
+        "sha256": "d40e45954be7f95a4454b988ddd441a7814bd19d4c4eb23d765bf713c75ffef6"
+      },
+      {
+        "path": "hidden/ground/N_R000_4514_ILT115VRT_S_1320_UNCORM1.npz",
+        "sha256": "8726fb6bf6655cca71c583ef06ff107dc10b3c84faadbaf720b4c0d7ef88a7b7"
+      },
+      {
+        "path": "hidden/ground/N_R000_4523_ILT115VRT_S_1770_UNCORM1.LBL",
+        "sha256": "569599d270837deff2f4afbf8772f13121ca865ae59eaaf269aad4b5d3c155ae"
+      },
+      {
+        "path": "hidden/ground/N_R000_4523_ILT115VRT_S_1770_UNCORM1.source-NRB_799026803ILT_F1151770NCAM00353M1.LBL",
+        "sha256": "388dd86b1bb36ab26d5efb1c6acf6c9022be66733d3cacb95837e764eefdca6b"
+      },
+      {
+        "path": "hidden/ground/N_R000_4523_ILT115VRT_S_1770_UNCORM1.npz",
+        "sha256": "1cc39cb17b36c7074af829e2dc2bbfb9b60666ba5380b8b3cb112cce91112c87"
+      },
+      {
+        "path": "hidden/ground/N_R000_4530_ILT115VRT_S_2436_UNCORM1.LBL",
+        "sha256": "869edd5258d7d30764c87ed06b48f47750c928c1a328411646e11ab530f65814"
+      },
+      {
+        "path": "hidden/ground/N_R000_4530_ILT115VRT_S_2436_UNCORM1.source-NRB_799648638ILT_F1152436NCAM00353M1.LBL",
+        "sha256": "27877f494ade933a34e964ffd9ee18707b1610d53962498f863668911de3689c"
+      },
+      {
+        "path": "hidden/ground/N_R000_4530_ILT115VRT_S_2436_UNCORM1.npz",
+        "sha256": "222b6e1b63f8b8038b7efde01e74a5a9ab435435b2462086bc69aa3efedcc0e6"
+      },
+      {
+        "path": "hidden/ground/N_R000_4548_ILT116VRT_S_1260_UNCORM1.LBL",
+        "sha256": "cc29f08cd7f027c376934e5be28928f37c976fd21d1e203a81ec6d57872dae4e"
+      },
+      {
+        "path": "hidden/ground/N_R000_4548_ILT116VRT_S_1260_UNCORM1.source-NRB_801251913ILT_F1161260NCAM00353M1.LBL",
+        "sha256": "7adf4ca941d656c8024ff75f13053d4333f013be5b7fdbfc9633dd1c6b21aa7f"
+      },
+      {
+        "path": "hidden/ground/N_R000_4548_ILT116VRT_S_1260_UNCORM1.npz",
+        "sha256": "b2a1d3c6817fcb05f8aa0c64da0a7492a132c6cfbf7e463dd44285f9c6837541"
+      },
+      {
+        "path": "hidden/ground/N_R000_4558_ILT116VRT_S_1890_UNCORM1.LBL",
+        "sha256": "211fd3ce2ff67ac8b6453f9a7ffdcbe6ca4061b717e2e19bc0e6ad164c43fbd7"
+      },
+      {
+        "path": "hidden/ground/N_R000_4558_ILT116VRT_S_1890_UNCORM1.source-NRB_802130648ILT_F1161890NCAM00261M1.LBL",
+        "sha256": "49ae92af07f3951c258c983b2a75211d2fe8463d46546e23852134c525d0e5e8"
+      },
+      {
+        "path": "hidden/ground/N_R000_4558_ILT116VRT_S_1890_UNCORM1.npz",
+        "sha256": "976cccc3a6a22c27280c566572ffc72b58f1bfd850c641ea0729dd9964e98da8"
+      },
+      {
+        "path": "hidden/ground/N_R000_4573_ILT116VRT_S_2562_UNCORM1.LBL",
+        "sha256": "44e26d3d7fa262d3aa906743aab410b5eb6add87bf41e46dfd049c9001000685"
+      },
+      {
+        "path": "hidden/ground/N_R000_4573_ILT116VRT_S_2562_UNCORM1.source-NRB_803470848ILT_F1162562NCAM00353M1.LBL",
+        "sha256": "bbfa45818ede2491b7e7c14e33b5b84e632b628f8fbe57c4520cb7ddba1be2ce"
+      },
+      {
+        "path": "hidden/ground/N_R000_4573_ILT116VRT_S_2562_UNCORM1.npz",
+        "sha256": "c270204fdbcc318b59de0b9f829735bf123efbf8530fdfb7d77052cf91eab1bd"
+      },
+      {
+        "path": "hidden/ground/N_R000_4580_ILT117VRT_S_0420_UNCORM1.LBL",
+        "sha256": "28c9d1c8dfb5b3f770612ac0b7eb53dde327844c64139bdd8e17d7d77df7308a"
+      },
+      {
+        "path": "hidden/ground/N_R000_4580_ILT117VRT_S_0420_UNCORM1.source-NRB_804091782ILT_F1170420NCAM00353M1.LBL",
+        "sha256": "e9eb08785ae2b36267e5c5a35c8d68ad486618875803a4f580c722cea5392568"
+      },
+      {
+        "path": "hidden/ground/N_R000_4580_ILT117VRT_S_0420_UNCORM1.npz",
+        "sha256": "915c328cdd04bbb528acad0d2463dee01cf04219a36a6174cfd7fb3fe7f972c1"
+      },
+      {
+        "path": "hidden/ground/N_R000_4588_ILT117VRT_S_1008_UNCORM1.LBL",
+        "sha256": "96b59760e85b045fcb15c178602fbbd3a0919f874e06e8a8932f1fb606aabac7"
+      },
+      {
+        "path": "hidden/ground/N_R000_4588_ILT117VRT_S_1008_UNCORM1.source-NRB_804802235ILT_F1171008NCAM00353M1.LBL",
+        "sha256": "8ece6ad291b6401de9e1f0efcd7a675399d296551c3db4669b613d5aea633c60"
+      },
+      {
+        "path": "hidden/ground/N_R000_4588_ILT117VRT_S_1008_UNCORM1.npz",
+        "sha256": "5d580a13d94c34bf18e442562c525b70bba46050d5c484189fbc050ea391a0c0"
+      },
+      {
+        "path": "hidden/ground/N_R000_4596_ILT117VRT_S_1890_UNCORM1.LBL",
+        "sha256": "3872eaa8ea79ce7ea12eaade2cea34cae71a2f1f36844a30cb7b9ef7e1d59123"
+      },
+      {
+        "path": "hidden/ground/N_R000_4596_ILT117VRT_S_1890_UNCORM1.source-NRB_805502446ILT_F1171890NCAM00353M1.LBL",
+        "sha256": "74bb6c705d6c2ecc93e5570274328dc7481de73a7db1b3e6c66a38950c03b99d"
+      },
+      {
+        "path": "hidden/ground/N_R000_4596_ILT117VRT_S_1890_UNCORM1.npz",
+        "sha256": "a05a6804362593d2616034edbc16a88881f233fa63f6ed8e528f15c198e82ead"
+      },
+      {
+        "path": "hidden/ground/N_R000_4618_ILT118VRT_S_0198_UNCORM1.LBL",
+        "sha256": "99dff6ae7b7f8868ab0a2b35b5f48d8a2cc6d71b50be315c845cd49495339abf"
+      },
+      {
+        "path": "hidden/ground/N_R000_4618_ILT118VRT_S_0198_UNCORM1.source-NRB_807463416ILT_F1180198NCAM00279M1.LBL",
+        "sha256": "ef418319f1ca7958b2cd2c99aa77610c8b382b9c81f0763c6b22ba0437cc66d5"
+      },
+      {
+        "path": "hidden/ground/N_R000_4618_ILT118VRT_S_0198_UNCORM1.npz",
+        "sha256": "5578934db04f2b0152701067092bc0c1a865e69c1b8967f349c35c5be2735e6a"
+      },
+      {
+        "path": "hidden/ground/N_R000_4625_ILT118VRT_S_0762_UNCORM1.LBL",
+        "sha256": "f8b53a4e659a9dad208b0de79485f4f6c3ffb4f304c4ea140639c6746df12b6a"
+      },
+      {
+        "path": "hidden/ground/N_R000_4625_ILT118VRT_S_0762_UNCORM1.source-NRB_808083553ILT_F1180762NCAM00353M1.LBL",
+        "sha256": "bb3ab6b40f2ef635cca4c0fc27282f93ce119a256c4bcaa635b420a181017d40"
+      },
+      {
+        "path": "hidden/ground/N_R000_4625_ILT118VRT_S_0762_UNCORM1.npz",
+        "sha256": "892b85eab0f93d9b0fb8e3605eebe49ae187da880630930e1d39af1d06d4166d"
+      },
+      {
+        "path": "hidden/ground/N_R000_4634_ILT118VRT_S_1608_UNCORM1.LBL",
+        "sha256": "2a4790ff8abd212f5a467f96da194c72b44ce290701b11936b84940a73436718"
+      },
+      {
+        "path": "hidden/ground/N_R000_4634_ILT118VRT_S_1608_UNCORM1.source-NRB_808882742ILT_F1181608NCAM00353M1.LBL",
+        "sha256": "7137073ebe1e93b7559c27094dd3e9c486e3749d0349d3647e45047b604df8a2"
+      },
+      {
+        "path": "hidden/ground/N_R000_4634_ILT118VRT_S_1608_UNCORM1.npz",
+        "sha256": "1cd30aceb464704b3ade093cb6a3804d87aae0e3c38a308e2c2ec9741a37cf91"
+      },
+      {
+        "path": "hidden/ground/N_R000_4641_ILT118VRT_S_1944_UNCORM1.LBL",
+        "sha256": "08c2e62d998030542b7da34e375c6018e6d899db8f8ff7ce8a660f1a37b1e63b"
+      },
+      {
+        "path": "hidden/ground/N_R000_4641_ILT118VRT_S_1944_UNCORM1.source-NRB_809504091ILT_F1181944NCAM00353M1.LBL",
+        "sha256": "d67a19eeb61eb227743579238aa0d8d2e02c9df26a0167688bf0aeb86ff1bca4"
+      },
+      {
+        "path": "hidden/ground/N_R000_4641_ILT118VRT_S_1944_UNCORM1.npz",
+        "sha256": "02b3c9ffe7c25c7be52796fd2a30887bf71ed2e9b4fc379f0bb51ca383c64ae0"
+      },
+      {
+        "path": "hidden/ground/N_R000_4650_ILT118VRT_S_2304_UNCORM1.LBL",
+        "sha256": "85ad8801a4413abad41f77a805f439c6cb49574ff483a72bbace203b7d5b6787"
+      },
+      {
+        "path": "hidden/ground/N_R000_4650_ILT118VRT_S_2304_UNCORM1.source-NRB_810298182ILT_F1182304NCAM00353M1.LBL",
+        "sha256": "efc51dc856b6f96937b266388163940c1a66f99d981f63e0299aaa98a8e81b56"
+      },
+      {
+        "path": "hidden/ground/N_R000_4650_ILT118VRT_S_2304_UNCORM1.npz",
+        "sha256": "4b81562d4164d30086461bcf114e0eb4199da3d711a00516ba9ec116c821ea36"
+      },
+      {
+        "path": "hidden/ground/N_R000_4660_ILT118VRT_S_2742_UNCORM1.LBL",
+        "sha256": "4901ae51b6083ffe6fe25f31f5fda0ab834bed1337800c5f4372b05227b0579e"
+      },
+      {
+        "path": "hidden/ground/N_R000_4660_ILT118VRT_S_2742_UNCORM1.source-NRB_811178803ILT_F1182742NCAM00353M1.LBL",
+        "sha256": "b69f6f0aaa774aff12eaa0197563e1f2369ef4f258c4c9acb73d4dee8680e52a"
+      },
+      {
+        "path": "hidden/ground/N_R000_4660_ILT118VRT_S_2742_UNCORM1.npz",
+        "sha256": "2d7c8e378fc6a46c2bd6fe78fd9dada63c8859d3c1ed85ea9d1891c11e821070"
+      },
+      {
+        "path": "hidden/ground/N_R000_4673_ILT119VRT_S_0846_UNCORM1.LBL",
+        "sha256": "fb3cbfc652818f214a438d63bf031392741f0dc22d1bdfb83b51e6a4234e43df"
+      },
+      {
+        "path": "hidden/ground/N_R000_4673_ILT119VRT_S_0846_UNCORM1.source-NRB_812334692ILT_F1190846NCAM00353M1.LBL",
+        "sha256": "d278e6bb62f90a1c5572a0027a81f11a3f7985437a2fc6126b50995864e44ef7"
+      },
+      {
+        "path": "hidden/ground/N_R000_4673_ILT119VRT_S_0846_UNCORM1.npz",
+        "sha256": "90ff2c228edb68bdd0bc334d811ae83085c9337b03d3281f1663067ffd042af5"
+      },
+      {
+        "path": "hidden/ground/N_R000_4741_ILT120VRT_S_0232_UNCORM1.LBL",
+        "sha256": "301f0736ffdf8ec3d8f5d7d16f16496aa8e4dd7c32101baa993eb756684f1e53"
+      },
+      {
+        "path": "hidden/ground/N_R000_4741_ILT120VRT_S_0232_UNCORM1.source-NRB_818375975ILT_F1200232NCAM00353M1.LBL",
+        "sha256": "55fe89f2a4d8a4f5ccbd8833329b507070f3d149de315d15b32819f76770701c"
+      },
+      {
+        "path": "hidden/ground/N_R000_4741_ILT120VRT_S_0232_UNCORM1.npz",
+        "sha256": "abe5755383a2b3213119d0fa010d3b836f35779ac77eae64b9b20db524882d6a"
+      },
+      {
+        "path": "hidden/ground/N_R000_4813_ILT120VRT_S_1264_UNCORM1.LBL",
+        "sha256": "8c7a5a37d7666451dd1908d6eb9f2a71f99a611bddd5deaa01d6ed872659f919"
+      },
+      {
+        "path": "hidden/ground/N_R000_4813_ILT120VRT_S_1264_UNCORM1.source-NRB_824770253ILT_F1201264NCAM00353M1.LBL",
+        "sha256": "59c5ee8fc6dbb5615d8db42089240b8921fa0faaa4d70665ee0b90ba803f4434"
+      },
+      {
+        "path": "hidden/ground/N_R000_4813_ILT120VRT_S_1264_UNCORM1.npz",
+        "sha256": "dadcf6d3f1e4e21efce4091464c89afa8e3a5a18ab9d735f13202b4e3c9eec3a"
+      },
+      {
+        "path": "hidden/ground/N_R000_4820_ILT120VRT_S_2102_UNCORM1.LBL",
+        "sha256": "db9b32bc4925954827187cb74df47619e333216734d075348cd2e21215ab33ca"
+      },
+      {
+        "path": "hidden/ground/N_R000_4820_ILT120VRT_S_2102_UNCORM1.source-NRB_825390245ILT_S1202102NCAM00250M1.LBL",
+        "sha256": "c1eff21190425f6d03b59613a0cfd1659c795fe2a939901c8c70183804a3c830"
+      },
+      {
+        "path": "hidden/ground/N_R000_4820_ILT120VRT_S_2102_UNCORM1.npz",
+        "sha256": "e567d9cb241155e77782632e033a1937700d15040ded2893fa2b77421bfb5d5f"
+      },
+      {
+        "path": "hidden/ground/N_R000_4834_ILT121VRT_S_0000_UNCORM1.LBL",
+        "sha256": "c0789e935cbdc5c2effe3caf73f8e3856c8da21b5483ac269d693a93d0d34d69"
+      },
+      {
+        "path": "hidden/ground/N_R000_4834_ILT121VRT_S_0000_UNCORM1.source-NRB_826632155ILT_F1210000NCAM00353M1.LBL",
+        "sha256": "ecc76252b457f4b2b22f5b41ed2d5db257a7d18912e72c7df0b79861d72e84d0"
+      },
+      {
+        "path": "hidden/ground/N_R000_4834_ILT121VRT_S_0000_UNCORM1.npz",
+        "sha256": "842e4151950bb6c614b57619bc5bbd44320eea3ffb48539205928c725e6b0c7e"
+      },
+      {
+        "path": "hidden/ground/N_R000_4841_ILT121VRT_S_0762_UNCORM1.LBL",
+        "sha256": "54e0ee689ac1e6bdb40e327d8101e914b1908975b8598f95bb0ee4d1ed7bcf8d"
+      },
+      {
+        "path": "hidden/ground/N_R000_4841_ILT121VRT_S_0762_UNCORM1.source-NRB_827252585ILT_F1210762NCAM00353M1.LBL",
+        "sha256": "fe834d2104411dbf30e5f9d33ba2ce4846ee3b664acae7cc851c3d6864c71bc3"
+      },
+      {
+        "path": "hidden/ground/N_R000_4841_ILT121VRT_S_0762_UNCORM1.npz",
+        "sha256": "d5393be600e5916d4e8b20f47010ced1f5b90ac8deb4d67fef2a5dc15d3fefdc"
+      }
+    ]
+  }
+}
