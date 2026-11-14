@@ -3,7 +3,7 @@
 // 2 km walk limit, and pan, zoom, north-up and 3D tilt. Draping on 3D terrain waits for an
 // elevation layer from Person 2.
 import { FlyToInterpolator, MapView, WebMercatorViewport, type MapViewState } from "@deck.gl/core";
-import { BitmapLayer } from "@deck.gl/layers";
+import { BitmapLayer, PathLayer } from "@deck.gl/layers";
 import DeckGL from "@deck.gl/react";
 import type { LayerMeta } from "@contracts/layer";
 import type { Point, SiteConfig } from "@contracts/site";
@@ -28,6 +28,14 @@ import {
   type LngLat,
 } from "./geo";
 
+/** A planned route drawn on the map, with its label at the middle of the path. */
+export interface MapRoute {
+  id: string;
+  path: Point[];
+  label: string;
+  chosen: boolean;
+}
+
 export interface PointsShown {
   targets: boolean;
   checkpoints: boolean;
@@ -46,6 +54,9 @@ interface Props {
   onToggleLayers: () => void;
   fileUrl: (path: string) => string;
   status: string | null;
+  routes: MapRoute[];
+  /** Points the view frames when they change, such as the chosen route. */
+  fitTo: Point[] | null;
 }
 
 const MAP_VIEW = new MapView({ id: "map", repeat: false });
@@ -54,6 +65,10 @@ const MAX_DETAIL_TILES = 150;
 const COLOUR_OPACITY = 0.85;
 const SCALE_STEPS_M = [10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
 const SCALE_TARGET_PX = 100;
+const FIT_PADDING = 1.4;
+const ROUTE_COLOUR: [number, number, number] = [111, 155, 255];
+const ALTERNATIVE_COLOUR: [number, number, number, number] = [154, 166, 191, 210];
+const OUTLINE_COLOUR: [number, number, number, number] = [5, 7, 13, 200];
 
 /** The map's size: first from the page, then from deck.gl, so markers and tiles agree. */
 function useSize<T extends HTMLElement>() {
@@ -153,6 +168,28 @@ export function WalkMap(props: Props) {
     );
   }, [selectedTargetId, site, origin]);
 
+  // Frame the chosen route when it arrives.
+  const { fitTo } = props;
+  useEffect(() => {
+    if (!fitTo?.length || !size.width || !size.height) return;
+    const xs = fitTo.map((point) => point.x);
+    const ys = fitTo.map((point) => point.y);
+    const centre = { x: (Math.min(...xs) + Math.max(...xs)) / 2, y: (Math.min(...ys) + Math.max(...ys)) / 2 };
+    const span = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys), 200);
+    const [longitude, latitude] = toLngLat(centre, origin);
+    setViewState((current) =>
+      current && {
+        ...current,
+        longitude,
+        latitude,
+        zoom: zoomToFit(span * FIT_PADDING, Math.min(size.width, size.height)),
+        transitionDuration: 700,
+        transitionInterpolator: new FlyToInterpolator(),
+      },
+    );
+    // Only a new set of points re-frames the view; resizing keeps the user's view.
+  }, [fitTo, origin]);
+
   const viewport = useMemo(
     () =>
       viewState && size.width && size.height
@@ -161,15 +198,36 @@ export function WalkMap(props: Props) {
     [viewState, size],
   );
 
+  const { routes } = props;
   const layers = useMemo(() => {
     if (!viewport) return [];
+    // Alternatives first, then the chosen route on top with a dark outline.
+    const ordered = [...routes].sort((a, b) => Number(a.chosen) - Number(b.chosen));
+    const routeLayers = ordered.flatMap((route) => {
+      const path = route.path.map((point) => toLngLat(point, origin));
+      const line = (id: string, color: number[], width: number) =>
+        new PathLayer<{ path: LngLat[] }>({
+          id,
+          data: [{ path }],
+          getPath: (d) => d.path,
+          getColor: color as [number, number, number],
+          getWidth: width,
+          widthUnits: "pixels",
+          capRounded: true,
+          jointRounded: true,
+        });
+      return route.chosen
+        ? [line(`${route.id}-outline`, OUTLINE_COLOUR, 9), line(route.id, ROUTE_COLOUR, 5)]
+        : [line(route.id, ALTERNATIVE_COLOUR, 4)];
+    });
     return [
       ...(baseLayer ? rasterLayers(baseLayer, site, viewport, origin, props.fileUrl, 1) : []),
       ...(colourLayer
         ? rasterLayers(colourLayer, site, viewport, origin, props.fileUrl, COLOUR_OPACITY)
         : []),
+      ...routeLayers,
     ];
-  }, [viewport, baseLayer, colourLayer, site, origin, props.fileUrl]);
+  }, [viewport, baseLayer, colourLayer, site, origin, props.fileUrl, routes]);
 
   const project = (point: Point) => {
     const [x = 0, y = 0] = viewport?.project(toLngLat(point, origin)) ?? [];
@@ -220,6 +278,19 @@ export function WalkMap(props: Props) {
               opacity={0.6}
             />
           </svg>
+
+          {routes.map((route) => {
+            const middle = route.path[Math.floor(route.path.length / 2)];
+            return middle ? (
+              <span
+                key={route.id}
+                className={`route-label${route.chosen ? " route-label--on" : ""}`}
+                style={{ ...project(middle), zIndex: route.chosen ? 6 : 5 }}
+              >
+                {route.label}
+              </span>
+            ) : null;
+          })}
 
           {points.checkpoints &&
             site.checkpoints.map((checkpoint, index) => (

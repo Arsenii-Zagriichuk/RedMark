@@ -20,6 +20,7 @@ interface Props {
   onQuery: (query: string) => void;
   selected: ScienceTarget | undefined;
   onSelect: (id: string | null) => void;
+  onDirections: () => void;
 }
 
 function fromHabitat(habitat: Point | null, target: Point): string | null {
@@ -42,7 +43,8 @@ function ModeSwitch() {
   );
 }
 
-export function Sidebar({ site, conditions, query, onQuery, selected, onSelect }: Props) {
+export function Sidebar(props: Props) {
+  const { site, conditions, query, onQuery, selected, onSelect } = props;
   const targets = (site?.science_targets ?? []).filter((target) =>
     target.name.toLowerCase().includes(query.trim().toLowerCase()),
   );
@@ -87,7 +89,7 @@ export function Sidebar({ site, conditions, query, onQuery, selected, onSelect }
 
       <div className="sidebar__scroll">
         {selected && site ? (
-          <PlaceCard target={selected} habitat={site.habitat} />
+          <PlaceCard target={selected} habitat={site.habitat} onDirections={props.onDirections} />
         ) : (
           <>
             <div className="section-head">
