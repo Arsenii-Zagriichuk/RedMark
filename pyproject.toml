@@ -6,8 +6,11 @@ requires-python = "==3.11.*"
 dependencies = [
     "fastapi>=0.115",
     "jsonschema>=4.23",
+    "matplotlib>=3.11.2",
+    "numpy>=2.4.6",
     "pydantic>=2.9",
     "pyyaml>=6.0",
+    "rasterio>=1.4.4",
     "uvicorn>=0.32",
 ]
 
@@ -23,10 +26,8 @@ gpu = [
     "torch>=2.5",
 ]
 prep = [
-    "numpy>=2.4.6",
     "pillow>=13.0.0",
     "pyproj>=3.7.2",
-    "rasterio>=1.4.4",
     "truststore>=0.10.5",
 ]
 
@@ -35,7 +36,7 @@ package = false
 default-groups = ["dev", "prep"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "prep"]
+testpaths = ["tests", "prep", "locate"]
 pythonpath = ["."]
 addopts = "-ra"
 
