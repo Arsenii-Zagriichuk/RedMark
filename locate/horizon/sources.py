@@ -13,11 +13,14 @@ degrees of longitude and latitude, which on that sphere is the same frame
 scaled by 59,274.7 m per degree, so no resampling is needed. The far tier is
 shifted by the median height difference where it overlaps the Gale file, so
 the two join without a step. The 10 m copy and the far crop are cached next
-to the grid, since reading the whole 1 m file takes minutes.
+to the grid, since reading the whole 1 m file takes minutes; each cache
+records the checksum of the file it came from and is rebuilt when that changes.
 """
 
+import hashlib
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -47,12 +50,15 @@ class GaleTerrain:
 def load_gale_terrain(data_root: Path, walk_area: Bounds, cache_dir: Path) -> GaleTerrain:
     near = read_heights(data_root / GALE_DEM, _grow(walk_area, NEAR_REACH_M))
     mid = _cached(
-        cache_dir / f"gale-{MID_RES_M:.0f}m.npz", lambda: _read_decimated(data_root / GALE_DEM)
+        cache_dir / f"gale-{MID_RES_M:.0f}m.npz",
+        data_root / GALE_DEM,
+        lambda: _read_decimated(data_root / GALE_DEM),
     )
     reach = _grow(walk_area, FAR_REACH_M)
     far = _cached(
         cache_dir
         / f"far-200m-{reach.min_x:.0f}_{reach.min_y:.0f}_{reach.max_x:.0f}_{reach.max_y:.0f}.npz",
+        data_root / FAR_DEM,
         lambda: read_heights(data_root / FAR_DEM, reach),
     )
     offset = height_offset(mid, far)
@@ -113,13 +119,38 @@ def _read_decimated(path: Path) -> Raster:
     return Raster(heights, left=src.bounds.left, top=src.bounds.top, res=res)
 
 
-def _cached(path: Path, read: Callable[[], Raster]) -> Raster:
+def sha256_file(path: Path) -> str:
+    """SHA-256 of a file, hashed once per run for each version of the file."""
+    stat = path.stat()
+    return _sha256(path.resolve(), stat.st_size, stat.st_mtime_ns)
+
+
+@lru_cache
+def _sha256(path: Path, size: int, mtime_ns: int) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        while chunk := f.read(1 << 24):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _cached(path: Path, source: Path, read: Callable[[], Raster]) -> Raster:
+    """The raster cached at path, rebuilt if the source file has changed since."""
+    source_sha256 = sha256_file(source)
     if path.exists():
         with np.load(path) as f:
-            return Raster(f["heights"], float(f["left"]), float(f["top"]), float(f["res"]))
+            if "source_sha256" in f and str(f["source_sha256"]) == source_sha256:
+                return Raster(f["heights"], float(f["left"]), float(f["top"]), float(f["res"]))
     raster = read()
     path.parent.mkdir(parents=True, exist_ok=True)
     partial = path.with_suffix(".partial.npz")
-    np.savez(partial, heights=raster.heights, left=raster.left, top=raster.top, res=raster.res)
+    np.savez(
+        partial,
+        heights=raster.heights,
+        left=raster.left,
+        top=raster.top,
+        res=raster.res,
+        source_sha256=source_sha256,
+    )
     partial.replace(path)  # never leave a half-written cache behind
     return raster

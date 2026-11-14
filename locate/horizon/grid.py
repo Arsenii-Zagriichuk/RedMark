@@ -12,12 +12,10 @@ Run with `uv run python -m locate.horizon.grid`. The walk area comes from
 sites/gale.yaml, so a new walk area is a rerun, not a code change.
 """
 
-import hashlib
 import json
 import subprocess
 import sys
 import time
-from pathlib import Path
 
 import numpy as np
 import yaml
@@ -25,7 +23,13 @@ import yaml
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
 from locate.horizon.render import skyline
-from locate.horizon.sources import FAR_DEM, FAR_REACH_M, GALE_DEM, load_gale_terrain
+from locate.horizon.sources import (
+    FAR_DEM,
+    FAR_REACH_M,
+    GALE_DEM,
+    load_gale_terrain,
+    sha256_file,
+)
 
 SPACING_M = 100.0
 AZIMUTH_STEP_DEG = 0.25
@@ -110,9 +114,9 @@ def main() -> None:
             "script": "locate/horizon/grid.py",
             "commit": _commit(),
             "inputs": [
-                {"path": name, "sha256": _sha256(root / name)} for name in (GALE_DEM, FAR_DEM)
+                {"path": name, "sha256": sha256_file(root / name)} for name in (GALE_DEM, FAR_DEM)
             ]
-            + [{"path": "sites/gale.yaml", "sha256": _sha256(REPO_ROOT / "sites/gale.yaml")}],
+            + [{"path": "sites/gale.yaml", "sha256": sha256_file(REPO_ROOT / "sites/gale.yaml")}],
         },
     }
     (out_dir / "grid-meta.json").write_text(json.dumps(meta, indent=2) + "\n")
@@ -123,14 +127,6 @@ def _commit() -> str:
     return subprocess.run(
         ["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=REPO_ROOT, check=True
     ).stdout.strip()
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as f:
-        while chunk := f.read(1 << 24):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 if __name__ == "__main__":

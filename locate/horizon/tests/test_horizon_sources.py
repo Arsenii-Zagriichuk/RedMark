@@ -6,7 +6,47 @@ import rasterio
 from rasterio.transform import from_origin
 
 from contracts.models.common import Bounds
-from locate.horizon.sources import read_heights
+from locate.horizon.sources import FAR_DEM, GALE_DEM, load_gale_terrain, read_heights
+
+EQC = "+proj=eqc +lat_ts=0 +lat_0=0 +lon_0=0 +R=3396190 +units=m +no_defs"
+
+
+def write_flat(path, height_m, *, left, top, res, size):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with rasterio.open(
+        path,
+        "w",
+        driver="GTiff",
+        width=size,
+        height=size,
+        count=1,
+        dtype="float32",
+        crs=EQC,
+        transform=from_origin(left, top, res, res),
+        nodata=-32767,
+    ) as dst:
+        dst.write(np.full((size, size), height_m, np.float32), 1)
+
+
+def test_replacing_a_terrain_file_under_the_same_name_refreshes_every_tier(tmp_path):
+    # Gale file: 400 m square at 1 m. Far file: 10 km square at 50 m round it.
+    data, cache = tmp_path / "data", tmp_path / "cache"
+    walk_area = Bounds(min_x=190.0, min_y=190.0, max_x=210.0, max_y=210.0)
+    near_spot, mid_spot, far_spot = (
+        (200.0, 200.0, 0.0),
+        (300.0, 300.0, 2_000.0),
+        (3_000.0, 3_000.0, 4_000.0),
+    )
+
+    def heights_now():
+        terrain = load_gale_terrain(data, walk_area, cache).terrain
+        x, y, d = (np.array(v) for v in zip(near_spot, mid_spot, far_spot, strict=True))
+        return terrain.height(x, y, d).tolist()
+
+    for height in (10.0, 70.0):
+        write_flat(data / GALE_DEM, height, left=0.0, top=400.0, res=1.0, size=400)
+        write_flat(data / FAR_DEM, height, left=-5_000.0, top=5_400.0, res=50.0, size=200)
+        assert heights_now() == pytest.approx([height] * 3)
 
 
 def test_a_terrain_file_in_degrees_comes_back_in_map_metres(tmp_path):
