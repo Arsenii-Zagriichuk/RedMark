@@ -1,7 +1,8 @@
 // The one component that shows a fix (AGENTS.md rule 8): its uncertainty circle, heading,
 // confidence, time per fix and terrain type, with the Simulated label whenever the fix is
-// simulated. A simulated fix shows the pipeline, not accuracy, so no numbers are reported
-// from it (team plan, Gale drone fix).
+// simulated. The simulated Gale drone fix is cut from the map it is matched to, so it shows
+// the pipeline, not accuracy, and no numbers are reported from it (team plan, Gale drone fix).
+// Any other simulated fix shows its numbers with the label (P1-08's simulated ground fix).
 import type { FixResult } from "@contracts/fix_result";
 import { formatBearing } from "../map/geo";
 
@@ -16,6 +17,9 @@ function Value({ label, children }: { label: string; children: string }) {
   );
 }
 
+/** The Gale drone demonstration: simulated, and its numbers mean nothing. */
+const isGaleDroneDemo = (fix: FixResult) => fix.simulated && fix.method === "drone" && fix.site === "gale";
+
 export function FixCard({ fix }: { fix: FixResult }) {
   return (
     <section className="fix-card" aria-label={METHOD_NAMES[fix.method]}>
@@ -23,8 +27,8 @@ export function FixCard({ fix }: { fix: FixResult }) {
         <span className="fix-card__title">{METHOD_NAMES[fix.method]}</span>
         {fix.simulated && <span className="chip chip--simulated">Simulated</span>}
       </div>
-      {fix.simulated ? (
-        <p className="fix-card__note">No numbers are reported from a simulated fix.</p>
+      {isGaleDroneDemo(fix) ? (
+        <p className="fix-card__note">No numbers are reported from the simulated Gale drone fix.</p>
       ) : (
         <dl className="fix-card__values">
           <Value label="Circle">{`±${Math.round(fix.uncertainty_m)} m`}</Value>

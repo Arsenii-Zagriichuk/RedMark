@@ -38,8 +38,15 @@ describe("FixCard", () => {
     expect(html).toContain("10.0 s");
   });
 
-  it("reports no numbers from a simulated fix", () => {
+  it("reports no numbers from the simulated Gale drone fix", () => {
     const html = text(galeDroneFix);
     for (const number of ["±10 m", "162°", "0%", "10.0 s"]) expect(html).not.toContain(number);
+  });
+
+  it("shows the numbers of any other simulated fix, labelled", () => {
+    const html = text({ ...galeDroneFix, method: "ground", confidence_pct: 64 });
+    expect(html).toContain("Simulated");
+    expect(html).toContain("±10 m");
+    expect(html).toContain("64%");
   });
 });
