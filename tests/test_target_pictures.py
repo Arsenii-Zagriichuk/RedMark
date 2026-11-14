@@ -37,3 +37,10 @@ def test_every_picture_credits_curiosity_and_names_its_source():
     for picture in [*_pictures()["pictures"], _pictures()["fallback"]]:
         assert picture["credit"].startswith("NASA/JPL-Caltech")
         assert picture["source_url"].startswith("https://mars.nasa.gov/msl-raw-images/")
+
+
+def test_the_fallback_is_a_copy_of_a_listed_picture():
+    fallback = _pictures()["fallback"]
+    listed = {picture["image_id"]: picture for picture in _pictures()["pictures"]}
+    assert fallback["sha256"] == listed[fallback["image_id"]]["sha256"]
+    assert fallback["source_url"] == listed[fallback["image_id"]]["source_url"]

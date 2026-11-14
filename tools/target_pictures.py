@@ -16,6 +16,7 @@ replayed sol, picked by eye, and its caption says so.
 
 import hashlib
 import json
+import shutil
 import subprocess
 import sys
 import urllib.request
@@ -70,15 +71,10 @@ PICKS = [
         "Rippled sand between blocks: the loose floor a hollow sample would come from.",
     ),
 ]
-# Shown for a target with no pictures: Curiosity's wide view of the boxwork.
-FALLBACK = (
-    "NLB_806305401EDR_F1172538NCAM00263M_",
-    4605,
-    "NAV_LEFT_B",
-    f"{RAW}/proj/msl/redops/ods/surface/sol/04605/opgs/edr/ncam/"
-    "NLB_806305401EDR_F1172538NCAM00263M_.JPG",
-    "Curiosity's view of the boxwork it drove through. No picture of this target yet.",
-)
+# Shown for a target with no pictures, or when a picture fails to load: a copy of one
+# pick's file (Curiosity's wide view of the boxwork), with that pick's source and credit.
+FALLBACK_PICK = "NLB_806305401EDR_F1172538NCAM00263M_"
+FALLBACK_CAPTION = "Curiosity's view of the boxwork it drove through."
 NOTE = (
     "Curiosity never reached this target. These are its pictures of the same kind of "
     "ground in the boxwork it drove through."
@@ -109,7 +105,30 @@ def _picture(image_id: str, sol: int, camera: str, url: str, caption: str, file:
     }
 
 
+def _fallback(pick: dict) -> dict:
+    """The fallback picture: the pick's own file copied, so the bytes are the same."""
+    file = "/fallback/target-preview.jpg"
+    shutil.copyfile(PUBLIC / pick["file"].lstrip("/"), PUBLIC / file.lstrip("/"))
+    fallback = {key: value for key, value in pick.items() if key != "target"}
+    return {**fallback, "caption": FALLBACK_CAPTION, "file": file}
+
+
+def _commit() -> str:
+    """HEAD, after checking it holds this script as it runs, so provenance names the picks."""
+    script = Path(__file__).resolve().relative_to(REPO_ROOT).as_posix()
+
+    def git(*args: str) -> str:
+        return subprocess.run(
+            ["git", *args], cwd=REPO_ROOT, capture_output=True, text=True, check=True
+        ).stdout.strip()
+
+    if git("status", "--porcelain", "--", script):
+        sys.exit(f"commit {script} first: provenance must name a commit with these picks")
+    return git("rev-parse", "HEAD")
+
+
 def main() -> int:
+    commit = _commit()
     site = yaml.safe_load((REPO_ROOT / "sites" / "gale.yaml").read_text(encoding="utf-8"))
     targets = {target["id"] for target in site["science_targets"]}
     unknown = {pick[0] for pick in PICKS} - targets
@@ -123,10 +142,7 @@ def main() -> int:
         {"target": target, **_picture(*rest, file=f"/targets/{rest[0]}.jpg")}
         for target, *rest in PICKS
     ]
-    fallback = _picture(*FALLBACK, file="/fallback/target-preview.jpg")
-    commit = subprocess.run(
-        ["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, capture_output=True, text=True, check=True
-    ).stdout.strip()
+    fallback = _fallback(next(p for p in pictures if p["image_id"] == FALLBACK_PICK))
     PICTURES.parent.mkdir(parents=True, exist_ok=True)
     PICTURES.write_text(
         json.dumps(

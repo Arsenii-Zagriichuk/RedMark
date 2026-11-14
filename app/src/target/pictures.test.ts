@@ -25,16 +25,10 @@ const list: PictureList = {
 
 describe("picturesFor", () => {
   it("gives a target its own pictures, in the list's order", () => {
-    const preview = picturesFor(list, "sw-ridge");
-
-    expect(preview.pictures.map((p) => p.image_id)).toEqual(["ridge-1", "ridge-2"]);
-    expect(preview.isFallback).toBe(false);
+    expect(picturesFor(list, "sw-ridge").map((p) => p.image_id)).toEqual(["ridge-1", "ridge-2"]);
   });
 
   it("gives a target with no pictures the static fallback picture", () => {
-    const preview = picturesFor(list, "nowhere");
-
-    expect(preview.pictures.map((p) => p.file)).toEqual(["/fallback/target-preview.jpg"]);
-    expect(preview.isFallback).toBe(true);
+    expect(picturesFor(list, "nowhere").map((p) => p.file)).toEqual(["/fallback/target-preview.jpg"]);
   });
 });

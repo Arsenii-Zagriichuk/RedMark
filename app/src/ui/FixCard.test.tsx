@@ -30,14 +30,16 @@ describe("FixCard", () => {
     expect(text({ ...galeDroneFix, simulated: false })).not.toContain("Simulated");
   });
 
-  it("shows the fix's circle, heading and time", () => {
-    const html = text(galeDroneFix);
+  it("shows a measured fix's circle, heading, confidence and time", () => {
+    const html = text({ ...galeDroneFix, simulated: false, confidence_pct: 72 });
     expect(html).toContain("±10 m");
     expect(html).toContain("162°");
+    expect(html).toContain("72%");
     expect(html).toContain("10.0 s");
   });
 
-  it("reports no confidence for a simulated fix", () => {
-    expect(text(galeDroneFix)).not.toContain("0%");
+  it("reports no numbers from a simulated fix", () => {
+    const html = text(galeDroneFix);
+    for (const number of ["±10 m", "162°", "0%", "10.0 s"]) expect(html).not.toContain(number);
   });
 });

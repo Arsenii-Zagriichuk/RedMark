@@ -7,15 +7,10 @@ import { useEffect, useState } from "react";
 import { useApi } from "../api/ApiContext";
 import { FixCard } from "../ui/FixCard";
 import { Panel } from "../ui/Panel";
+import { WithFallback } from "../ui/WithFallback";
 import { bundledDroneImages, DRONE_FIX_FALLBACK, droneFixImages, loadDroneFix } from "./droneFix";
 
 type Loaded = { status: "loading" } | { status: "ok"; fix: FixResult } | { status: "error"; message: string };
-
-/** An image that swaps to its static fallback if it fails to load. */
-function WithFallback({ src, fallback, alt }: { src: string; fallback: string; alt: string }) {
-  const [failed, setFailed] = useState(false);
-  return <img src={failed ? fallback : src} alt={alt} onError={() => setFailed(true)} />;
-}
 
 export function DroneFixScreen({ onClose }: { onClose: () => void }) {
   const { client } = useApi();

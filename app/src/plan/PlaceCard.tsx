@@ -6,6 +6,7 @@ import { distanceAndBearing, formatBearing, formatDistance } from "../map/geo";
 import { picturesFor, targetPictures } from "../target/pictures";
 import { TargetPreview } from "../target/TargetPreview";
 import { PhotoIcon, RouteIcon } from "../ui/icons";
+import { WithFallback } from "../ui/WithFallback";
 
 interface Props {
   target: ScienceTarget;
@@ -16,12 +17,12 @@ interface Props {
 export function PlaceCard({ target, habitat, onDirections }: Props) {
   const away = habitat && distanceAndBearing(habitat, target.position);
   const [previewing, setPreviewing] = useState(false);
-  const thumbnails = picturesFor(targetPictures, target.id).pictures.slice(0, 2);
+  const thumbnails = picturesFor(targetPictures, target.id).slice(0, 2);
   return (
     <section className="place" aria-label={target.name}>
       <button type="button" className="place__photos" title="Curiosity's pictures" onClick={() => setPreviewing(true)}>
         {thumbnails.map((picture) => (
-          <img key={picture.image_id} src={picture.file} alt="" />
+          <WithFallback key={picture.image_id} src={picture.file} fallback={targetPictures.fallback.file} alt="" />
         ))}
       </button>
       <div>

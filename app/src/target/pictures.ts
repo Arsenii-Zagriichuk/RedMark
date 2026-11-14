@@ -25,15 +25,8 @@ export interface PictureList {
 
 export const targetPictures: PictureList = pictureList;
 
-export interface TargetPreview {
-  pictures: TargetPicture[];
-  /** True when the target has no pictures and the static fallback stands in. */
-  isFallback: boolean;
-}
-
-export function picturesFor(list: PictureList, targetId: string): TargetPreview {
+/** A target's own pictures, in the list's order, or the static fallback if it has none. */
+export function picturesFor(list: PictureList, targetId: string): TargetPicture[] {
   const own = list.pictures.filter((picture) => picture.target === targetId);
-  return own.length > 0
-    ? { pictures: own, isFallback: false }
-    : { pictures: [list.fallback], isFallback: true };
+  return own.length > 0 ? own : [list.fallback];
 }
