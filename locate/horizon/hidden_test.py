@@ -29,6 +29,7 @@ from locate.horizon.fix import (
     PLACES,
     SITE_CONFIG,
     frame_fix,
+    horizon_commit,
     horizon_fix,
     load_grid,
     read_base_map,
@@ -46,6 +47,7 @@ SCRIPT = "locate/horizon/hidden_test.py"
 
 
 def main() -> None:
+    commit = horizon_commit()
     root = data_root()
     rings = hidden_rings(root / INDEX)
     terrain = {}
@@ -67,6 +69,7 @@ def main() -> None:
             grid,
             root,
             base_map,
+            commit=commit,
             terrain=stop.terrain_type,
             overlay_prefix="p3-03",
             script=SCRIPT,

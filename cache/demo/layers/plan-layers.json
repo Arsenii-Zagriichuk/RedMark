@@ -1,0 +1,43 @@
+{
+  "step": "plan.layers",
+  "request": {
+    "method": "GET",
+    "path": "/layers/gale",
+    "body": null
+  },
+  "status": 200,
+  "contract": null,
+  "response": [
+    {
+      "name": "base",
+      "title": "Base map (stub)",
+      "group": 1,
+      "units": "",
+      "resolution_m": 15.625,
+      "bounds": {
+        "min_x": 8141700,
+        "min_y": -284140,
+        "max_x": 8145700,
+        "max_y": -280140
+      },
+      "tiles": {
+        "path": "tiles/{z}/{x}/{y}.png",
+        "tile_size": 256,
+        "min_zoom": 0,
+        "max_zoom": 0
+      },
+      "legend": [
+        {
+          "label": "Stub tile",
+          "color": "#965a3c"
+        }
+      ],
+      "source": [
+        {
+          "name": "Stub from P1-01",
+          "url": "https://github.com/Maksym926/RedMark"
+        }
+      ]
+    }
+  ]
+}

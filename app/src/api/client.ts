@@ -10,6 +10,7 @@ import type { RouteRequest } from "@contracts/route_request";
 import type { RouteResponse } from "@contracts/route_response";
 import type { SimulateRequest } from "@contracts/simulate_request";
 import type { SimulateResponse } from "@contracts/simulate_response";
+import type { SiteConfig } from "@contracts/site";
 import type { TestSummary } from "@contracts/test_summary";
 
 export type Mode = "live" | "demo";
@@ -98,6 +99,9 @@ export function createClient({ mode, baseUrl, cache, fetchFn = fetch }: ClientOp
   return {
     mode,
     call,
+    /** A service URL for a file the browser loads itself, such as a map tile or overlay. */
+    fileUrl: (path: string) => `${baseUrl}${path}`,
+    site: (step: string, site: string) => get<SiteConfig>(step, `/sites/${site}`),
     layers: (step: string, site: string) => get<LayerMeta[]>(step, `/layers/${site}`),
     conditions: (step: string, sol: string) => get<Conditions>(step, `/conditions/${sol}`),
     fixes: (step: string, method: string) => get<FixResult[]>(step, `/fixes/${method}`),
