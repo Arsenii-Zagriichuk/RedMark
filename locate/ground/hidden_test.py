@@ -7,8 +7,8 @@ results/ground/overlays/, all of them on one sheet for the pull request, and the
 test summary to results/ground/ground-gale-attempt.json. It ends with the go or
 no-go call: go when at least GO_WITHIN_5M_PCT of the fixes are within 5 m.
 
-The summary is the attempt's, not stage 2's result for the app: ground-gale.json
-stays as it is until P3-08 decides what stage 2 hands on.
+The summary is the attempt's, not stage 2's result for the app: ground-gale.json is
+written by stage2_result.py (P3-08).
 """
 
 import csv

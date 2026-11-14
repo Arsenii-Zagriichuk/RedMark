@@ -3,6 +3,6 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
-  // The demo cache lives in the repo's cache/demo/, outside app/.
-  server: { fs: { allow: [".", "../cache"] } },
+  // The demo cache (cache/demo/) and the cited benchmarks (pitch/) live outside app/.
+  server: { fs: { allow: [".", "../cache", "../pitch"] } },
 });

@@ -2,7 +2,7 @@
 
 Owner: Person 3 (horizon matcher and location quality).
 
-The stage 2 ground-fix attempt at Gale (P3-07). Writes to `results/ground/`.
+The stage 2 ground-fix attempt at Gale (P3-07) and stage 2's result for the simulation (P3-08). Writes to `results/ground/`.
 
 ## How it works
 
@@ -57,6 +57,17 @@ Two numbers in the summary are not measurements. The heading error is 0.0° beca
 A first run held out stops more than 24 m from every tuning stop by centre distance. That let one held-out view (site 119, drive 198) overlap a tuning view by 1.1 × 11 m on the diagonal, so the selection now checks the squares themselves (`locate/ground/tests/test_held_out.py`). With that stop out, the even spacing picked 11 different stops; the table above is the rerun on the new 40. That first run gave the same call (32.5% within 5 m; 30.8% without the overlapping stop).
 
 These 40 stops have now been matched, and so have the 11 the first selection held out and the second dropped (`index.csv` lists the 40; the 11 are the other `.npz` files in the hidden folder). Any tuning from here uses the tuning pile only, or walk-area stops that are in neither selection, or the next score on the hidden pile means nothing.
+
+## Stage 2's result: simulated (P3-08)
+
+With the attempt a no-go, `results/ground/ground-gale.json`, the file the walk simulation reads for its ground fix size, is **simulated** (`simulated: true`): an error model from JPL's published results for this method, not our measurements. `uv run python -m locate.ground.stage2_result` writes it.
+
+- **Source.** Nash et al., [Censible, ICRA 2024](https://www-robotics.jpl.nasa.gov/media/documents/2024_Global_Localization_ICRA.pdf), Table I: 264 Perseverance Navcam panoramas matched to the HiRISE map, 0.36 m average error, 0.93 m at the 99th percentile, 1.07 m at most, none over 5 m. The same paper scores plain masked NCC, the method our attempt used, at a 24.97 m average with 225 of 264 over 5 m; our 22.0 m median is in line with that.
+- **Model.** A 2D normal error with the published average: σ = 0.36 / √(π/2) = 0.287 m per axis. That gives a median of 0.338 m and a 95% circle of 0.70 m. It isn't fitted to the 99th percentile, yet predicts 0.87 m against the published 0.93 m.
+- **Fixes.** One simulated fix per held-out stop (true position, heading and terrain type from the attempt's fix results; their measured errors are not used), with the model's error at evenly spaced shares within each terrain group. They go through the shared scorer into the summary only; `results/ground/fixes/` keeps the attempt's measured fixes.
+- **What isn't a measurement.** Every number in the file. The heading error reads 0.0° because stage 2 gives position only and keeps the heading it was given. The time per fix is null, as for any simulated model; JPL's 81 s on flight hardware (Table IV) is in the script.
+
+The walk simulation turns the median into its per-axis fix error (`sim/engine.py`), so a ground fix brings the circle down to about 0.7 m with no number typed into the simulation. Chart: `overlays/p3-08-stage-2-model.png`, the model against the attempt's 40 measured errors. If the matcher later passes the go bar on a fresh hidden pile, this file becomes the measured summary instead.
 
 ## Next: make the matcher better
 
