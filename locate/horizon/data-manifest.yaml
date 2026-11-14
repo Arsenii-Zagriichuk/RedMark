@@ -204,3 +204,12 @@ files:
     checksum: 61c0dec8b9d79971b34266e8ca5fb3eedbb9ce05353a0c0dba9686f48950ec20
     checksum_algorithm: sha256
     credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.
+  # Hidden pile for the horizon test (P3-03): 179 Navcam frames (image and label) from 20 Curiosity stops,
+  # fetched by locate/horizon/hidden_pile.py. The index lists every file with its size, SHA-256 and source URL.
+  - name: Index of the hidden-pile Navcam frames (photo, stop, file, size, SHA-256, source URL)
+    path: hidden/horizon/index.csv
+    size_bytes: 104960
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA/
+    checksum: 06c6a8ec284ecfe7e9a07355c70ab8977cda495e584ca216930cce352fb4ab09
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam reduced data records, PDS Imaging Node.

@@ -1,0 +1,115 @@
+{
+  "photo_id": "NLB_563770616ILT_F0662430NCAM07753M1",
+  "site": "gale",
+  "method": "horizon",
+  "position": {
+    "x": 8142700.0,
+    "y": -280340.0
+  },
+  "heading_deg": 220.75,
+  "uncertainty_m": 2247.220505424423,
+  "confidence_pct": 0.0,
+  "time_per_fix_s": 3.81,
+  "terrain_type": "textured",
+  "simulated": false,
+  "overlay": "results/horizon/overlays/p3-03-NLB_563770616ILT_F0662430NCAM07753M1.png",
+  "truth": {
+    "position": {
+      "x": 8142825.199135482,
+      "y": -280185.792553523
+    },
+    "heading_deg": 220.24,
+    "position_error_m": 198.632,
+    "heading_error_deg": 0.5099999999999909
+  },
+  "provenance": {
+    "script": "locate/horizon/hidden_test.py",
+    "commit": "606df4ebf1253f9a323fcb07647a69765443823c",
+    "inputs": [
+      {
+        "path": "gale/horizon/grid.npz",
+        "sha256": "7b1bd8dcf05079114cffe243e082ec14ae5cb65d28e577705cd8d2b3ce90b959"
+      },
+      {
+        "path": "places/localized_pos.csv",
+        "sha256": "d456ce9025ca71673af8b9f72a78dc508f5d963cbac74fa68eeac88a4c7c3a3b"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770616ILT_F0662430NCAM07753M1.LBL",
+        "sha256": "63be73f748455d57860974cae839fe24a79c28ee912446d01e5e620cdcf6a7b9"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770616ILT_F0662430NCAM07753M1.IMG",
+        "sha256": "5c98ef1041739cb9f29e20ce311a5826e572cefb7120302e95e63d7ecd1cb6a7"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770640ILT_F0662430NCAM07753M1.LBL",
+        "sha256": "d62f9167062c988167a48a5d26faca593c59d083da53641a3719df37290d0571"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770640ILT_F0662430NCAM07753M1.IMG",
+        "sha256": "ac2d4f8ee0f0b7b9fc73b6a3173a05015fd76c9830305cdb9ec1ae4d6956788a"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770671ILT_F0662430NCAM07753M1.LBL",
+        "sha256": "03c15040a799274a099ed8a30fdec4ddd771441433688ec0cd3d689e47f91c61"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770671ILT_F0662430NCAM07753M1.IMG",
+        "sha256": "85a45cf1a5a587470fd220e9dfdfb6ab5d3798b903344d98304f93ec2d761685"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770702ILT_F0662430NCAM07753M1.LBL",
+        "sha256": "1b64fbda2907212e05d43077ac434a41ec44a36ddb72ebe50414676255a08078"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770702ILT_F0662430NCAM07753M1.IMG",
+        "sha256": "4f8186d3875abcaefc64ac4a88ad07187dfd71c29b34d1750e90a1779f03c351"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770786ILT_F0662430NCAM07753M1.LBL",
+        "sha256": "22fb7e841171850bd7bcc97945660a6e2b57ead15cb45a9e204d84247c4fe29c"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770786ILT_F0662430NCAM07753M1.IMG",
+        "sha256": "4e44f963dd1b6a5327e858222fe2d4dadfaf6bac7ff47afdc033e9a4b34aaa7f"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770817ILT_F0662430NCAM07753M1.LBL",
+        "sha256": "693df04ee549b41797dade0badf2a76b4ea6ac4ca7f8dc21063b7795866f5396"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770817ILT_F0662430NCAM07753M1.IMG",
+        "sha256": "3e9df0186201b881aba5e7c131e44cb622628c1d63c1c80812af060ae8d87f79"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770848ILT_F0662430NCAM07753M1.LBL",
+        "sha256": "bfbbce0059d8ce91a0bff21ddbece8acc3960fbb225fce96185d67212a7a5995"
+      },
+      {
+        "path": "hidden/horizon/NLB_563770848ILT_F0662430NCAM07753M1.IMG",
+        "sha256": "6ba1230e4b8cdbdfcf16b2abd0fe3492c41284e7b1a02eed93925702ce7f26cc"
+      },
+      {
+        "path": "sites/gale.yaml",
+        "sha256": "4301cb1364ab0e81394e9cdeec6cc241c105c43995cbecbb66e1188ead412a04"
+      },
+      {
+        "path": "gale/layers/base/layer.json",
+        "sha256": "1b10e14184c5f13321f1d7dceb3a5f3a2249bd99a3206f07b7c69198f51448c2"
+      },
+      {
+        "path": "gale/layers/base/tiles/0/0/0.png",
+        "sha256": "2f81971ce0db225743b7cc1640059913e7b3267738fc93670344c69df3f166e4"
+      },
+      {
+        "path": "MSL_Gale_DEM_Mosaic_1m_v3.tif",
+        "sha256": "c481ae885b4827af68fbdb428e9fac8a824d6828aebfba492577ba39bf55e42e"
+      },
+      {
+        "path": "hidden/horizon/index.csv",
+        "sha256": "06c6a8ec284ecfe7e9a07355c70ab8977cda495e584ca216930cce352fb4ab09"
+      }
+    ]
+  }
+}

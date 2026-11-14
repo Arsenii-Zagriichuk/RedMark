@@ -1,0 +1,139 @@
+{
+  "photo_id": "NRB_694806256ILT_S0921962NCAM00269M1",
+  "site": "gale",
+  "method": "horizon",
+  "position": {
+    "x": 8144000.0,
+    "y": -281640.0
+  },
+  "heading_deg": 154.2597,
+  "uncertainty_m": 3397.057550292606,
+  "confidence_pct": 0.0,
+  "time_per_fix_s": 5.14,
+  "terrain_type": "plain",
+  "simulated": false,
+  "overlay": "results/horizon/overlays/p3-03-NRB_694806181ILT_S0921962NCAM00269M1.png",
+  "truth": {
+    "position": {
+      "x": 8143986.706612012,
+      "y": -281619.8015993196
+    },
+    "heading_deg": 154.923,
+    "position_error_m": 24.18,
+    "heading_error_deg": 0.6632999999999925
+  },
+  "provenance": {
+    "script": "locate/horizon/hidden_test.py",
+    "commit": "606df4ebf1253f9a323fcb07647a69765443823c",
+    "inputs": [
+      {
+        "path": "gale/horizon/grid.npz",
+        "sha256": "7b1bd8dcf05079114cffe243e082ec14ae5cb65d28e577705cd8d2b3ce90b959"
+      },
+      {
+        "path": "places/localized_pos.csv",
+        "sha256": "d456ce9025ca71673af8b9f72a78dc508f5d963cbac74fa68eeac88a4c7c3a3b"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806181ILT_S0921962NCAM00269M1.LBL",
+        "sha256": "c6d7379dc537ef07c32d490d790fdac4e4fc8b7883e337a616faa96726c1c53f"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806181ILT_S0921962NCAM00269M1.IMG",
+        "sha256": "4025fef981028371d3600d063924f9a04770cac3c40d5ac6afed9116e22bc851"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806210ILT_S0921962NCAM00269M1.LBL",
+        "sha256": "6242735670bd39cd1544f0e425130e687376408e4868860364439131f2bbe556"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806210ILT_S0921962NCAM00269M1.IMG",
+        "sha256": "885266c6a2f57d71b2706061cc77b3f37db35090d3a594377fdfec42aceee26c"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806233ILT_S0921962NCAM00269M1.LBL",
+        "sha256": "5221385210d038b70489bd35a34599c9617a8edbac9ee26009b17fb608ad22d4"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806233ILT_S0921962NCAM00269M1.IMG",
+        "sha256": "4a30171a9f0a1902c4ef90e05e160e02f49aa339e1b2986d4efa8bbc447d896e"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806256ILT_S0921962NCAM00269M1.LBL",
+        "sha256": "efde274105f27ca10d8528f46b6cabd91dcc2f0c3b36a958787a3bf9e6077a1a"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806256ILT_S0921962NCAM00269M1.IMG",
+        "sha256": "7907fecf1ba3d46e0477f2e646e7b9a7f78ed9d77671b381d2e9e73bb5378e15"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806291ILT_S0921962NCAM00269M1.LBL",
+        "sha256": "e401f1489a4a9059c7cf5a8f1d84e798293c29925ffa78007043faea578f3aa1"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806291ILT_S0921962NCAM00269M1.IMG",
+        "sha256": "6f7ffd5f584a5cbcb98825bfd9b4cbb4d61539cee7707418eaa6d34e49ee7264"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806320ILT_S0921962NCAM00269M1.LBL",
+        "sha256": "f5049164b84f8ca639efc0b024baa5fd53b567eb5c9b7c959ad34a9278998f78"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806320ILT_S0921962NCAM00269M1.IMG",
+        "sha256": "07f874632587806cfea2661b8ef7f2ba30981c0ef5249db0828be826df00ab4a"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806349ILT_S0921962NCAM00269M1.LBL",
+        "sha256": "af45c33bc9e0d0ae29ee60471e64ee23732054ff5457822d978fe07cd0851f53"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806349ILT_S0921962NCAM00269M1.IMG",
+        "sha256": "a762feff6a3058acbead4e2ff19972c8e56529f11c1fd5fa299dbc764f7c84a9"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806378ILT_S0921962NCAM00269M1.LBL",
+        "sha256": "0b798783689aebfc6515f8df60bc1d8a50b444f1b08e7ea3ecbd7e0c2c38af0b"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806378ILT_S0921962NCAM00269M1.IMG",
+        "sha256": "e343edaf3d49a99a1f16f2bfed721be0db3fa0ab222f2a958856a7f839749d65"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806412ILT_S0921962NCAM00269M1.LBL",
+        "sha256": "84f8162b2ca565bbe0bf400304e4e7b22885eb48c75c5aa7b6ebf37ad20a5f02"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806412ILT_S0921962NCAM00269M1.IMG",
+        "sha256": "dab2ef9d7371b93b9014dbb1b17ebe9c42ba341ad2b75cae4aff7ec658e49657"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806448ILT_S0921962NCAM00269M1.LBL",
+        "sha256": "c64c992c761c4cb951de9957f2a17782d7a95813ae4fd67a4c0b10debb6f15cc"
+      },
+      {
+        "path": "hidden/horizon/NRB_694806448ILT_S0921962NCAM00269M1.IMG",
+        "sha256": "0006c9c1bdf84836a7388e2a19a1435cff5e357e6bb0aea82cbd19588474aa21"
+      },
+      {
+        "path": "sites/gale.yaml",
+        "sha256": "4301cb1364ab0e81394e9cdeec6cc241c105c43995cbecbb66e1188ead412a04"
+      },
+      {
+        "path": "gale/layers/base/layer.json",
+        "sha256": "1b10e14184c5f13321f1d7dceb3a5f3a2249bd99a3206f07b7c69198f51448c2"
+      },
+      {
+        "path": "gale/layers/base/tiles/0/0/0.png",
+        "sha256": "2f81971ce0db225743b7cc1640059913e7b3267738fc93670344c69df3f166e4"
+      },
+      {
+        "path": "MSL_Gale_DEM_Mosaic_1m_v3.tif",
+        "sha256": "c481ae885b4827af68fbdb428e9fac8a824d6828aebfba492577ba39bf55e42e"
+      },
+      {
+        "path": "hidden/horizon/index.csv",
+        "sha256": "06c6a8ec284ecfe7e9a07355c70ab8977cda495e584ca216930cce352fb4ab09"
+      }
+    ]
+  }
+}
