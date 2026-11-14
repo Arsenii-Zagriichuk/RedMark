@@ -1,3 +1,592 @@
 # Data files Person 2 uses (P2-01 fills this in). Persons 3 and 4 keep their
 # own data-manifest.yaml in their folders. Schema: contracts/schemas/data_manifest.json.
-files: []
+files:
+- name: Jezero HiRISE photo map, 25 cm
+  path: jezero/source/JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first.tif
+  size_bytes: 7358523457
+  source_url: https://astrogeology.usgs.gov/search/map/Mars/Mars2020/JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first
+  checksum: 755fa7c86ddfeca7e2dd582fbd50e4ce-878
+  checksum_algorithm: md5-s3-multipart
+  credit: 'Mars 2020 TRN HiRISE orthomosaic of Jezero crater, 25 cm: USGS Astrogeology
+    Science Center; HiRISE: NASA/JPL-Caltech/University of Arizona'
+- name: Helicam bundle inventory
+  path: jezero/source/helicam/collection_data_inventory.csv
+  size_bytes: 3350949
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/collection_data_inventory.csv
+  checksum: ea0e43f1033c2477d1defc7952c1c43d3ffa76a964e8e7fc2181970a2d3e6018
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747619_360FDR_N0090001HELI00812_0000LUJ07.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747619_360FDR_N0090001HELI00812_0000LUJ07.IMG
+  checksum: 464e15eb1c918663f00fc11355fdd7d93a08cf0a4b1dcb68bdfa4ef3af9092e5
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747619_360FDR_N0090001HELI00812_0000LUJ07.xml
+  size_bytes: 33251
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747619_360FDR_N0090001HELI00812_0000LUJ07.xml
+  checksum: e905f41e0f0a03064f6213e0c0f06f78a42267e2d083b9fc18e308a511884e9e
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747633_697FDR_N0090001HELI01244_0000LUJ07.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747633_697FDR_N0090001HELI01244_0000LUJ07.IMG
+  checksum: 821b836bb294500ae67263bda25d58164383124fd9a64d0b98bba47a1a556d46
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747633_697FDR_N0090001HELI01244_0000LUJ07.xml
+  size_bytes: 33263
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747633_697FDR_N0090001HELI01244_0000LUJ07.xml
+  checksum: 28e3838a397ced461a389c6062ffa627662d674610b4f188bb74fc673bad2e6c
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747653_396FDR_N0090001HELI01838_0000LUJ07.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747653_396FDR_N0090001HELI01838_0000LUJ07.IMG
+  checksum: 99260426f3044bd474a81b5d81ce054ba4898e6a13b9e23ef982a50a52d6a9bb
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747653_396FDR_N0090001HELI01838_0000LUJ07.xml
+  size_bytes: 33268
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747653_396FDR_N0090001HELI01838_0000LUJ07.xml
+  checksum: 2834ef5c356254123e7b3e3eab899a62a7c9acaa672289765d58952db10ca44d
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747667_726FDR_N0090001HELI02270_0000LUJ07.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747667_726FDR_N0090001HELI02270_0000LUJ07.IMG
+  checksum: 926b5f82e76d743c651031d84a60ad50fcf2bb693ae459f2dc728ad804c02deb
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747667_726FDR_N0090001HELI02270_0000LUJ07.xml
+  size_bytes: 33261
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747667_726FDR_N0090001HELI02270_0000LUJ07.xml
+  checksum: 0626166163d3b5bf8f62b7e29a37fb1765d3aeb9646ccef23ca071788e126fbd
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747683_851FDR_N0090001HELI02756_0000LUJ07.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747683_851FDR_N0090001HELI02756_0000LUJ07.IMG
+  checksum: f7fcaa154109014022159b429a5f1e8601aa798b77ccb9fdc200faeb45fc1976
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747683_851FDR_N0090001HELI02756_0000LUJ07.xml
+  size_bytes: 33259
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747683_851FDR_N0090001HELI02756_0000LUJ07.xml
+  checksum: b268609a9e513d93a611c04afece8f9b9575c7d74ccb1b69ea99d96d34bc76bc
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747698_179FDR_N0090001HELI03188_0000LUJ07.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747698_179FDR_N0090001HELI03188_0000LUJ07.IMG
+  checksum: 8ab0c2304f8afaf2d6546cfa1e8bdd14a40ec2f5412a2ff93d1edfe1b0f8ea76
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747698_179FDR_N0090001HELI03188_0000LUJ07.xml
+  size_bytes: 33264
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747698_179FDR_N0090001HELI03188_0000LUJ07.xml
+  checksum: abe76887b382510f65424cec1828079c364db232d54b2441ea25ca9583951c57
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747714_305FDR_N0090001HELI03674_0000LUJ07.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747714_305FDR_N0090001HELI03674_0000LUJ07.IMG
+  checksum: 48df2f736e809cadef062b7c8a95d42cda036a3363661a7e50b9a5394c8eef03
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747714_305FDR_N0090001HELI03674_0000LUJ07.xml
+  size_bytes: 33274
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747714_305FDR_N0090001HELI03674_0000LUJ07.xml
+  checksum: f7edb6c31ef1ada9cea04e015c94b6c0048b82b3fb91ecade8db67e4f9b3f595
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747728_632FDR_N0090001HELI04106_0000LUJ07.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747728_632FDR_N0090001HELI04106_0000LUJ07.IMG
+  checksum: edbff79792b6a5c165b6d905da6ec9412831161c8641e80b3e607748f3e5162e
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747728_632FDR_N0090001HELI04106_0000LUJ07.xml
+  size_bytes: 33255
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747728_632FDR_N0090001HELI04106_0000LUJ07.xml
+  checksum: b285964d3eab29e626ec33f684b5773cee70957ede489965fde4a8c4aec30871
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747743_865FDR_N0090001HELI04565_0000LUJ07.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747743_865FDR_N0090001HELI04565_0000LUJ07.IMG
+  checksum: b0f154308279d42be647990a7484afa7695e2060242f2dada0734df4872e5901
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747743_865FDR_N0090001HELI04565_0000LUJ07.xml
+  size_bytes: 33264
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747743_865FDR_N0090001HELI04565_0000LUJ07.xml
+  checksum: 8901a65be4d7b115545f5a155f9bc67c43f3ce81aa2023458c6e10dbe2745de6
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747765_356FDR_N0090001HELI05213_0000LUJ05.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747765_356FDR_N0090001HELI05213_0000LUJ05.IMG
+  checksum: bed241df4d1a77153f4005465874bf64e87f90442e23d0b34f61d6d0de7144e7
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 9
+  path: jezero/source/helicam/sol-00133/HNM_0133_0678747765_356FDR_N0090001HELI05213_0000LUJ05.xml
+  size_bytes: 33265
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00133/ids/fdr/heli/HNM_0133_0678747765_356FDR_N0090001HELI05213_0000LUJ05.xml
+  checksum: 52635bfde1ee74163c1336be06d7c97b6702ebd6c2cb011e9c61206ceda22a3b
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432542_800FDR_N0100001HELI00839_0000LUJ05.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432542_800FDR_N0100001HELI00839_0000LUJ05.IMG
+  checksum: ce7f68178125bc49b0d4e61a9e3e06a02f1d5d7da61e962336e083292cd55c80
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432542_800FDR_N0100001HELI00839_0000LUJ05.xml
+  size_bytes: 33284
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432542_800FDR_N0100001HELI00839_0000LUJ05.xml
+  checksum: a34c42c712341384d0177733e66ce79db1cf8605708aefcbec536ae39d8801b6
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432558_925FDR_N0100001HELI01325_0000LUJ05.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432558_925FDR_N0100001HELI01325_0000LUJ05.IMG
+  checksum: 04012899fc29d1608126df3cc86f8224b541a7e568a6bf1f91ca844f29868c7f
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432558_925FDR_N0100001HELI01325_0000LUJ05.xml
+  size_bytes: 33292
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432558_925FDR_N0100001HELI01325_0000LUJ05.xml
+  checksum: 69765d017952a6b9cd7f80fa8ac39d2519a83ebd7f2dc6087b780e93b355e10e
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432575_044FDR_N0100001HELI01811_0000LUJ05.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432575_044FDR_N0100001HELI01811_0000LUJ05.IMG
+  checksum: 9d839d07f2d54776d5feab205a5b718fbb09b10f5559eed0bf0f61f8db9838b8
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432575_044FDR_N0100001HELI01811_0000LUJ05.xml
+  size_bytes: 33291
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432575_044FDR_N0100001HELI01811_0000LUJ05.xml
+  checksum: dd84b80acaa177f906675425d41ba78a2f9c1d33efa9447a1d22d600d5df7462
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432590_271FDR_N0100001HELI02270_0000LUJ05.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432590_271FDR_N0100001HELI02270_0000LUJ05.IMG
+  checksum: 3a9685577c9c6405fee19f249d05cf28471badff33d679156854965f9df2e682
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432590_271FDR_N0100001HELI02270_0000LUJ05.xml
+  size_bytes: 33294
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432590_271FDR_N0100001HELI02270_0000LUJ05.xml
+  checksum: 82d5ad6eb868cc866a105ae5c29a59243769688ce3fa141f361b0cb2a77eece3
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432606_392FDR_N0100001HELI02756_0000LUJ05.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432606_392FDR_N0100001HELI02756_0000LUJ05.IMG
+  checksum: 25eb958061ed4b105b568638eb08cd1c3516643b6692d0b4ab231d19418ef88b
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432606_392FDR_N0100001HELI02756_0000LUJ05.xml
+  size_bytes: 33291
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432606_392FDR_N0100001HELI02756_0000LUJ05.xml
+  checksum: 85852e0faf84a73be006a732cbd63640b14784010e53df83da6e27cfa15c5ce7
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432622_513FDR_N0100001HELI03242_0000LUJ05.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432622_513FDR_N0100001HELI03242_0000LUJ05.IMG
+  checksum: 527a750b33b9c6cac7922cc89e06b12ca3357cc26eb95bc49875a8538607331e
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432622_513FDR_N0100001HELI03242_0000LUJ05.xml
+  size_bytes: 33292
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432622_513FDR_N0100001HELI03242_0000LUJ05.xml
+  checksum: 7925081c69a331881754840e8748c64f7484a02e64207914d3d5b61f82100d31
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432638_635FDR_N0100001HELI03728_0000LUJ05.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432638_635FDR_N0100001HELI03728_0000LUJ05.IMG
+  checksum: 61e9d50fe719d28fd009fa2ce8c184430e433bbee0453fd409a58ae68e58a7a2
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432638_635FDR_N0100001HELI03728_0000LUJ05.xml
+  size_bytes: 33292
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432638_635FDR_N0100001HELI03728_0000LUJ05.xml
+  checksum: ffee551849b7dd3c43fb53c6ea0b456d0617538ae45bb43925a122e819fb90b8
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432653_866FDR_N0100001HELI04187_0000LUJ05.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432653_866FDR_N0100001HELI04187_0000LUJ05.IMG
+  checksum: e190c05d895636ac95c8596c5e71f2e72f1ba127cefce39e4c7000a50d45b923
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432653_866FDR_N0100001HELI04187_0000LUJ05.xml
+  size_bytes: 33302
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432653_866FDR_N0100001HELI04187_0000LUJ05.xml
+  checksum: 28ced9ff3d04d496fd2bca7f6336fd419514e639817bf1e2f6a585d01be5fdad
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432669_988FDR_N0100001HELI04673_0000LUJ05.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432669_988FDR_N0100001HELI04673_0000LUJ05.IMG
+  checksum: 935d81c553270e45b3589125a11b0be5911ec02fe2cb9f119f14af8d63741515
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432669_988FDR_N0100001HELI04673_0000LUJ05.xml
+  size_bytes: 33293
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432669_988FDR_N0100001HELI04673_0000LUJ05.xml
+  checksum: 55ae3e59c6e19cbb26567458b7e477a43e76b79f1a8d68548ea57ea1aa259d5a
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432685_212FDR_N0100001HELI05132_0000LUJ05.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432685_212FDR_N0100001HELI05132_0000LUJ05.IMG
+  checksum: 86387182b02cf1ce4b96d5ffcc75e425e50f6901498734cd974b67f5c22bdad8
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 10
+  path: jezero/source/helicam/sol-00152/HNM_0152_0680432685_212FDR_N0100001HELI05132_0000LUJ05.xml
+  size_bytes: 33290
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/HNM_0152_0680432685_212FDR_N0100001HELI05132_0000LUJ05.xml
+  checksum: da2f9dcfdbcf03dffc2622ce82bc88e4e5ae23a2cf21c4d4161a0b52ea69d4c7
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410906_704FDR_N0110001HELI00821_0000LUJ06.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410906_704FDR_N0110001HELI00821_0000LUJ06.IMG
+  checksum: b0a7a18e99a9d5e9bfbac76d7ab11ca971cd2730ddea1c26abb3bd3b96c72fca
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410906_704FDR_N0110001HELI00821_0000LUJ06.xml
+  size_bytes: 33300
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410906_704FDR_N0110001HELI00821_0000LUJ06.xml
+  checksum: 5bab4987b5f19cf66508fe5d7c0fe18594d8b85368a73c0fcabe2e1f8cbd01eb
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410919_241FDR_N0110001HELI01199_0000LUJ06.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410919_241FDR_N0110001HELI01199_0000LUJ06.IMG
+  checksum: 317d853b067fed14a996502d17cbdeea6ca8f8d095e512d2931675dc8cdbebeb
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410919_241FDR_N0110001HELI01199_0000LUJ06.xml
+  size_bytes: 33292
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410919_241FDR_N0110001HELI01199_0000LUJ06.xml
+  checksum: edc5b27fd12d112b71593e230c286a9b9ea2dc0a3c71c7f137cfd6560fb39ce4
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410931_082FDR_N0110001HELI01556_0000LUJ06.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410931_082FDR_N0110001HELI01556_0000LUJ06.IMG
+  checksum: 1d4fa776c7c7f9aff3a234f95eebf4e0f7378cf1cef114336f3b6843e08aba78
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410931_082FDR_N0110001HELI01556_0000LUJ06.xml
+  size_bytes: 33294
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410931_082FDR_N0110001HELI01556_0000LUJ06.xml
+  checksum: ed9759009c93047a51e04d95acfc714ea4656201daa10013cd8d8149574479ce
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410943_621FDR_N0110001HELI01934_0000LUJ06.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410943_621FDR_N0110001HELI01934_0000LUJ06.IMG
+  checksum: d4f359f832d2ba79e56bbd9a926f53f0008d6591e9c394c0133cdb6db07f7a5c
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410943_621FDR_N0110001HELI01934_0000LUJ06.xml
+  size_bytes: 33292
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410943_621FDR_N0110001HELI01934_0000LUJ06.xml
+  checksum: cfa732b3b7fca9460fadb98f82573df4d91a56fde64615aa6833d1ee3c3dfa80
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410956_161FDR_N0110001HELI02312_0000LUJ04.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410956_161FDR_N0110001HELI02312_0000LUJ04.IMG
+  checksum: 14b39ab214a91ee3e70cff580bbb7eca25d678098dff6f0ee408e078b09cdd59
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410956_161FDR_N0110001HELI02312_0000LUJ04.xml
+  size_bytes: 33293
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410956_161FDR_N0110001HELI02312_0000LUJ04.xml
+  checksum: f807a792e4ff402bfc4e442e80f919cb64fd9d7c61b048bdc73783a54f6d8025
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410968_011FDR_N0110001HELI02669_0000LUJ04.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410968_011FDR_N0110001HELI02669_0000LUJ04.IMG
+  checksum: f4506ffa54ccceae4a3a76427185c9ddc5c048e8beb20e10a9d286bbab0d9fb7
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410968_011FDR_N0110001HELI02669_0000LUJ04.xml
+  size_bytes: 33296
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410968_011FDR_N0110001HELI02669_0000LUJ04.xml
+  checksum: b0651ab2bdf4a2ebca32da56084aa2b22fd346a05b2940f6f9ab0519e3c4c9bd
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410980_545FDR_N0110001HELI03047_0000LUJ04.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410980_545FDR_N0110001HELI03047_0000LUJ04.IMG
+  checksum: b14b87d4b83fd60204512803763b947580fb37b7b9feadf89c8b4fd0cf4defbb
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410980_545FDR_N0110001HELI03047_0000LUJ04.xml
+  size_bytes: 33290
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410980_545FDR_N0110001HELI03047_0000LUJ04.xml
+  checksum: b535cb8fb8bf726458f7a478cf3f9b2b6502ea4e176bb92f3fdcbf086dc9fda9
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410993_085FDR_N0110001HELI03425_0000LUJ04.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410993_085FDR_N0110001HELI03425_0000LUJ04.IMG
+  checksum: 559eb3ea334f495adf624f24602ae2dacb776573e72680c46e7d98e9424ec8c9
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681410993_085FDR_N0110001HELI03425_0000LUJ04.xml
+  size_bytes: 33294
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681410993_085FDR_N0110001HELI03425_0000LUJ04.xml
+  checksum: e09c9bdb7e91a9d14228db1b8c3eed80bd7797b97d823aa9f187bd40a8d3e320
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681411004_927FDR_N0110001HELI03782_0000LUJ04.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681411004_927FDR_N0110001HELI03782_0000LUJ04.IMG
+  checksum: c48778628b06182a7fd4b03d7ca02d91e3c733d2bb90951726e7c6209ff0200f
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681411004_927FDR_N0110001HELI03782_0000LUJ04.xml
+  size_bytes: 33291
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681411004_927FDR_N0110001HELI03782_0000LUJ04.xml
+  checksum: 75a94b993d8e7b0c587412ec45ba03652c20f239778e3fd62edb8291b66e8c19
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681411016_270FDR_N0110001HELI04124_0000A0J06.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681411016_270FDR_N0110001HELI04124_0000A0J06.IMG
+  checksum: e980b96408b95d58b0e3005314cef59d7f4292e8398e3478535219e7ea13119a
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 11
+  path: jezero/source/helicam/sol-00163/HNM_0163_0681411016_270FDR_N0110001HELI04124_0000A0J06.xml
+  size_bytes: 33742
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00163/ids/fdr/heli/HNM_0163_0681411016_270FDR_N0110001HELI04124_0000A0J06.xml
+  checksum: 3302068d6a9cdd356d231acec6900656017dcce31d6ee615ed8251d2aecdf326
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487541_755FDR_N0150001HELI00821_0000LUJ03.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487541_755FDR_N0150001HELI00821_0000LUJ03.IMG
+  checksum: 47d71654c0e43397789c0951ba03987775851e9d9ede40a96fe96b8d67238d1a
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487541_755FDR_N0150001HELI00821_0000LUJ03.xml
+  size_bytes: 33476
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487541_755FDR_N0150001HELI00821_0000LUJ03.xml
+  checksum: f5a086300ea7551a187c0ca2fb212edf7b4fb63855c70e4de0fade66ed0355d8
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487553_593FDR_N0150001HELI01178_0000LUJ03.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487553_593FDR_N0150001HELI01178_0000LUJ03.IMG
+  checksum: cfb30cb84b84973ff2db9e5a36e9940a56551a4428b38e549353c6c37d439146
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487553_593FDR_N0150001HELI01178_0000LUJ03.xml
+  size_bytes: 33475
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487553_593FDR_N0150001HELI01178_0000LUJ03.xml
+  checksum: ac428769bbce31cfa7e97c7433fee75c579f1ee7f800f5fbcd069fd4be56421f
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487565_438FDR_N0150001HELI01535_0000LUJ03.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487565_438FDR_N0150001HELI01535_0000LUJ03.IMG
+  checksum: 9d118c7cbe1a03e919d6ec1be49ee90961a4f4f85667db8aea215159c3b2ae70
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487565_438FDR_N0150001HELI01535_0000LUJ03.xml
+  size_bytes: 33470
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487565_438FDR_N0150001HELI01535_0000LUJ03.xml
+  checksum: 81ad2bcad8c3bfdb291fa977021f580b4afdd98595f0d4bbb610b16f31337072
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487577_279FDR_N0150001HELI01892_0000LUJ03.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487577_279FDR_N0150001HELI01892_0000LUJ03.IMG
+  checksum: 9c6492b88a55e30a2b0cc6afeddb59239962ea913e9384855ed3bdc802d49dba
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487577_279FDR_N0150001HELI01892_0000LUJ03.xml
+  size_bytes: 33468
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487577_279FDR_N0150001HELI01892_0000LUJ03.xml
+  checksum: b938135e84e88778fa6d5640d015157a8e2c24838cf57f5421bd36b401f3bcde
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487589_130FDR_N0150001HELI02249_0000LUJ03.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487589_130FDR_N0150001HELI02249_0000LUJ03.IMG
+  checksum: 58de4749fa0ebe1b55fd9e7bef61a07812022e61e692efe901b7ad7d565b8a65
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487589_130FDR_N0150001HELI02249_0000LUJ03.xml
+  size_bytes: 33472
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487589_130FDR_N0150001HELI02249_0000LUJ03.xml
+  checksum: c653bc4800e36a92e8b09b32dee6bc3a810566dcbcf610bc16fb6acd7f19f53c
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487601_663FDR_N0150001HELI02627_0000LUJ03.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487601_663FDR_N0150001HELI02627_0000LUJ03.IMG
+  checksum: b72facba9c841b4f8b6adc83a2769c91dc53eadab83e5dd66764c0567cf901b5
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487601_663FDR_N0150001HELI02627_0000LUJ03.xml
+  size_bytes: 33470
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487601_663FDR_N0150001HELI02627_0000LUJ03.xml
+  checksum: 3a71e1a58f63e48e5892b80f07b5deaf5d22d3609d7e75611bec00df6dde96f8
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487613_503FDR_N0150001HELI02984_0000LUJ03.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487613_503FDR_N0150001HELI02984_0000LUJ03.IMG
+  checksum: 2fbf6b8915029acf17742293c4d11e3efe79c1cd81effb2497528bafa0f637bb
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487613_503FDR_N0150001HELI02984_0000LUJ03.xml
+  size_bytes: 33475
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487613_503FDR_N0150001HELI02984_0000LUJ03.xml
+  checksum: 61db6615e754965499ac8344978f8c5f5d5acd72340c00d4822e297244ec04dc
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487625_351FDR_N0150001HELI03341_0000LUJ03.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487625_351FDR_N0150001HELI03341_0000LUJ03.IMG
+  checksum: c73a8e1480b8bdc67091f858cb714fca5ef5d50bcf6f1c29e1866fd0f6a2598f
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487625_351FDR_N0150001HELI03341_0000LUJ03.xml
+  size_bytes: 33473
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487625_351FDR_N0150001HELI03341_0000LUJ03.xml
+  checksum: f01b2b25c907305501f37f141f5d5db635034b5377e658e616422c4a7479eaed
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487637_189FDR_N0150001HELI03698_0000LUJ03.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487637_189FDR_N0150001HELI03698_0000LUJ03.IMG
+  checksum: 5b46087f0c09540769b2e9b41e7db8b4ef339f59d0210c6c158a0c04c83a4911
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487637_189FDR_N0150001HELI03698_0000LUJ03.xml
+  size_bytes: 33464
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487637_189FDR_N0150001HELI03698_0000LUJ03.xml
+  checksum: 1cb5ed7c3e3590eda0541df3ebe97ab4fbc63dc4ac6c84da5c55020c56fa1ca7
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487649_034FDR_N0150001HELI04055_0000LUJ03.IMG
+  size_bytes: 632320
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487649_034FDR_N0150001HELI04055_0000LUJ03.IMG
+  checksum: aaf4a0b7f3775fbd6e21126788bfe24cf94f58a596198d5dc2fceee5138b5df9
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity Navcam frame, flight 15
+  path: jezero/source/helicam/sol-00254/HNM_0254_0689487649_034FDR_N0150001HELI04055_0000LUJ03.xml
+  size_bytes: 33476
+  source_url: https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00254/ids/fdr/heli/HNM_0254_0689487649_034FDR_N0150001HELI04055_0000LUJ03.xml
+  checksum: 2dbca1774770b18e78c913962fa25837e687158f44a802a429a2510e09e69843
+  checksum_algorithm: sha256
+  credit: Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech
+- name: Ingenuity flight paths (NASA Mars 2020 MMGIS)
+  path: jezero/source/nasa/m20_heli_flight_path.json
+  size_bytes: 2303889
+  source_url: https://mars.nasa.gov/mmgis-maps/M20/Layers/json/m20_heli_flight_path.json
+  checksum: f0b19df6290a4d26c6618188d8986774b01c509e3d98841e410e8168f868240a
+  checksum_algorithm: sha256
+  credit: NASA/JPL-Caltech
+- name: Ingenuity flight waypoints (NASA Mars 2020 MMGIS)
+  path: jezero/source/nasa/m20_heli_waypoints.json
+  size_bytes: 65499
+  source_url: https://mars.nasa.gov/mmgis-maps/M20/Layers/json/m20_heli_waypoints.json
+  checksum: 457b536b6851259d2dfd1ee75c076ca95f4ad7f5f1cbd49c880564c3cf5d787b
+  checksum_algorithm: sha256
+  credit: NASA/JPL-Caltech

@@ -1,0 +1,18 @@
+# The Jezero pack for Person 4 (P2-04): which Ingenuity flights go in and how
+# much of each is kept. Read by prep/jezero/build_pack.py.
+#
+# The PDS Helicam bundle holds Navcam frames for flights 1 to 37 only (sols up
+# to 649), so the highest flights in the archive are 12 to 14 m. Flights 35
+# and 37 (14 m) are short hops with few frames. Terrain notes come from NASA's
+# flight reports; Person 4 tags each frame's terrain by eye (P4-01).
+flights:
+  - {flight: 10, hard_mode: false, ground: "Raised Ridges, 12 m"}
+  - {flight: 11, hard_mode: false, ground: "Raised Ridges to Airfield H, 12 m"}
+  - {flight: 15, hard_mode: false, ground: "Return over Raised Ridges to Airfield F, 12 m"}
+  - {flight: 9, hard_mode: true, ground: "Across Séítah's sand ripples and dunes, 10 m"}
+frames_per_flight: 10
+# Cruise frames only: at least this share of the flight's top height.
+min_altitude_ratio: 0.8
+# Margin around each flight path, metres. Ingenuity's own track can be about
+# 20 m off and a 12 m-high Navcam frame sees about 30 m of ground.
+margin_m: 200
