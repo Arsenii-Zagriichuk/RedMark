@@ -9,7 +9,7 @@
   "heading_deg": 232.174,
   "uncertainty_m": 60.0,
   "confidence_pct": 0.0,
-  "time_per_fix_s": 0.03,
+  "time_per_fix_s": 0.02,
   "terrain_type": "plain",
   "simulated": false,
   "overlay": "results/ground/overlays/p3-07-N_R000_4371_ILT111VRT_S_1290_UNCORM1.png",
@@ -24,7 +24,7 @@
   },
   "provenance": {
     "script": "locate/ground/hidden_test.py",
-    "commit": "693ab53f4a1f6a2a6b8a350b9dcc09b1bc7b31db",
+    "commit": "34d40d9a6d053dfdbdf36122dd0695a1f46f491e",
     "inputs": [
       {
         "path": "places/localized_pos.csv",
@@ -36,7 +36,7 @@
       },
       {
         "path": "hidden/ground/index.csv",
-        "sha256": "4285b73b0eec13d9208dca25aa1628c94100bc362a1c560c07de3f780314c43a"
+        "sha256": "1f4b7781ba94d264ce05e03e28d64ac66373d50a66828cb5d22394fe62ccfcb8"
       },
       {
         "path": "sites/gale.yaml",

@@ -25,9 +25,9 @@ files:
     credit: NASA/JPL-Caltech, MSL Navcam mosaics and reduced data records, PDS Imaging Node.
   - name: Stage 2 hidden pile, 40 MSL Navcam VRT (top-down) mosaics and one source frame label each, indexed with URLs and checksums
     path: hidden/ground/index.csv
-    size_bytes: 9869
+    size_bytes: 9867
     source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/msl_navcam_mosaic/DATA/
-    checksum: 4285b73b0eec13d9208dca25aa1628c94100bc362a1c560c07de3f780314c43a
+    checksum: 1f4b7781ba94d264ce05e03e28d64ac66373d50a66828cb5d22394fe62ccfcb8
     checksum_algorithm: sha256
     credit: NASA/JPL-Caltech, MSL Navcam mosaics and reduced data records, PDS Imaging Node.
   - name: MSL Gale DEM mosaic, 1 m, v3 (terrain type of each held-out stop)

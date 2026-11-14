@@ -10,7 +10,7 @@ Curiosity's Navcam mosaic archive already holds the overhead view stage 2 needs:
 
 1. **Overhead view** (`mosaic.py`): the mosaic averaged into the photo map's 25 cm cells (96 × 96). Cells that saw nothing, and everything within 3 m of the rover (its deck, wheels and shadow), are masked out.
 2. **Search window** (`pile.py`): the photo map within ±60 m of the rover's PLACES position, standing in for the stage 1 prior. It is read from the site's photo-map crop when that is in `REDMARK_DATA`, otherwise a window at a time straight from the full 25 cm USGS file over HTTP (about 30 s a window).
-3. **Match** (`match.py`): both images high-passed at 4 m, then masked normalised cross-correlation at every placement; the best peak is the fix. Its heading is the rover's onboard heading from a source frame's label, since the view is north-up by that attitude. The circle is the search half-width (60 m): the match promises nothing tighter.
+3. **Match** (`match.py`): both images high-passed at 4 m, then masked normalised cross-correlation at every placement; the best peak is the fix. Its heading is the rover's onboard heading from a source frame's label, since the view is north-up by that attitude. The circle's radius is taken from the search, not measured: the window's half-width, 60 m. The window is a square, so its corners reach about 85 m and a fix can land outside the circle.
 
 **Where it runs.** The match takes 0.02 s per stop on a laptop CPU and the photo map is read over HTTP, so all of it runs on Person 3's machine. Person 2's GPU batches (P2-08) aren't needed.
 
@@ -19,7 +19,7 @@ Curiosity's Navcam mosaic archive already holds the overhead view stage 2 needs:
 | Pile | Folder in `REDMARK_DATA` | Stops | Command |
 | --- | --- | --- | --- |
 | Tuning | `gale/ground/tuning` | 7, spread over sites 105 to 119 (`tune.py`'s `TUNING_STOPS`) | `uv run python -m locate.ground.tune` |
-| Hidden | the hidden-pile folder named in `hidden_pile.py` | 40, evenly along the traverse by sol, none within 24 m of a tuning stop (a mosaic is 24 m across, so they share no ground) | `uv run python -m locate.ground.hidden_pile`, then `uv run python -m locate.ground.hidden_test` |
+| Hidden | the hidden-pile folder named in `hidden_pile.py` | 40, evenly along the traverse by sol, none whose view shares ground with a tuning stop's (views are 24 m north-up squares, so a held-out stop must be at least 24 m from every tuning stop east-west or north-south, not just 24 m away) | `uv run python -m locate.ground.hidden_pile`, then `uv run python -m locate.ground.hidden_test` |
 
 Each pile folder holds, per stop, the mosaic's label, its first source frame's label, and an `.npz` with the view, mask and search window. The 46 MB mosaic image is deleted once its view is saved; `index.csv` keeps its checksum and URL. Only `hidden_pile.py` and `hidden_test.py` name the hidden folder (`locate/horizon/tests/test_hidden_pile_isolation.py`).
 
@@ -46,15 +46,17 @@ Each pile folder holds, per stop, the mosaic's label, its first source frame's l
 
 | | Stops | Within 1 m | Within 5 m | Median error |
 | --- | --- | --- | --- | --- |
-| All | 40 | 32.5% | 32.5% | 29.3 m |
-| Textured ground | 26 | 30.8% | 30.8% | 34.2 m |
-| Plain ground | 14 | 35.7% | 35.7% | 23.7 m |
+| All | 40 | 30.0% | 32.5% | 22.0 m |
+| Textured ground | 27 | 29.6% | 33.3% | 25.0 m |
+| Plain ground | 13 | 30.8% | 30.8% | 21.2 m |
 
-**Call at H12: no-go.** 32.5% within 5 m is below the 50% bar, so stage 2 stays simulated and labelled (P3-08). It fails in a telling way: all 13 hits are sub-metre (0.1 to 0.7 m), the precision JPL reports for this method, and every miss is 13 to 63 m out, somewhere else in the window. The matcher finds the rover precisely or not at all, and it can't yet tell which.
+**Call at H12: no-go.** 32.5% within 5 m is below the 50% bar, so stage 2 stays simulated and labelled (P3-08). It fails in a telling way: 12 of the 13 hits are sub-metre (0.1 to 0.7 m, and one at 1.2 m), the precision JPL reports for this method, and every miss is 13.5 to 62.7 m out, somewhere else in the window. The matcher finds the rover precisely or not at all, and it can't yet tell which.
 
-Two numbers in the summary are not measurements. The heading error is 0.0° because the ground fix carries the rover's onboard heading, which is the same yaw PLACES gives at these stops. The circle is the search half-width (60 m), so every fix falls inside it.
+Two numbers in the summary are not measurements. The heading error is 0.0° because the ground fix carries the rover's onboard heading, which is the same yaw PLACES gives at these stops. The circle is the search half-width (60 m), not a fitted uncertainty: 37 of 40 fixes (92.5%) fall inside it, and three misses (60.2, 61.9 and 62.7 m) land in the window's corners beyond it.
 
-These 40 stops have now been matched once. Any tuning from here uses the tuning pile only (or new stops from the walk area that are in neither pile), or the next score on them means nothing.
+A first run held out stops more than 24 m from every tuning stop by centre distance. That let one held-out view (site 119, drive 198) overlap a tuning view by 1.1 × 11 m on the diagonal, so the selection now checks the squares themselves (`locate/ground/tests/test_held_out.py`). With that stop out, the even spacing picked 11 different stops; the table above is the rerun on the new 40. That first run gave the same call (32.5% within 5 m; 30.8% without the overlapping stop).
+
+These 40 stops have now been matched, and so have the 11 the first selection held out and the second dropped (`index.csv` lists the 40; the 11 are the other `.npz` files in the hidden folder). Any tuning from here uses the tuning pile only, or walk-area stops that are in neither selection, or the next score on the hidden pile means nothing.
 
 ## Next: make the matcher better
 
