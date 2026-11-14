@@ -9,6 +9,8 @@ The route engine behind `POST /route`: cost map, fastest safe, science and cart 
 - `layers.py`: reads the layers onto a 4 m planning grid over the walk area, keeping the worst pixel in each cell; a cell with any pixel of no data has no data.
 - `plot_route.py`: the overlay image, `route/overlays/p4-03-fastest.png`, shading `blocked_cells`.
 
+**Exact endpoints.** The search runs between planning-cell centres, but the route runs from the exact start to the exact goal: the stretch from each exact point (and the habitat) to its cell's centre is walked at that cell's pace and counted in the time, the walk-back margin and the distance from the habitat.
+
 **Walk-back margin.** The least spare time at any point of the route: the walk-time limit minus the time walked so far and the fastest safe walk from that point back to the habitat. A route whose margin would go negative is refused with `NoSafeRoute`; the `walk_back` limit check itself comes with P4-04.
 
 Run `uv run python -m route.plot_route` to redraw the overlay.

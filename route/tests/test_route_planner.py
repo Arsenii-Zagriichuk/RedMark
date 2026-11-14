@@ -256,3 +256,36 @@ def test_steep_cells_touching_at_a_corner_leave_their_neighbours_walkable():
     route = plan_on_grid(g, centre(g, 1, 2), centre(g, 0, 4), centre(g, 0, 4), DEFAULT_LIMITS)
 
     assert cells(g, route.path)[0] == (1, 2)
+
+
+def test_the_route_runs_from_the_exact_start_to_the_exact_goal():
+    g, _, _ = flat_kilometre()
+    start, goal = Point(x=2, y=15), Point(x=1008, y=15)
+
+    route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS)
+
+    assert (route.path[0], route.path[-1]) == (start, goal)
+    # 3 m to the first cell centre, 1000 m between centres, 3 m on to the goal, at 1.8 s/m.
+    assert route.total_distance_m == pytest.approx(1006)
+    assert route.total_time_s == pytest.approx(1810.8)
+    assert sum(leg.time_s for leg in route.legs) == pytest.approx(1810.8)
+
+
+def test_a_goal_just_beyond_the_distance_limit_is_refused_though_its_cell_centre_is_inside():
+    g = grid(np.zeros((3, 30)), cell_m=10.0)
+    habitat = centre(g, 1, 0)
+    limits = DEFAULT_LIMITS.model_copy(update={"max_distance_from_habitat_m": 200})
+
+    with pytest.raises(NoSafeRoute):
+        plan_on_grid(g, habitat, Point(x=habitat.x + 200.4, y=habitat.y), habitat, limits)
+
+
+def test_the_walk_back_counts_the_walk_to_and_from_the_exact_endpoints():
+    g, _, _ = flat_kilometre()
+    start, goal = Point(x=2, y=15), Point(x=1008, y=15)
+    # 1810.8 s out and 1810.8 s home is 3621.6 s, over a 3615 s walk-time limit; between
+    # cell centres alone it would be 3600 s and pass.
+    limits = DEFAULT_LIMITS.model_copy(update={"max_walk_h": 3615 / 3600})
+
+    with pytest.raises(NoSafeRoute):
+        plan_on_grid(g, start, goal, start, limits)

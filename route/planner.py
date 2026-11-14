@@ -7,6 +7,7 @@ returned route can break one.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 import numpy as np
@@ -91,39 +92,46 @@ def plan_on_grid(
         raise NoSafeRoute("every path from start to goal breaks a hard limit")
     cells = _trace(previous[0], goal_cell, shape)
 
-    from_habitat = grid.distance_from(habitat)
-    path = [grid.centre(r, c) for r, c in cells]
-    steps = [
-        float(np.hypot(r1 - r0, c1 - c0)) * grid.cell_m
-        for (r0, c0), (r1, c1) in zip(cells, cells[1:], strict=False)
+    # The search runs between cell centres; the walk runs between the exact points, so add
+    # the stretch from each exact point to its cell's centre at that cell's walking pace.
+    pace = walk_s / grid.cell_m  # seconds per metre in each cell
+    to_start_s = _metres(start, grid.centre(*start_cell)) * pace[start_cell]
+    to_goal_s = _metres(goal, grid.centre(*goal_cell)) * pace[goal_cell]
+    to_habitat_s = _metres(habitat, grid.centre(*habitat_cell)) * pace[habitat_cell]
+    stops = [_Stop(start, 0.0, to_start_s + home[start_cell] + to_habitat_s)]
+    for c in cells:
+        stops.append(_Stop(grid.centre(*c), to_start_s + cumulative[c], home[c] + to_habitat_s))
+    walked_s = stops[-1].walked_s + to_goal_s
+    stops.append(_Stop(goal, walked_s, to_goal_s + home[goal_cell] + to_habitat_s))
+    stops = [
+        b for a, b in zip([None, *stops], stops, strict=False) if a is None or b.point != a.point
     ]
-    total_m = sum(steps)
-    total_s = float(cumulative[goal_cell])
+
+    total_m = sum(_metres(a.point, b.point) for a, b in zip(stops, stops[1:], strict=False))
+    total_s = stops[-1].walked_s
     max_walk_s = limits.max_walk_h * 3600
     if total_s > max_walk_s:
         raise NoSafeRoute(f"the fastest safe path takes {total_s / 3600:.1f} h")
-    if not all(np.isfinite(home[c]) for c in cells):
+    if not all(np.isfinite(stop.home_s) for stop in stops):
         raise NoSafeRoute("part of the route has no safe path back to the habitat")
-    walk_back_margin_s = float(min(max_walk_s - cumulative[c] - home[c] for c in cells))
+    walk_back_margin_s = min(max_walk_s - stop.walked_s - stop.home_s for stop in stops)
     if walk_back_margin_s < 0:
         raise NoSafeRoute("part of the route is too far to walk home within the walk-time limit")
+    furthest_m = max(_metres(habitat, stop.point) for stop in stops)
+    if furthest_m > limits.max_distance_from_habitat_m:
+        raise NoSafeRoute(f"the route reaches {furthest_m:.0f} m from the habitat")
     return RouteResponse(
         site=grid.site,
         mode="fastest",
-        path=path,
-        legs=_legs(cells, steps, cumulative),
+        path=[stop.point for stop in stops],
+        legs=_legs(stops),
         total_distance_m=total_m,
         total_time_s=total_s,
         walk_back_margin_s=walk_back_margin_s,
         extra_time_vs_fastest_s=None,
         limit_checks=[
             _check("slope", max(grid.slope_deg[c] for c in cells), limits.max_slope_deg, "deg"),
-            _check(
-                "distance_from_habitat",
-                max(from_habitat[c] for c in cells),
-                limits.max_distance_from_habitat_m,
-                "m",
-            ),
+            _check("distance_from_habitat", furthest_m, limits.max_distance_from_habitat_m, "m"),
             _check(
                 "planning_speed",
                 total_m / total_s * 3.6 if total_s else 0.0,
@@ -136,20 +144,41 @@ def plan_on_grid(
     )
 
 
-def _legs(cells, steps: list[float], elapsed: np.ndarray) -> list[Leg]:
+@dataclass(frozen=True)
+class _Stop:
+    """One point of the returned path, with the time walked to it and the time home from it."""
+
+    point: Point
+    walked_s: float
+    home_s: float
+
+
+def _metres(a: Point, b: Point) -> float:
+    return math.hypot(b.x - a.x, b.y - a.y)
+
+
+def _legs(stops: list[_Stop]) -> list[Leg]:
     """One leg per straight run of the path."""
-    moves = [(r1 - r0, c1 - c0) for (r0, c0), (r1, c1) in zip(cells, cells[1:], strict=False)]
-    turns = [i for i in range(1, len(moves)) if moves[i] != moves[i - 1]]
-    ends = [0, *turns, len(cells) - 1]
+    moves = [
+        (b.point.x - a.point.x, b.point.y - a.point.y)
+        for a, b in zip(stops, stops[1:], strict=False)
+    ]
+    turns = [i for i in range(1, len(moves)) if not _same_direction(moves[i - 1], moves[i])]
+    ends = [0, *turns, len(stops) - 1]
     return [
         Leg(
             start_index=first,
             end_index=last,
-            distance_m=sum(steps[first:last]),
-            time_s=float(elapsed[cells[last]] - elapsed[cells[first]]),
+            distance_m=sum(math.hypot(*m) for m in moves[first:last]),
+            time_s=stops[last].walked_s - stops[first].walked_s,
         )
         for first, last in zip(ends, ends[1:], strict=False)
     ]
+
+
+def _same_direction(a: tuple[float, float], b: tuple[float, float]) -> bool:
+    cross, dot = a[0] * b[1] - a[1] * b[0], a[0] * b[0] + a[1] * b[1]
+    return dot > 0 and abs(cross) <= 1e-9 * math.hypot(*a) * math.hypot(*b)
 
 
 def _walk_seconds_per_cell(grid: CostGrid, planning_speed_kmh: float) -> np.ndarray:
