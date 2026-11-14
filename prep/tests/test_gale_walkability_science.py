@@ -379,7 +379,9 @@ def test_the_builds_route_limits_are_the_apps_defaults():
     def const(name: str) -> float:
         return float(re.search(rf"const {name} = ([0-9.]+);", app).group(1))
 
-    default_slope = float(re.search(r"SLOPE_LIMITS = \[([0-9.]+),", app).group(1))
+    # The slope limit the plan screen starts with, not the first option in the list.
+    screen = (REPO_ROOT / "app" / "src" / "plan" / "PlanScreen.tsx").read_text()
+    default_slope = float(re.search(r"useState<SlopeLimit>\(([0-9.]+)\)", screen).group(1))
     assert APP_LIMITS.model_dump() == {
         "max_slope_deg": default_slope,
         "max_distance_from_habitat_m": const("MAX_DISTANCE_FROM_HABITAT_M"),

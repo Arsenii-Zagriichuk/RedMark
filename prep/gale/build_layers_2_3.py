@@ -16,12 +16,13 @@ $REDMARK_DATA/gale/:
 and, in the repo, `files.sand`, `files.ridges` and `science_targets` in sites/gale.yaml
 and copies of the overlays in prep/gale/evidence/.
 
-Nothing live changes until every layer, raster and overlay is built and the science
-targets are checked; then all are published together, the sand and ridge rasters
-included. The targets: each must sit inside the walk radius and a boxwork zone, clear of
-Curiosity's track and drill sites, a ridge target on a ridge pixel and a hollow target
-off the ridge map, and the route engine must find a safe route to it from base camp within the
-app's default limits on the new rasters.
+The new site config is validated first, and nothing live changes until every layer,
+raster and overlay is built and the science targets are checked; then all are
+published together, the sand and ridge rasters included. Each target must sit inside
+the walk radius and a boxwork zone, clear of Curiosity's track and drill sites, a
+ridge target on a ridge pixel and a hollow target off the ridge map, and the route
+engine must find a safe route to it from base camp within the app's default limits
+on the new rasters.
 """
 
 import csv
@@ -91,6 +92,7 @@ def build(root: Path) -> None:
     targets = spec["science_targets"]
     files = site.files
     commit = _git_commit()
+    new_config = _site_config_with(targets)
 
     stage = root / STAGE
     shutil.rmtree(stage, ignore_errors=True)
@@ -189,7 +191,7 @@ def build(root: Path) -> None:
         shutil.copy(live_overlays / png.name, EVIDENCE / png.name)
     shutil.rmtree(stage, ignore_errors=True)
 
-    _add_to_site_config(targets)
+    SITE.write_text(new_config)
     print(f"layers written to {root / LAYERS}")
 
 
@@ -221,9 +223,10 @@ def _source(source: dict) -> dict:
     return {"name": source["name"], "url": source["url"]}
 
 
-def _add_to_site_config(targets: list[dict]) -> None:
-    """Name the sand and ridge rasters and set the science targets in sites/gale.yaml,
-    keeping the rest and its header."""
+def _site_config_with(targets: list[dict]) -> str:
+    """sites/gale.yaml naming the sand and ridge rasters and setting the science
+    targets, keeping the rest and its header. Raises if the result is not a valid site
+    config, so the build checks it before anything live changes."""
     text = SITE.read_text()
     header = "".join(line + "\n" for line in text.splitlines() if line.startswith("#"))
     config = yaml.safe_load(text)
@@ -233,7 +236,7 @@ def _add_to_site_config(targets: list[dict]) -> None:
         {"id": t["id"], "position": {"x": t["x"], "y": t["y"]}, "name": t["name"]} for t in targets
     ]
     SiteConfig.model_validate(config)
-    SITE.write_text(header + yaml.safe_dump(config, sort_keys=False, allow_unicode=True))
+    return header + yaml.safe_dump(config, sort_keys=False, allow_unicode=True)
 
 
 if __name__ == "__main__":

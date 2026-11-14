@@ -482,22 +482,31 @@ def science(photo, layers, walk, habitat, targets, drilled, track, folder) -> Pa
         f" drill tailings at {len(places)} places"
     )
 
+    if inside:
+        _drill_close_up(zoom, photo, layers / "chemistry", meta, inside, places)
+    else:
+        zoom.set_axis_off()
+        zoom.set_title("No drill-tailings records in the walk area: no close-up")
+    out = folder / "science.png"
+    _save(fig, out)
+    return out
+
+
+def _drill_close_up(ax, photo, layer, meta, inside, places) -> None:
+    """The chemistry tiles at full detail, 600 m round the drill records' centre."""
     cx = sum(d["x"] for d in inside) / len(inside)
     cy = sum(d["y"] for d in inside) / len(inside)
     box = (cx - 300, cy - 300, cx + 300, cy + 300)
     detail, p_extent = read_window(photo, box)
-    _show_gray(zoom, detail[::2, ::2], p_extent)
-    colours, c_extent = _mosaic(layers / "chemistry", meta["tiles"]["max_zoom"], box)
-    zoom.imshow(_masked(colours), extent=c_extent)
+    _show_gray(ax, detail[::2, ::2], p_extent)
+    colours, c_extent = _mosaic(layer, meta["tiles"]["max_zoom"], box)
+    ax.imshow(_masked(colours), extent=c_extent)
     _drill_labels(
-        zoom, [p for p in places if box[0] <= p["x"] <= box[2] and box[1] <= p["y"] <= box[3]]
+        ax, [p for p in places if box[0] <= p["x"] <= box[2] and box[1] <= p["y"] <= box[3]]
     )
-    zoom.set_xlim(box[0], box[2])
-    zoom.set_ylim(box[1], box[3])
-    zoom.set_title("Close-up, 600 m round the drill sites' centre, at full detail")
-    out = folder / "science.png"
-    _save(fig, out)
-    return out
+    ax.set_xlim(box[0], box[2])
+    ax.set_ylim(box[1], box[3])
+    ax.set_title("Close-up, 600 m round the drill sites' centre, at full detail")
 
 
 # Drill-tailings records this close share one label: the record does not say whether
