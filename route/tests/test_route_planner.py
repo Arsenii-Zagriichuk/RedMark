@@ -6,14 +6,14 @@ from fastapi import HTTPException
 
 from contracts.models.common import Point
 from contracts.models.route_request import Limits, Mode
-from route.planner import CostGrid, NoSafeRoute, plan_on_grid
+from route.planner import CheckpointCandidate, CostGrid, NoSafeRoute, plan_on_grid
 
 DEFAULT_LIMITS = Limits(
     max_slope_deg=20, max_distance_from_habitat_m=2000, planning_speed_kmh=2, max_walk_h=6
 )
 
 
-def grid(slope_deg, cell_m=1.0, sand=None, ridge=None) -> CostGrid:
+def grid(slope_deg, cell_m=1.0, sand=None, ridge=None, quality=None) -> CostGrid:
     slope = np.asarray(slope_deg, dtype=float)
     blank = np.zeros(slope.shape, dtype=bool)
     return CostGrid(
@@ -24,6 +24,7 @@ def grid(slope_deg, cell_m=1.0, sand=None, ridge=None) -> CostGrid:
         slope_deg=slope,
         sand=blank if sand is None else np.asarray(sand, dtype=bool),
         ridge=blank if ridge is None else np.asarray(ridge, dtype=bool),
+        quality=None if quality is None else np.asarray(quality, dtype=float),
     )
 
 
@@ -655,3 +656,70 @@ def test_the_cart_does_not_need_a_safe_walk_back_to_the_habitat():
     assert route.walk_back_margin_s == 0
     assert not {"walk_back", "daylight"} & {c.limit for c in route.limit_checks}
     assert all(c.passed for c in route.limit_checks)
+
+
+def poor_quality_band_across_the_line() -> tuple[CostGrid, Point, Point]:
+    quality = np.ones((21, 101))
+    quality[5:16, 40:61] = 0.0
+    g = grid(np.zeros((21, 101)), cell_m=10.0, quality=quality)
+    return g, centre(g, 10, 0), centre(g, 10, 100)
+
+
+def test_location_aware_routing_goes_round_ground_where_fixes_are_poor():
+    g, start, goal = poor_quality_band_across_the_line()
+
+    aware = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, location_weight=1.0)
+    plain = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, location_weight=0.0)
+
+    assert not any(g.quality[c] < 1 for c in cells(g, aware.path))
+    assert all(p.y == start.y for p in plain.path)
+    # Round the band: 6 rows up and back down, 12 diagonal and 88 straight 10 m steps,
+    # 1049.7 m, walked at 1.8 s/m, against 1000 m (1800 s) straight through.
+    assert aware.total_time_s == pytest.approx(1889.5, abs=0.1)
+    assert plain.total_time_s == pytest.approx(1800)
+
+
+def test_poor_location_quality_never_changes_the_walking_time_or_the_walk_home():
+    g = grid(np.zeros((3, 101)), cell_m=10.0, quality=np.zeros((3, 101)))
+
+    route = plan_on_grid(g, centre(g, 1, 0), centre(g, 1, 100), centre(g, 1, 0), DEFAULT_LIMITS)
+
+    assert route.total_time_s == pytest.approx(1800)
+    assert check(route, "walk_back").value == pytest.approx(18000)
+
+
+def checkpoint_field() -> tuple[CostGrid, Point, Point, dict]:
+    g = grid(np.zeros((61, 201)), cell_m=10.0)
+    candidates = {
+        "A": CheckpointCandidate("A", centre(g, 25, 20), 0.9),
+        "A2": CheckpointCandidate("A2", centre(g, 35, 25), 0.5),
+        "B": CheckpointCandidate("B", centre(g, 20, 120), 0.8),
+        "far": CheckpointCandidate("far", centre(g, 60, 180), 1.0),
+    }
+    return g, centre(g, 30, 0), centre(g, 30, 200), candidates
+
+
+def test_the_route_visits_the_best_checkpoint_candidate_of_each_500_m_stretch():
+    g, start, goal, candidates = checkpoint_field()
+
+    route = plan_on_grid(
+        g, start, goal, start, DEFAULT_LIMITS, checkpoint_candidates=list(candidates.values())
+    )
+
+    assert [c.id for c in route.checkpoints] == ["A", "B"]
+    assert candidates["A"].position in route.path and candidates["B"].position in route.path
+    assert candidates["A2"].position not in route.path
+
+
+def test_a_checkpoint_the_walk_has_no_time_for_is_dropped():
+    g, start, goal, candidates = checkpoint_field()
+    # Through A: 220.71 + 1820.71 = 2041.42 m, 3674.56 s, plus 3600 s home from the goal
+    # fits 7300 s. Through B as well, 2082.84 m, 3749.1 + 3600 s does not.
+    limits = DEFAULT_LIMITS.model_copy(update={"max_walk_h": 7300 / 3600})
+
+    route = plan_on_grid(
+        g, start, goal, start, limits, checkpoint_candidates=list(candidates.values())
+    )
+
+    assert [c.id for c in route.checkpoints] == ["A"]
+    assert route.total_time_s == pytest.approx(3674.56, abs=0.05)
