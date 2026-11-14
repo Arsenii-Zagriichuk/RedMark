@@ -56,7 +56,7 @@ SINGLE = "NRB_721967057ILT_S0981520NCAM00266M1"
 # Bedrock all round in the ring frames, checked by eye.
 TERRAIN = TerrainType.textured
 # Spots that fit within this factor of the best spot's cost stay inside the
-# uncertainty circle; P3-03 calibrates the circle against the answer key.
+# uncertainty circle.
 CIRCLE_COST_FACTOR = 1.5
 CLOSE_UP_M = 800.0
 BASE_MAP_PIXELS = 2048  # across the walk area, enough for an 800 m close-up
@@ -80,15 +80,22 @@ class Grid:
         return float(self.xs[1] - self.xs[0])
 
 
+def load_grid(root: Path) -> Grid:
+    with np.load(root / GRID) as f:
+        return Grid(f["xs"], f["ys"], f["azimuths_deg"], f["elevation_deg"])
+
+
+def read_site_config() -> SiteConfig:
+    return SiteConfig.model_validate(yaml.safe_load(SITE_CONFIG.read_text()))
+
+
 def main() -> None:
     root = data_root()
-    with np.load(root / GRID) as f:
-        grid = Grid(f["xs"], f["ys"], f["azimuths_deg"], f["elevation_deg"])
+    grid = load_grid(root)
     ring_labels = sorted(root.glob(RING_GLOB))
     if len(ring_labels) != 12:
         raise SystemExit(f"expected the 12 ring frames in {root / 'navcam'}")
-    site = SiteConfig.model_validate(yaml.safe_load(SITE_CONFIG.read_text()))
-    base_map = read_layer_image(root / site.files["base_map"], pixels_across=BASE_MAP_PIXELS)
+    base_map = read_base_map(root)
     for labels in ([path for path in ring_labels if path.stem == SINGLE], ring_labels):
         fix = horizon_fix(labels, grid, root, base_map)
         print(
@@ -99,8 +106,26 @@ def main() -> None:
         )
 
 
-def horizon_fix(labels: list[Path], grid: Grid, root: Path, base_map: LayerImage) -> FixResult:
-    """One fix from the frames of one stop, scored and written with its overlay."""
+def read_base_map(root: Path) -> LayerImage:
+    site = read_site_config()
+    return read_layer_image(root / site.files["base_map"], pixels_across=BASE_MAP_PIXELS)
+
+
+def horizon_fix(
+    labels: list[Path],
+    grid: Grid,
+    root: Path,
+    base_map: LayerImage,
+    *,
+    terrain: TerrainType = TERRAIN,
+    overlay_prefix: str = "p3-02",
+    script: str = "locate/horizon/fix.py",
+    extra_inputs: tuple[Path, ...] = (),
+) -> FixResult:
+    """One fix from the frames of one stop, scored and written with its overlay
+    in results/horizon/overlays/<overlay_prefix>-<photo id>.png. Its provenance
+    names script and every file read, plus extra_inputs (such as the terrain
+    its terrain type came from)."""
     started = time.perf_counter()
     frames = [read_frame(path) for path in labels]
     photo_id = frames[0].photo_id
@@ -112,7 +137,7 @@ def horizon_fix(labels: list[Path], grid: Grid, root: Path, base_map: LayerImage
     uncertainty = circle_radius_m(match, grid)
     elapsed = time.perf_counter() - started
 
-    overlay = OVERLAYS / f"p3-02-{photo_id}.png"
+    overlay = OVERLAYS / f"{overlay_prefix}-{photo_id}.png"
     fix = FixResult(
         photo_id=photo_id,
         site=SiteId.gale,
@@ -120,13 +145,15 @@ def horizon_fix(labels: list[Path], grid: Grid, root: Path, base_map: LayerImage
         position=Point(x=grid.xs[match.ix], y=grid.ys[match.iy]),
         heading_deg=match.heading_deg,
         uncertainty_m=uncertainty,
-        confidence_pct=0.0,  # not measured until the hidden-pile test (P3-03)
+        confidence_pct=0.0,  # what confidence measures is still open in the contracts
         time_per_fix_s=round(elapsed, 2),
-        terrain_type=TERRAIN,
+        terrain_type=terrain,
         simulated=False,
         overlay=overlay.relative_to(REPO_ROOT).as_posix(),
         truth=None,
-        provenance=fix_provenance(labels, root, SITE_CONFIG, base_map),
+        provenance=fix_provenance(
+            labels, root, SITE_CONFIG, base_map, script=script, extra_inputs=extra_inputs
+        ),
     )
     first = frames[0]
     east, north = first.camera_offset_m()
@@ -134,11 +161,30 @@ def horizon_fix(labels: list[Path], grid: Grid, root: Path, base_map: LayerImage
     fix = score_fix(fix, Point(x=rover_x + east, y=rover_y + north), reference)
 
     draw_overlay(overlay, fix, match, grid, frames, photo, base_map)
-    FIXES.mkdir(parents=True, exist_ok=True)
-    (FIXES / f"{photo_id}.json").write_text(
-        json.dumps(fix.model_dump(mode="json"), indent=2) + "\n"
-    )
+    write_fix(fix)
     return fix
+
+
+def write_fix(fix: FixResult) -> Path:
+    """Write a fix result where the service looks it up: results/horizon/fixes/<photo id>.json."""
+    FIXES.mkdir(parents=True, exist_ok=True)
+    path = FIXES / f"{fix.photo_id}.json"
+    path.write_text(json.dumps(fix.model_dump(mode="json"), indent=2) + "\n")
+    return path
+
+
+def frame_fix(ring_fix: FixResult, photo_id: str, label_heading_deg: float) -> FixResult:
+    """The fix result for one frame of a ring, taken from the ring's fix.
+
+    Same position, circle and overlay as the ring; the heading is the ring's,
+    turned by how far this frame points from the ring's reference frame (from
+    their labels), and scored against this frame's own pointing.
+    """
+    turn = label_heading_deg - ring_fix.truth.heading_deg
+    frame = ring_fix.model_copy(
+        update={"photo_id": photo_id, "heading_deg": (ring_fix.heading_deg + turn) % 360.0}
+    )
+    return score_fix(frame, ring_fix.truth.position, label_heading_deg)
 
 
 @dataclass(frozen=True)
@@ -285,7 +331,13 @@ def _draw_fix(ax, fix: FixResult) -> None:
 
 
 def fix_provenance(
-    labels: list[Path], root: Path, site_config: Path, base_map: LayerImage
+    labels: list[Path],
+    root: Path,
+    site_config: Path,
+    base_map: LayerImage,
+    *,
+    script: str = "locate/horizon/fix.py",
+    extra_inputs: tuple[Path, ...] = (),
 ) -> Provenance:
     """Every file a fix and its overlay read: the grid, the answer key, the
     frames, the site config and the base map. Data files are recorded from
@@ -293,9 +345,9 @@ def fix_provenance(
     inputs = [root / GRID, root / PLACES]
     for label in labels:
         inputs += [label, label.with_suffix(".IMG")]
-    inputs += [site_config, *base_map.files]
+    inputs += [site_config, *base_map.files, *extra_inputs]
     return Provenance(
-        script="locate/horizon/fix.py",
+        script=script,
         commit=git_commit(),
         inputs=[{"path": _recorded(path, root), "sha256": sha256_file(path)} for path in inputs],
     )
