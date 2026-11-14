@@ -157,22 +157,28 @@ def photo_levels(image: Image.Image) -> list[Image.Image]:
 
 
 def slope_levels(degrees: np.ndarray) -> list[np.ndarray]:
-    """The slope at every zoom, 0 first: each zoom down takes the mean slope of the
-    known cells among 2 x 2, before any colour is given, so every zoom shows legend
-    colours and the bands stay put as the map zooms. A cell is unknown only where
-    all four below it are."""
+    """The slope at every zoom, 0 first: each pixel is the mean of the known 1 m
+    cells it covers, taken before any colour is given, so every zoom shows legend
+    colours and the bands stay put as the map zooms. Each zoom down adds up the sums
+    and counts of known cells, so a block with gaps weighs only the cells it knows.
+    A pixel is unknown only where every cell it covers is."""
+    known = np.isfinite(degrees)
+    total = np.where(known, degrees, 0).astype(np.float64)
+    count = known.astype(np.int64)
     levels = [degrees]
     for _ in range(max_zoom(degrees.shape[1], degrees.shape[0], TILE_SIZE)):
-        below = levels[-1]
-        rows, cols = below.shape
-        even = np.full((rows + rows % 2, cols + cols % 2), np.nan, dtype=below.dtype)
-        even[:rows, :cols] = below
-        quads = [even[r::2, c::2] for r in (0, 1) for c in (0, 1)]
-        known = sum(np.isfinite(q).astype(below.dtype) for q in quads)
-        total = sum(np.nan_to_num(q, nan=0) for q in quads)
+        total, count = _sum_2x2(total), _sum_2x2(count)
         with np.errstate(invalid="ignore", divide="ignore"):
-            levels.append(np.where(known > 0, total / known, np.nan).astype(below.dtype))
+            levels.append(np.where(count > 0, total / count, np.nan).astype(degrees.dtype))
     return levels[::-1]
+
+
+def _sum_2x2(values: np.ndarray) -> np.ndarray:
+    """Each 2 x 2 block added up; an odd last row or column counts as zeros past it."""
+    rows, cols = values.shape
+    even = np.zeros((rows + rows % 2, cols + cols % 2), dtype=values.dtype)
+    even[:rows, :cols] = values
+    return even[0::2, 0::2] + even[0::2, 1::2] + even[1::2, 0::2] + even[1::2, 1::2]
 
 
 def _cut(image: Image.Image, tile_size: int) -> Iterator[tuple[int, int, Image.Image]]:

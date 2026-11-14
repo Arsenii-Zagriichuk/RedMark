@@ -24,7 +24,7 @@ from rasterio.transform import from_origin
 
 from contracts.models.layer import LayerMeta
 from contracts.models.site import SiteConfig
-from prep.gale.layers import build_base_layer, build_slope_layer, slope_raster
+from prep.gale.layers import build_base_layer, build_slope_layer, slope_levels, slope_raster
 from route.layers import load_grid
 
 SITE_PROJ = "+proj=eqc +lat_ts=0 +lon_0=0 +R=3396190 +units=m +no_defs"
@@ -241,3 +241,17 @@ def test_an_overview_tile_shows_the_mean_slope_in_legend_colours(tmp_path: Path)
     colours = {"#{:02x}{:02x}{:02x}".format(*pixel) for pixel in shown[..., :3].reshape(-1, 3)}
     assert colours == {legend["10–15°"]}
     assert (overview[100:, :, 3] == 0).all() and (overview[:, 150:, 3] == 0).all()
+
+
+def test_an_overview_mean_counts_every_known_cell_once():
+    # 600 x 600 at 1 m: max zoom 2, so zoom 0 pixel (0, 0) covers the 4 x 4 cells top left.
+    # They hold one 30° cell, three unknown cells (sharing its 2 x 2 block) and twelve 0° cells.
+    degrees = np.zeros((600, 600), dtype=np.float32)
+    degrees[0, 0] = 30.0
+    degrees[0, 1] = degrees[1, 0] = degrees[1, 1] = np.nan
+
+    overview = slope_levels(degrees)[0]
+
+    # The mean of the 13 known cells, 30 / 13 = 2.31° (0–5°), not 30 / 4 = 7.5° (5–10°),
+    # which giving each 2 x 2 mean equal weight would make.
+    assert overview[0, 0] == pytest.approx(30 / 13, abs=1e-4)
