@@ -42,7 +42,8 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 from scipy.signal import fftconvolve  # noqa: E402
 
-from contracts.models.common import Provenance  # noqa: E402
+from contracts.models.common import Point, Provenance  # noqa: E402
+from contracts.models.demo_cache import DemoCacheEntry  # noqa: E402
 from contracts.models.route_response import RouteResponse  # noqa: E402
 from contracts.models.site import SiteConfig  # noqa: E402
 from contracts.paths import REPO_ROOT, data_root  # noqa: E402
@@ -129,14 +130,38 @@ LANDMARK_SHARE_LABELS = [
 MASK_LEGEND = [LegendClass("In view", "#fde725", 1.0), LegendClass("Hidden", "#440154", 0.0)]
 
 
-def demo_route(site: SiteConfig) -> Path:
+def demo_route(site: SiteConfig, cache: Path = DEMO_CACHE) -> Path:
     """The saved POST /route response the landmark directions follow: the demo walk, the
-    fastest route to the site's first science target at the app's default slope limit,
-    which the app records as demo step plan.route.fastest.<target>.<slope>."""
+    fastest route from base camp to a science target at the app's default slope limit, which
+    the app records as demo step plan.route.fastest.<target>.<slope>. Only a walk recorded on
+    this site config counts, from its base camp to its target; with several, the first
+    target in the site config wins."""
     if not site.science_targets:
         raise ValueError(f"{site.site.value} has no science target, so no demo walk to follow")
-    step = f"plan.route.fastest.{site.science_targets[0].id}.{DEMO_SLOPE_DEG}"
-    return DEMO_CACHE / f"{step.replace('.', '-')}.json"
+    walk_from = site.base_camp or site.habitat
+    recorded = {}
+    for path in sorted(cache.glob("*.json")):
+        entry = DemoCacheEntry.model_validate_json(path.read_text())
+        recorded[entry.step] = path, entry.request.body
+    stale = []
+    for target in site.science_targets:
+        step = f"plan.route.fastest.{target.id}.{DEMO_SLOPE_DEG}"
+        if step not in recorded:
+            continue
+        path, body = recorded[step]
+        if (
+            Point.model_validate(body["start"]) == walk_from
+            and Point.model_validate(body["goal"]) == target.position
+        ):
+            return path
+        stale.append(step)
+    ids = ", ".join(target.id for target in site.science_targets)
+    raise ValueError(
+        f"no demo walk in {cache} was recorded on this site config"
+        + (f" ({', '.join(stale)} starts or ends elsewhere)" if stale else "")
+        + f": re-record plan.route.fastest.<target>.{DEMO_SLOPE_DEG} from base camp to one of"
+        f" {ids} (the service with REDMARK_RECORD=1) and rerun"
+    )
 
 
 def main() -> None:
@@ -145,12 +170,10 @@ def main() -> None:
     missing = [name for name in (GALE_DEM, FAR_DEM, PLACES) if not (root / name).exists()]
     if missing:
         sys.exit(f"{', '.join(missing)} not in {root}: set REDMARK_DATA to the data folder")
-    route_file = demo_route(site)
-    if not route_file.exists():
-        sys.exit(
-            f"{route_file.relative_to(REPO_ROOT).as_posix()} is not in the demo cache: record"
-            " the demo walk on this site config (the service with REDMARK_RECORD=1) and rerun"
-        )
+    try:
+        route_file = demo_route(site)
+    except ValueError as error:
+        sys.exit(str(error))
     # Before anything is written: layer 5 code, the horizon terrain code it uses, the
     # landmarks and the site config must be committed, or the recorded commit can't
     # reproduce the layers.
