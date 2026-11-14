@@ -168,36 +168,67 @@ def plan_on_grid(
         ResponseMode.cart if cart else ResponseMode.fastest,
     )
 
-    def visit_checkpoints(route: RouteResponse, waypoints: list[Point]) -> RouteResponse:
-        if cart or not checkpoint_candidates:
-            return route
-        chosen = _checkpoints_along(route, checkpoint_candidates)
-        # Each waypoint and checkpoint in walking order: by distance along the route.
-        along = _along_m(route.path)
-        legs = sorted(
-            [(along[route.path.index(w)], w) for w in waypoints[1:-1]]
-            + [(at_m, c.position) for c, at_m in chosen],
-            key=lambda leg: leg[0],
-        )
-        middle = [w for _, w in legs]
-        visits = _Field(grid, walk_s, search_graph, [start, *middle], rules)
+    def usable(candidate: CheckpointCandidate) -> bool:
+        """On the map, on open ground and outside every hazard's circle."""
+        try:
+            cell = grid.cell(candidate.position)
+        except NoSafeRoute:
+            return False
+        return not blocked[cell] and hazards.metres_from(candidate.position) > uncertainty_m
 
-        def tour_s(points: Sequence[Point]) -> float:
+    usable_candidates = [c for c in checkpoint_candidates if usable(c)]
+
+    def visit_checkpoints(route: RouteResponse, waypoints: list[Point]) -> RouteResponse:
+        if cart or not usable_candidates:
+            return route
+        chosen = _checkpoints_along(route, usable_candidates)
+        # How far along the route each waypoint is, each found after the one before, so the
+        # waypoints keep their order and each checkpoint goes between the two it falls between.
+        along, found_at, waypoint_m = _along_m(route.path), 0, []
+        for w in waypoints:
+            found_at = route.path.index(w, found_at)
+            waypoint_m.append(along[found_at])
+        last = len(waypoints) - 2
+
+        def in_walking_order(checkpoints: list[CheckpointCandidate]) -> list[Point]:
+            points: list[Point] = []
+            for i in range(len(waypoints) - 1):
+                if i:
+                    points.append(waypoints[i])
+                low, high = waypoint_m[i], waypoint_m[i + 1]
+                points += [
+                    c.position
+                    for c, at_m in chosen
+                    if c in checkpoints and low <= at_m and (at_m < high or i == last)
+                ]
+            return points
+
+        visits = _Field(
+            grid,
+            walk_s,
+            search_graph,
+            [start, *waypoints[1:-1], *(c.position for c, _ in chosen)],
+            rules,
+        )
+
+        def search_cost_s(points: Sequence[Point]) -> float:
             stops = [start, *points, goal]
             return sum(visits.time(a, b) for a, b in zip(stops, stops[1:], strict=False))
 
         checkpoints = [c for c, _ in chosen]
         while checkpoints:
-            points = [w for w in middle if w in waypoints or _is_one_of(w, checkpoints)]
             try:
-                stops = _route(visits, home, [start, *points, goal])
+                stops = _route(visits, home, [start, *in_walking_order(checkpoints), goal])
                 visited = _respond(grid, rules, stops, route.mode)
             except NoSafeRoute:
-                # Drop the checkpoint whose visit costs the most time, then try again.
+                # Drop the checkpoint that costs the most to visit (in search cost: walking
+                # time weighted by location quality), then try again.
                 checkpoints.remove(
                     min(
                         checkpoints,
-                        key=lambda c: tour_s([w for w in points if w != c.position]),
+                        key=lambda c: search_cost_s(
+                            in_walking_order([k for k in checkpoints if k is not c])
+                        ),
                     )
                 )
                 continue
@@ -286,10 +317,6 @@ def _checkpoints_along(
         if held is None or (candidate.score, -off_m) > (held[0].score, -held[2]):
             best[stretch] = (candidate, along[k], off_m)
     return sorted(((c, at_m) for c, at_m, _ in best.values()), key=lambda pair: pair[1])
-
-
-def _is_one_of(point: Point, checkpoints: Sequence[CheckpointCandidate]) -> bool:
-    return any(point == c.position for c in checkpoints)
 
 
 @dataclass(frozen=True)

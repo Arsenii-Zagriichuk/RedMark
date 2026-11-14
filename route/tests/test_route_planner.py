@@ -723,3 +723,23 @@ def test_a_checkpoint_the_walk_has_no_time_for_is_dropped():
 
     assert [c.id for c in route.checkpoints] == ["A"]
     assert route.total_time_s == pytest.approx(3674.56, abs=0.05)
+
+
+def test_a_checkpoint_candidate_off_the_map_or_on_steep_ground_is_skipped():
+    g, start, goal, candidates = checkpoint_field()
+    slope = g.slope_deg.copy()
+    slope[25, 20] = 30  # candidate A's cell is now too steep to walk
+    g = grid(slope, cell_m=10.0)
+    # 145 m east of the goal, past the map's 2010 m edge: near the route, but not on the map.
+    off_map = CheckpointCandidate("off-map", Point(x=2150, y=305), 1.0)
+
+    route = plan_on_grid(
+        g,
+        start,
+        goal,
+        start,
+        DEFAULT_LIMITS,
+        checkpoint_candidates=[*candidates.values(), off_map],
+    )
+
+    assert [c.id for c in route.checkpoints] == ["A2", "B"]
