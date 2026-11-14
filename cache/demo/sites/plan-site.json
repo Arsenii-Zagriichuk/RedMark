@@ -9,51 +9,52 @@
   "contract": "site",
   "response": {
     "site": "gale",
-    "name": "Gale crater boxwork (stub)",
+    "name": "Gale crater boxwork",
     "projection": "+proj=eqc +lat_ts=0 +lon_0=0 +R=3396190 +units=m +no_defs",
     "bounds": {
-      "min_x": 8141700,
-      "min_y": -284140,
-      "max_x": 8145700,
-      "max_y": -280140
+      "min_x": 8140700,
+      "min_y": -287150,
+      "max_x": 8144700,
+      "max_y": -283150
     },
     "habitat": {
-      "x": 8143700,
-      "y": -282140
+      "x": 8142700,
+      "y": -285150
     },
     "base_camp": {
-      "x": 8143300,
-      "y": -282400
+      "x": 8142600,
+      "y": -285250
     },
     "science_targets": [
       {
-        "id": "ridge-1",
-        "name": "Ridge centre (stub)",
+        "id": "sw-ridge",
         "position": {
-          "x": 8144500,
-          "y": -281500
-        }
+          "x": 8142409.75,
+          "y": -285455.25
+        },
+        "name": "Boxwork ridge, south-west field"
       },
       {
-        "id": "hollow-1",
-        "name": "Hollow (stub)",
+        "id": "sw-hollow",
         "position": {
-          "x": 8144100,
-          "y": -281200
-        }
+          "x": 8142402.0,
+          "y": -285504.0
+        },
+        "name": "Boxwork hollow, south-west field"
       }
     ],
-    "checkpoints": [
-      {
-        "id": "cp-1",
-        "position": {
-          "x": 8143900,
-          "y": -281900
-        }
-      }
-    ],
+    "checkpoints": [],
     "files": {
-      "base_map": "gale/layers/base"
+      "photo_map": "gale/crops/photo-map-25cm.tif",
+      "terrain": "gale/crops/terrain-1m.tif",
+      "thermal_inertia": "gale/crops/thermal-inertia-100m.tif",
+      "crism": "gale/crops/crism-summary-18m.tif",
+      "chemistry": "gale/crops/chemistry-apxs.csv",
+      "rover_positions": "gale/crops/rover-positions.csv",
+      "base_map": "gale/layers/base",
+      "slope": "gale/rasters/slope.tif",
+      "sand": "gale/rasters/sand.tif",
+      "ridges": "gale/rasters/ridges.tif"
     },
     "replayed_sol": 4600
   }

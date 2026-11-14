@@ -61,7 +61,7 @@ def straighten(raw: np.ndarray, frame: DroneFrame, resolution: float) -> GroundV
         resolution=resolution,
         nadir_px=np.array([size / 2 - 0.5, size / 2 - 0.5]),
         heading_deg=float(np.degrees(np.arctan2(forward[1], forward[0])) % 360.0),
-        outline_px=_outline(valid),
+        outline_px=footprint_outline(valid),
     )
 
 
@@ -78,7 +78,7 @@ def _bilinear(image: np.ndarray, x: np.ndarray, y: np.ndarray) -> np.ndarray:
     )
 
 
-def _outline(valid: np.ndarray) -> np.ndarray:
+def footprint_outline(valid: np.ndarray) -> np.ndarray:
     """The edge of what the photo saw, as (x, y) pixels: the longest contour."""
     # Padded with a ring of False, so a footprint touching the view's edge
     # still gives one closed line; the pad shifts pixels by one.
