@@ -29,6 +29,7 @@ from conditions.mars24 import (
     sun_position,
     sunset_lmst,
 )
+from conditions.pds import read_rad_rdr, read_rems_modrdr
 from contracts.paths import STUB_DATA, data_root
 
 SOL = 4600
@@ -51,10 +52,14 @@ def _sha256(path: Path) -> str:
 
 
 def _read_rad(sol: int) -> tuple[float, ProvenanceInput | None]:
-    """Try to read daily dose from a RAD RDR CSV under REDMARK_DATA/rad/."""
+    """Read the original RAD RDR, with CSV support for the bundled fixtures."""
     rad_dir = data_root() / "rad"
     if not rad_dir.is_dir():
         return _DEFAULT_RAD_UGY, None
+    for path in sorted(rad_dir.glob(f"RAD_RDR_*_{sol:04d}_V*.TXT")):
+        dose = read_rad_rdr(path, sol)
+        if dose is not None:
+            return dose, {"path": str(path), "sha256": _sha256(path)}
     for csv_path in sorted(rad_dir.glob("*.csv")):
         try:
             with csv_path.open(newline="") as f:
@@ -68,7 +73,7 @@ def _read_rad(sol: int) -> tuple[float, ProvenanceInput | None]:
 
 
 def _read_rems(sol: int) -> tuple[list[tuple[int, float, float]], ProvenanceInput | None]:
-    """Try to read hourly (lmst_h, temp_c, pressure_pa) from REMS MODRDR CSV.
+    """Read hourly (lmst_h, temp_c, pressure_pa) from MODRDR or fixture CSV.
 
     Returns (list_of_tuples, provenance_input | None).  An empty list means
     "use the fallback model".
@@ -76,6 +81,10 @@ def _read_rems(sol: int) -> tuple[list[tuple[int, float, float]], ProvenanceInpu
     rems_dir = data_root() / "rems"
     if not rems_dir.is_dir():
         return [], None
+    for path in sorted(rems_dir.glob(f"RME_*RMD{sol:04d}*.TAB")):
+        rows = read_rems_modrdr(path, sol)
+        if rows:
+            return rows, {"path": str(path), "sha256": _sha256(path)}
     for csv_path in sorted(rems_dir.glob("*.csv")):
         try:
             rows: list[tuple[int, float, float]] = []

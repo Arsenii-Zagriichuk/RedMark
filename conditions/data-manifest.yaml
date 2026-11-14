@@ -1,30 +1,41 @@
-# Data sources for conditions/4600.json
-#
-# Sun position is computed via the Mars24 algorithm (Allison & McEwen 2000).
-# RAD and REMS values come from CSV files under REDMARK_DATA (or the stubs
-# in contracts/stubs/stub-data/ when REDMARK_DATA is unset).
-# Dust is estimated (PDS opacity bundle ends at sol 3902).
-#
-# References:
-#   Sun:  https://www.giss.nasa.gov/tools/mars24/help/algorithm.html
-#   RAD:  Hassler et al. (2014), Science 343(6169)
-#         https://pds-ppi.igpp.ucla.edu/data/MSL-M-RAD-3-RDR-V1.0/AAREADME.TXT
-#   REMS: Martínez et al. (2017), Space Sci. Rev. 212(1-2)
-#         https://pdsatmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/curiosity/rems.html
-#   Dust: https://atmos.nmsu.edu/data_and_services/atmospheres_data/MARS/curiosity/atmospheric_opacity.html
-
+# Original PDS products for Curiosity sol 4600, downloaded without modification.
+# Paths are relative to REDMARK_DATA; conditions/fetch_pds.py verifies all bytes.
+# RAD E is duration-weighted and reported as uGy per 24 Earth hours.
+# REMS ambient Kelvin and pressure Pa are averaged by LMST hour after QC filtering.
+# Dust remains explicitly estimated; solar values use conditions/mars24.py.
 files:
-  - name: "RAD daily dose for sols 4599-4601"
-    path: "rad/sol4600.csv"
-    size_bytes: 63
-    source_url: "https://pds-ppi.igpp.ucla.edu/data/MSL-M-RAD-3-RDR-V1.0/AAREADME.TXT"
-    checksum: "621ee9bbd70bf50d54de442766fca40b049320560754ac4acd5594f7dbd98fa5"
+  - name: "RAD calibrated RDR observations for sol 4600"
+    path: "rad/RAD_RDR_2025_196_01_01_4600_V00.TXT"
+    size_bytes: 70803668
+    source_url: "https://pds-ppi.igpp.ucla.edu/data/MSL-M-RAD-3-RDR-V1.0/DATA/SOL_04489_04612/RAD_RDR_2025_196_01_01_4600_V00.TXT"
+    checksum: "a0b22dbfffccb5c89b9b9a8417cef028d159978541ac15ce304a1e51c8260b93"
     checksum_algorithm: "sha256"
-    credit: "Hassler et al. (2014), Science 343(6169)"
-  - name: "REMS hourly temperature and pressure for sol 4600"
-    path: "rems/sol4600.csv"
-    size_bytes: 287
-    source_url: "https://pdsatmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/curiosity/rems.html"
-    checksum: "b5a7362096f5759f5776fe47c5a0961b2252eb50ef31228cc91df8cd08cc6cf3"
+    credit: "MSL RAD team; NASA PDS, MSL-M-RAD-3-RDR-V1.0"
+  - name: "RAD sol 4600 detached PDS label"
+    path: "rad/RAD_RDR_2025_196_01_01_4600_V00.LBL"
+    size_bytes: 1214720
+    source_url: "https://pds-ppi.igpp.ucla.edu/data/MSL-M-RAD-3-RDR-V1.0/DATA/SOL_04489_04612/RAD_RDR_2025_196_01_01_4600_V00.LBL"
+    checksum: "a10e19ab9d1412488c6ac2f58d19cc7a0bb236ed797f832cbb408db3b6cb4ff4"
     checksum_algorithm: "sha256"
-    credit: "Martínez et al. (2017), Space Sci. Rev. 212(1-2)"
+    credit: "MSL RAD team; NASA PDS, MSL-M-RAD-3-RDR-V1.0"
+  - name: "REMS MODRDR ambient temperature and pressure for sol 4600"
+    path: "rems/RME_805808741RMD46000000000_______P1.TAB"
+    size_bytes: 13871508
+    source_url: "https://pds-atmospheres.nmsu.edu/PDS/data/mslrem_1001/DATA/SOL_04489_04612/SOL04600/RME_805808741RMD46000000000_______P1.TAB"
+    checksum: "39106def45bbc771cf9ab9a33a05e33a68371f3b8ea79d507370c0dded74f65f"
+    checksum_algorithm: "sha256"
+    credit: "Gomez-Elvira et al.; NASA PDS MSL-M-REMS-5-MODRDR-V1.0, doi:10.17189/ghbc-qr41"
+  - name: "REMS sol 4600 detached PDS label"
+    path: "rems/RME_805808741RMD46000000000_______P1.LBL"
+    size_bytes: 3032
+    source_url: "https://pds-atmospheres.nmsu.edu/PDS/data/mslrem_1001/DATA/SOL_04489_04612/SOL04600/RME_805808741RMD46000000000_______P1.LBL"
+    checksum: "8015e7533ea56903543e6c680aefb5755aae98b6cba4404709749c72fc4b6b2f"
+    checksum_algorithm: "sha256"
+    credit: "Gomez-Elvira et al.; NASA PDS MSL-M-REMS-5-MODRDR-V1.0"
+  - name: "REMS MODRDR6 column layout, units, and confidence-flag definitions"
+    path: "rems/MODRDR6.FMT"
+    size_bytes: 24665
+    source_url: "https://pds-atmospheres.nmsu.edu/PDS/data/mslrem_1001/LABEL/MODRDR6.FMT"
+    checksum: "9609aa0d596bcbafdcca21c6c06bd4134fee6b8d5cbefd81a68133a212864b1a"
+    checksum_algorithm: "sha256"
+    credit: "MSL REMS team; NASA PDS Atmospheres Node"
