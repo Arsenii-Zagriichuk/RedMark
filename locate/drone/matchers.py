@@ -30,6 +30,19 @@ def pick_device():
     return torch.device("cpu")
 
 
+def load_matcher(name: str, root: Path) -> tuple[Matcher, object, list[Path]]:
+    """The matcher called `name` ("loftr" or "lightglue") on the best device,
+    the device, and the weight files under `root` it reads, for provenance."""
+    device = pick_device()
+    if name == "loftr":
+        weights = [root / JPL_LOFTR_WEIGHTS]
+        return loftr_matcher(weights[0], device), device, weights
+    if name == "lightglue":
+        weights = [root / TORCH_HUB / "checkpoints" / file for file in LIGHTGLUE_CHECKPOINTS]
+        return lightglue_matcher(root / TORCH_HUB, device), device, weights
+    raise ValueError(f"no matcher called {name!r}; use loftr or lightglue")
+
+
 def _tensor(image: np.ndarray, multiple: int, device):
     """uint8 image to a (1, 1, H, W) float tensor, padded at the bottom right to
     a multiple of `multiple` so pixel coordinates do not move."""
