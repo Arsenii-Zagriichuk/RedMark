@@ -127,8 +127,8 @@ def plan_on_grid(
         mapped_targets.append(target)
     targets = mapped_targets
     walk_s = _walk_seconds_per_cell(grid, limits.planning_speed_kmh)
-    field = _Field(grid, walk_s, blocked, corners_blocked, [habitat, start, *targets])
     rules = _Rules(habitat, limits, daylight_s, cart, uncertainty_m, hazards)
+    field = _Field(grid, walk_s, blocked, corners_blocked, [habitat, start, *targets], rules)
     fastest = _respond(
         grid,
         rules,
@@ -192,8 +192,9 @@ class _Field:
     stretch from an exact point to its cell's centre is added at that cell's pace.
     """
 
-    def __init__(self, grid: CostGrid, walk_s, blocked, corners_blocked, origins):
+    def __init__(self, grid: CostGrid, walk_s, blocked, corners_blocked, origins, rules: _Rules):
         self.grid, self.origins = grid, list(origins)
+        self.rules = rules
         self.pace = walk_s / grid.cell_m  # seconds per metre in each cell
         self.shape = blocked.shape
         self.cells = [grid.cell(p) for p in self.origins]
@@ -208,14 +209,19 @@ class _Field:
     def _origin(self, p: Point) -> int:
         return next(i for i, o in enumerate(self.origins) if o == p)
 
+    def _keeps_hazard_margin(self, a: Point, b: Point) -> bool:
+        return self.rules.hazards.metres_from_stretch(a, b) > self.rules.uncertainty_m
+
     def _to_centre_s(self, p: Point, cell: tuple[int, int]) -> float:
-        return _metres(p, self.grid.centre(*cell)) * self.pace[cell]
+        centre = self.grid.centre(*cell)
+        if not self._keeps_hazard_margin(p, centre):
+            return math.inf
+        return _metres(p, centre) * self.pace[cell]
 
     def time(self, origin: Point, p: Point) -> float:
         """Seconds from an origin to any exact point."""
         i, cell = self._origin(origin), self.grid.cell(p)
-        if cell == self.cells[i]:
-            # The direct stretch stays inside this one cell.
+        if cell == self.cells[i] and self._keeps_hazard_margin(origin, p):
             return _metres(origin, p) * self.pace[cell]
         return (
             self._to_centre_s(origin, self.cells[i])
@@ -226,7 +232,7 @@ class _Field:
     def walk(self, origin: Point, p: Point, walked_s: float) -> list[tuple[Point, float]]:
         """The points from an origin to p, each with the time walked to it."""
         i, cell = self._origin(origin), self.grid.cell(p)
-        if cell == self.cells[i]:
+        if cell == self.cells[i] and self._keeps_hazard_margin(origin, p):
             return [(origin, walked_s), (p, walked_s + self.time(origin, p))]
         set_off_s = walked_s + self._to_centre_s(origin, self.cells[i])
         cells = _trace(self.previous[i], cell, self.shape)
@@ -404,6 +410,8 @@ class Hazards:
         """Ground metres from the straight stretch a to b to the nearest hazard."""
         if not self.found:
             return math.inf
+        if a == b:
+            return self.metres_from(a)
         middle = np.array([(a.x + b.x) / 2, (a.y + b.y) / 2])
         # Any hazard nearer the stretch than the one nearest its middle lies within this
         # radius of the middle.
@@ -411,7 +419,7 @@ class Hazards:
         near = self._centres.data[self._centres.query_ball_point(middle, reach)]
         start, step = np.array([a.x, a.y]), np.array([b.x - a.x, b.y - a.y])
         length_sq = float(step @ step)
-        t = np.zeros(len(near)) if length_sq == 0 else (near - start) @ step / length_sq
+        t = (near - start) @ step / length_sq
         closest = start + np.clip(t, 0.0, 1.0)[:, None] * step
         return float(np.min(np.hypot(*(near - closest).T)))
 

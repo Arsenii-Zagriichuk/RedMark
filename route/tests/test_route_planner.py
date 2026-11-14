@@ -1,7 +1,5 @@
 """The route engine on tiny made-up grids: the best path and every hard limit."""
 
-import math
-
 import numpy as np
 import pytest
 from fastapi import HTTPException
@@ -556,17 +554,6 @@ def two_steep_cells_4_m_grid(*hazard_cells) -> CostGrid:
     return grid(slope, cell_m=4.0)
 
 
-def closest_approach_m(path, hazard: Point) -> float:
-    """Shortest distance from a hazard centre to any stretch of the path, by plain geometry."""
-    best = math.inf
-    for a, b in zip(path, path[1:], strict=False):
-        dx, dy = b.x - a.x, b.y - a.y
-        t = ((hazard.x - a.x) * dx + (hazard.y - a.y) * dy) / (dx * dx + dy * dy)
-        t = min(max(t, 0.0), 1.0)
-        best = min(best, math.hypot(a.x + t * dx - hazard.x, a.y + t * dy - hazard.y))
-    return best
-
-
 def test_an_off_centre_start_is_checked_against_the_hazard_truly_nearest_it():
     # Hazard centres at (14, 22) and (22, 22); the start's cell centre (18, 22) is 4 m from
     # both, but the start itself is 2.1 m from the second, inside a 3 m circle.
@@ -590,9 +577,66 @@ def test_a_diagonal_step_past_the_corner_of_a_hazard_keeps_the_whole_circle_off_
 
     route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, uncertainty_m=3)
 
-    # The direct diagonal passes the hazard's corner at (20, 24), 2.83 m away; the route goes
-    # round it instead, and its reported clearance is what the geometry says.
-    assert closest_approach_m(route.path, hazard) > 3
-    assert check(route, "hazard_margin").value == pytest.approx(
-        closest_approach_m(route.path, hazard)
+    # The direct diagonal passes 2.83 m from the hazard. The two 4 m sides via (18, 26)
+    # are the shortest safe detour, and both stay 4 m from the hazard at their nearest.
+    assert route.path == [start, Point(x=18, y=26), goal]
+    assert check(route, "hazard_margin").value == pytest.approx(4)
+
+
+def test_the_walk_back_margin_counts_a_safe_detour_home_within_one_cell():
+    g = two_steep_cells_4_m_grid((4, 5))
+    start = Point(x=18, y=30)
+    goal, habitat = Point(x=19.5, y=23.9), Point(x=19.5, y=20.1)
+    limits = DEFAULT_LIMITS.model_copy(update={"max_walk_h": 30 / 3600})
+
+    route = plan_on_grid(g, start, goal, habitat, limits, uncertainty_m=3)
+
+    # The direct 3.8 m home cuts inside the circle. Via (18, 22), home is 2*sqrt(5.86) m.
+    # Outward is 8+sqrt(5.86) m: 27.472016 s out and home at 1.8 s/m, leaving 2.527984 s.
+    assert route.total_time_s == pytest.approx(18.757339, abs=0.000001)
+    assert route.walk_back_margin_s == pytest.approx(2.527984, abs=0.000001)
+    assert all(c.passed for c in route.limit_checks)
+
+
+@pytest.mark.parametrize(
+    ("max_walk_h", "daylight_s", "reason"),
+    [
+        (25.7 / 3600, None, "walk home within the walk-time limit"),
+        (6, 25.7, "before sunset"),
+    ],
+    ids=["walk_back", "daylight"],
+)
+def test_the_crew_needs_time_for_the_safe_detour_home(max_walk_h, daylight_s, reason):
+    g = two_steep_cells_4_m_grid((4, 5))
+    start = Point(x=18, y=30)
+    goal, habitat = Point(x=19.5, y=23.9), Point(x=19.5, y=20.1)
+    limits = DEFAULT_LIMITS.model_copy(update={"max_walk_h": max_walk_h})
+
+    # The safe grid walk out and home takes 27.472016 s, not the 25.597339 s that
+    # the unsafe direct walk home would suggest.
+    with pytest.raises(NoSafeRoute, match=reason):
+        plan_on_grid(g, start, goal, habitat, limits, uncertainty_m=3, daylight_s=daylight_s)
+
+
+def test_walk_back_refuses_a_habitat_connector_inside_the_hazard_margin():
+    g = two_steep_cells_4_m_grid((4, 5))
+    start, goal, habitat = Point(x=18, y=30), Point(x=18, y=34), Point(x=19, y=23.9)
+    # Habitat: 3.551 m from the hazard; its cell centre: 4 m. Their connecting stretch
+    # passes only 3.540 m away, so there is no safe connection to the planning graph.
+    with pytest.raises(NoSafeRoute, match="no safe path back to the habitat"):
+        plan_on_grid(g, start, goal, habitat, DEFAULT_LIMITS, uncertainty_m=3.55)
+
+
+def test_science_visits_same_cell_targets_by_a_safe_detour():
+    g = two_steep_cells_4_m_grid((4, 5))
+    start, goal = Point(x=18, y=14), Point(x=18, y=30)
+    targets = [Point(x=19.5, y=20.1), Point(x=19.5, y=23.9)]
+
+    route = plan_on_grid(
+        g, start, goal, start, DEFAULT_LIMITS, mode=Mode.science, targets=targets, uncertainty_m=3
     )
+
+    # Both visits add four sqrt(5.86) m connectors to the 16 m fastest route, at 1.8 s/m.
+    assert all(target in route.path for target in targets)
+    assert route.extra_time_vs_fastest_s == pytest.approx(17.429355, abs=0.000001)
+    assert all(c.passed for c in route.limit_checks)
