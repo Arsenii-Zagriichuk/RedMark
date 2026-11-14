@@ -14,3 +14,24 @@ files:
     checksum: 9e1d9a84dac565794a5cacf1122ca530a3caf5b80df7a4875b06e30060632caf
     checksum_algorithm: sha256
     credit: Fergason, R. L., Hare, T. M. and Laura, J. (2018), HRSC and MOLA Blended Digital Elevation Model at 200m v2, USGS Astrogeology Science Center.
+  - name: MSL PLACES rover localizations (localized_pos.csv), used for the Navcam check's camera position
+    path: places/localized_pos.csv
+    size_bytes: 349568
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/msl_places/data_localizations/localized_pos.csv
+    checksum: d456ce9025ca71673af8b9f72a78dc508f5d963cbac74fa68eeac88a4c7c3a3b
+    checksum_algorithm: sha256
+    credit: MSL PLACES localization archive, NASA/JPL-Caltech, PDS Imaging Node.
+  - name: MSL Navcam cylindrical mosaic, sol 3655, site 98 drive 1520 (image)
+    path: navcam/N_R000_3655_ILT098CYL_S_1520_UNCORM1.IMG
+    size_bytes: 33817980
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/msl_navcam_mosaic/DATA/SOL03655/N_R000_3655_ILT098CYL_S_1520_UNCORM1.IMG
+    checksum: f5cbf358c84956049d3ce2dbf8a05c340d4322be6656211dfc5dffba257af0dd
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam mosaics, PDS Imaging Node.
+  - name: MSL Navcam cylindrical mosaic, sol 3655, site 98 drive 1520 (label)
+    path: navcam/N_R000_3655_ILT098CYL_S_1520_UNCORM1.LBL
+    size_bytes: 10803
+    source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/msl_navcam_mosaic/DATA/SOL03655/N_R000_3655_ILT098CYL_S_1520_UNCORM1.LBL
+    checksum: 228b1438a6615a607bdc665676c7ade0e91aab24c04bec654a614f059ec6daaa
+    checksum_algorithm: sha256
+    credit: NASA/JPL-Caltech, MSL Navcam mosaics, PDS Imaging Node.
