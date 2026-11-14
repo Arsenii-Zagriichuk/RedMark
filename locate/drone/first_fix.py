@@ -9,7 +9,7 @@ of the flight's map crop around the previous photo's fix (moved as the drone
 moved since), or around the drone's onboard position for a flight's first
 fix, matches, and fits the fix. Nothing is written unless the code that makes
 the fix is committed, so the recorded commit traces it. Writes the overlay
-to results/drone/overlays/<frame>-<matcher>.png and the fix from either
+to results/drone/overlays/<frame>-<matcher>-<run-id>.png and the fix from either
 matcher to results/drone/fixes/<frame>.json. Each overlay embeds the fix
 and match counts from its own run. Reads the Jezero pack
 (prep/jezero/build_pack.py) and JPL's weights under REDMARK_DATA.
@@ -25,6 +25,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+from uuid import uuid4
 
 import numpy as np
 import rasterio
@@ -68,7 +69,7 @@ def _recorded(path: Path) -> str:
     raise ValueError(f"{path} is neither in the repo nor in REDMARK_DATA")
 
 
-def _provenance(inputs: list[Path]) -> Provenance:
+def _provenance(inputs: list[Path], captured_checksums: dict[Path, str]) -> Provenance:
     # The commit only traces the numbers if the code that made them is in it.
     changed = subprocess.run(
         ["git", "status", "--porcelain", "--untracked-files=no", "--", *FIX_CODE],
@@ -85,7 +86,13 @@ def _provenance(inputs: list[Path]) -> Provenance:
     return Provenance(
         script=_recorded(Path(__file__)),
         commit=commit,
-        inputs=[{"path": _recorded(p), "sha256": _sha256(p)} for p in inputs],
+        inputs=[
+            {
+                "path": _recorded(path),
+                "sha256": captured_checksums.get(path) or _sha256(path),
+            }
+            for path in inputs
+        ],
     )
 
 
@@ -198,6 +205,7 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
     crop = jezero / "pack" / "crops" / row["crop"]
     waypoints = jezero / "source" / "nasa" / "m20_heli_waypoints.json"
     inputs = [label, label.with_suffix(".IMG"), crop, waypoints, frames_csv]
+    captured_checksums: dict[Path, str] = {}
 
     started = time.perf_counter()
     frame = read_drone_frame(label.read_text())
@@ -214,7 +222,8 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
         previous_fix = RESULTS / "fixes" / f"{previous_stem}.json"
         if not previous_fix.is_file():
             raise SystemExit(f"no fix for --previous {previous_stem}; run that frame first")
-        prior = FixResult.model_validate_json(previous_fix.read_bytes())
+        prior_bytes = previous_fix.read_bytes()
+        prior = FixResult.model_validate_json(prior_bytes)
         if (
             prior.photo_id != previous_stem
             or prior.site != SiteId.jezero
@@ -230,6 +239,7 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
             onboard=_onboard(previous_frame, waypoints),
         )
         inputs += [previous_fix, previous_label]
+        captured_checksums[previous_fix] = hashlib.sha256(prior_bytes).hexdigest()
     preparation_s = time.perf_counter() - started
 
     device = pick_device()
@@ -248,9 +258,10 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
     ground, window, drone_fix = fix_frame(raw, frame, crop, centre, matcher)
     seconds = preparation_s + (time.perf_counter() - started)
     # Before anything is written: refuse uncommitted fix code, checksum the inputs.
-    provenance = _provenance(inputs + weights)
+    provenance = _provenance(inputs + weights, captured_checksums)
 
-    overlay = RESULTS / "overlays" / f"{stem}-{matcher_name}.png"
+    # Each published fix keeps its own overlay, even if a retry fails or races it.
+    overlay = RESULTS / "overlays" / f"{stem}-{matcher_name}-{uuid4().hex}.png"
     shift = np.hypot(drone_fix.position[0] - onboard[0], drone_fix.position[1] - onboard[1])
     searched = (
         f"around the fix of {previous_stem}" if previous_stem else "around the onboard position"

@@ -44,7 +44,8 @@ def navcam_products(inventory_lines: list[str], sol: int) -> list[NavcamProduct]
     return sorted(products, key=lambda p: p.file_stem)
 
 
-def _first(pattern: str, text: str) -> str:
+def first_label_match(pattern: str, text: str) -> str:
+    """Read the first capture group of a required field in a PDS label."""
     match = re.search(pattern, text, re.S)
     if not match:
         raise ValueError(f"label has no match for {pattern!r}")
@@ -53,7 +54,7 @@ def _first(pattern: str, text: str) -> str:
 
 def frame_block(xml: str, identifier: str) -> str:
     """The coordinate-space definition for a matching PDS identifier."""
-    return _first(
+    return first_label_match(
         rf"<local_identifier>{identifier}</local_identifier>(.*?)</geom:Coordinate_Space_Definition>",
         xml,
     )
@@ -65,16 +66,18 @@ def read_label(xml: str) -> NavcamFrame:
     The drone's in-flight pose is the HELI_M_FRAME's offset from the
     flight's HELI_G_FRAME (take-off point, z down).
     """
-    flight = int(_first(r"<local_identifier>HELI_G_FRAME_(\d+)</local_identifier>", xml))
+    flight = int(first_label_match(r"<local_identifier>HELI_G_FRAME_(\d+)</local_identifier>", xml))
     m_frame = frame_block(xml, rf"HELI_M_FRAME_{flight}_\d+")
-    z = float(_first(r"<geom:Vector_Origin_Offset>.*?<geom:z_position[^>]*>([^<]+)<", m_frame))
+    z = float(
+        first_label_match(r"<geom:Vector_Origin_Offset>.*?<geom:z_position[^>]*>([^<]+)<", m_frame)
+    )
     return NavcamFrame(
-        file_stem=_first(r"<file_name>([^<]+)\.IMG</file_name>", xml),
+        file_stem=first_label_match(r"<file_name>([^<]+)\.IMG</file_name>", xml),
         flight=flight,
         altitude_m=-z,
-        sclk=float(_first(r"<msn:spacecraft_clock_start>([^<]+)<", xml)),
-        lines=int(_first(r"<img:lines>(\d+)<", xml)),
-        samples=int(_first(r"<img:samples>(\d+)<", xml)),
+        sclk=float(first_label_match(r"<msn:spacecraft_clock_start>([^<]+)<", xml)),
+        lines=int(first_label_match(r"<img:lines>(\d+)<", xml)),
+        samples=int(first_label_match(r"<img:samples>(\d+)<", xml)),
     )
 
 

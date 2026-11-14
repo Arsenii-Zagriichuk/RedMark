@@ -24,7 +24,7 @@ The steps, one module each:
 
 Time per fix covers reading the frame to fitting the fix; it leaves out loading the matcher's weights and drawing the overlay.
 
-`first_fix.py` writes the selected matcher’s fix to `results/drone/fixes/<frame>.json` and an overlay per matcher in `results/drone/overlays/<frame>-<matcher>.png`. In the overlay, photo and map alternate in 4 m squares inside the photo's outline; where the fit is right, rocks and ridges run on across the squares' edges.
+`first_fix.py` writes each run's overlay to `results/drone/overlays/<frame>-<matcher>-<run-id>.png` before publishing the fix to `results/drone/fixes/<frame>.json`. In the overlay, photo and map alternate in 4 m squares inside the photo's outline. Where the fit is right, rocks and ridges run on across the squares' edges.
 Each PNG embeds its own schema-valid `fix_result` JSON with input checksums,
 plus `matches` and `inliers` metadata. A LightGlue fix can seed `--previous`
 the same way a LoFTR fix can. Run the preferred matcher last when comparing

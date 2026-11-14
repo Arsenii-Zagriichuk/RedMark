@@ -7,7 +7,7 @@ If you use these files (the app's Test lab and Drone fix screen, Person 1; the w
 ## Files
 
 - `fixes/<frame>.json`: the most recently written drone fix per Ingenuity frame, in the fix result contract (`contracts/schemas/fix_result.json`). Positions are map metres in the Jezero site frame (`sites/jezero.yaml`), where map metres are ground metres.
-- `overlays/<frame>-<matcher>.png`: per-matcher evidence, including the complete fix result in the `fix_result` PNG text field. The `matches` and `inliers` text fields record the correspondence counts used in the overlay. The current fix in `fixes/` links to its overlay.
+- `overlays/<frame>-<matcher>-<run-id>.png`: each new run writes its own overlay. The PNG's `fix_result` text field holds the complete fix result, with correspondence counts in `matches` and `inliers`. The current fix in `fixes/` links to its overlay. Earlier overlays use `<frame>-<matcher>.png`.
 - `fixes/stub-ingenuity-0001.json` is a stub (`provenance.script: "stub"`); never show its numbers as real.
 
 ## What the numbers mean, and don't yet

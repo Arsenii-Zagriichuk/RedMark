@@ -11,13 +11,12 @@ NASA publishes in map metres. The onboard pose drifts (Ingenuity's own track
 can be about 20 m off), so it only centres the search; the match fixes it.
 """
 
-import re
 from dataclasses import dataclass
 
 import numpy as np
 
 from locate.drone.camera import Cahvore
-from prep.jezero.frames import frame_block, read_label
+from prep.jezero.frames import first_label_match, frame_block, read_label
 
 
 @dataclass(frozen=True)
@@ -30,23 +29,21 @@ class DroneFrame:
     camera_ned: np.ndarray  # camera centre from the take-off point, metres north, east, down
 
 
-def _first(pattern: str, text: str) -> str:
-    match = re.search(pattern, text, re.S)
-    if not match:
-        raise ValueError(f"label has no match for {pattern!r}")
-    return match[1]
-
-
 def _vector(block: str, tag: str, suffix: str) -> np.ndarray:
-    inner = _first(rf"<geom:{tag}>(.*?)</geom:{tag}>", block)
-    return np.array([float(_first(rf"<geom:{c}{suffix}[^>]*>([^<]+)<", inner)) for c in "xyz"])
+    inner = first_label_match(rf"<geom:{tag}>(.*?)</geom:{tag}>", block)
+    return np.array(
+        [float(first_label_match(rf"<geom:{c}{suffix}[^>]*>([^<]+)<", inner)) for c in "xyz"]
+    )
 
 
 def _rotation(block: str) -> np.ndarray:
     """The block's Quaternion_Plus_Direction as a matrix from its frame to its parent."""
-    inner = _first(r"<geom:Quaternion_Plus_Direction>(.*?)</geom:Quaternion_Plus_Direction>", block)
+    inner = first_label_match(
+        r"<geom:Quaternion_Plus_Direction>(.*?)</geom:Quaternion_Plus_Direction>", block
+    )
     w, x, y, z = (
-        float(_first(rf"<geom:{t}>([^<]+)<", inner)) for t in ("qcos", "qsin1", "qsin2", "qsin3")
+        float(first_label_match(rf"<geom:{t}>([^<]+)<", inner))
+        for t in ("qcos", "qsin1", "qsin2", "qsin3")
     )
     return np.array(
         [
@@ -58,7 +55,7 @@ def _rotation(block: str) -> np.ndarray:
 
 
 def read_drone_frame(xml: str) -> DroneFrame:
-    model = _first(r"<geom:CAHVORE_Model>(.*?)</geom:CAHVORE_Model>", xml)
+    model = first_label_match(r"<geom:CAHVORE_Model>(.*?)</geom:CAHVORE_Model>", xml)
     if np.any(_vector_terms(model, "Entrance_Terms")):
         raise ValueError("CAHVORE entrance terms are not zero; the closed-form projection is wrong")
     camera = Cahvore(
@@ -68,7 +65,7 @@ def read_drone_frame(xml: str) -> DroneFrame:
         v=_vector(model, "Vector_Vertical", "_pixel"),
         o=_vector(model, "Vector_Optical", "_unit"),
         r=_vector_terms(model, "Radial_Terms"),
-        linearity=float(_first(r"<geom:cahvore_model_parameter>([^<]+)<", model)),
+        linearity=float(first_label_match(r"<geom:cahvore_model_parameter>([^<]+)<", model)),
     )
     navcam = read_label(xml)
     takeoff = frame_block(xml, f"HELI_G_FRAME_{navcam.flight}")
@@ -87,8 +84,10 @@ def read_drone_frame(xml: str) -> DroneFrame:
 
 
 def _vector_terms(model: str, tag: str) -> np.ndarray:
-    inner = _first(rf"<geom:{tag}>(.*?)</geom:{tag}>", model)
-    return np.array([float(_first(rf"<geom:{c}>([^<]+)<", inner)) for c in ("c0", "c1", "c2")])
+    inner = first_label_match(rf"<geom:{tag}>(.*?)</geom:{tag}>", model)
+    return np.array(
+        [float(first_label_match(rf"<geom:{c}>([^<]+)<", inner)) for c in ("c0", "c1", "c2")]
+    )
 
 
 def takeoff_position(waypoints: dict, flight: int) -> tuple[float, float]:
