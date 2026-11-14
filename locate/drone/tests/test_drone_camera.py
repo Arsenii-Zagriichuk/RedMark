@@ -46,9 +46,9 @@ def test_perspective_linearity_puts_a_45_degree_ray_f_tan_theta_from_the_centre(
 
 
 def test_radial_terms_stretch_the_distance_from_the_centre():
-    # chi = pi/4; distorted chi = chi * (1 + 0.1 * chi^2) = 0.833848...
+    # chi = pi/4; distorted chi = chi * (1 + 0.1 * chi^2) = 0.8338455...
     x, _ = _ideal_camera(0, radial=(0, 0.1, 0)).project(np.array([[1.0, 0.0, 1.0]]))
-    assert x[0] == pytest.approx(320 + 83.3848, abs=1e-3)
+    assert x[0] == pytest.approx(320 + 83.38455, abs=1e-4)
 
 
 def test_points_behind_the_camera_are_not_projected():

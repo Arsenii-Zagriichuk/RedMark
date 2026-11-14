@@ -65,12 +65,21 @@ class MapWindow:
             ]
         )
 
+    def to_px(self, xy: np.ndarray) -> np.ndarray:
+        """Map metres (x, y) to window pixels (x, y)."""
+        xy = np.atleast_2d(xy)
+        return np.column_stack(
+            [
+                (xy[:, 0] - self.min_x) / self.resolution - 0.5,
+                (self.max_y - xy[:, 1]) / self.resolution - 0.5,
+            ]
+        )
+
 
 @dataclass(frozen=True)
 class Matches:
     query_xy: np.ndarray  # N x 2, pixels in the ground view
     reference_xy: np.ndarray  # N x 2, pixels in the map window
-    confidence: np.ndarray  # N
 
 
 # A matcher takes the ground view's and the map window's images and returns
@@ -79,7 +88,7 @@ Matcher = Callable[[np.ndarray, np.ndarray], Matches]
 
 
 @dataclass(frozen=True)
-class DroneEstimate:
+class DroneFix:
     position: tuple[float, float]  # map metres
     heading_deg: float
     matches: int
@@ -91,12 +100,12 @@ class DroneEstimate:
     to_window: tuple[complex, complex]  # (a, b): window pixel = a * view pixel + b, complex
 
 
-def locate_on_map(ground: GroundView, window: MapWindow, matcher: Matcher) -> DroneEstimate:
+def locate_on_map(ground: GroundView, window: MapWindow, matcher: Matcher) -> DroneFix:
     if not np.isclose(ground.resolution, window.resolution):
         raise ValueError("the ground view and the map window must share one scale")
     found = _match_in_tiles(ground, window, matcher)
     keep = _inside(ground.valid, found.query_xy)
-    matches = Matches(found.query_xy[keep], found.reference_xy[keep], found.confidence[keep])
+    matches = Matches(found.query_xy[keep], found.reference_xy[keep])
     a, b, inliers = _fit_similarity(matches.query_xy, matches.reference_xy)
     if inliers.sum() < MIN_INLIERS:
         raise ValueError(
@@ -109,7 +118,7 @@ def locate_on_map(ground: GroundView, window: MapWindow, matcher: Matcher) -> Dr
 
     rotation = np.degrees(np.angle(a))
     heading = float((ground.heading_deg + rotation) % 360.0)
-    return DroneEstimate(
+    return DroneFix(
         position=tuple(float(v) for v in window.to_map(carry(ground.nadir_px))[0]),
         # A hair below zero wraps to exactly 360.0 in floating point.
         heading_deg=0.0 if heading >= 360.0 else heading,
@@ -145,13 +154,11 @@ def _match_in_tiles(ground: GroundView, window: MapWindow, matcher: Matcher) -> 
     for top in _tile_starts(window.image.shape[0], rows):
         for left in _tile_starts(window.image.shape[1], cols):
             tile = matcher(ground.image, window.image[top : top + rows, left : left + cols])
-            found.append(
-                np.column_stack([tile.query_xy, tile.reference_xy + [left, top], tile.confidence])
-            )
-    stacked = np.vstack(found) if found else np.empty((0, 5))
-    _, first = np.unique(np.round(stacked[:, :4] * 2), axis=0, return_index=True)
+            found.append(np.column_stack([tile.query_xy, tile.reference_xy + [left, top]]))
+    stacked = np.vstack(found) if found else np.empty((0, 4))
+    _, first = np.unique(np.round(stacked * 2), axis=0, return_index=True)
     stacked = stacked[np.sort(first)]
-    return Matches(query_xy=stacked[:, :2], reference_xy=stacked[:, 2:4], confidence=stacked[:, 4])
+    return Matches(query_xy=stacked[:, :2], reference_xy=stacked[:, 2:])
 
 
 def _inside(valid: np.ndarray, xy: np.ndarray) -> np.ndarray:
@@ -205,7 +212,7 @@ def _fit_similarity(
 def build_fix_result(
     *,
     photo_id: str,
-    estimate: DroneEstimate,
+    estimate: DroneFix,
     time_per_fix_s: float,
     terrain_type: TerrainType,
     overlay: str,

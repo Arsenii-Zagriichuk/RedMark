@@ -23,13 +23,12 @@ from locate.drone.fix import GroundView, MapWindow, Matches, build_fix_result, l
 RES = 0.25
 MIN_X, MAX_Y = 4354000.0, 1092400.0  # the map window's west and north edges
 TRUE_X, TRUE_Y = 4354037.6, 1092347.3  # where the drone really was
+# Worked by hand: 37.6 m east of the west edge is 150.4 pixel widths, so the
+# pixel centre is at x = 149.9; 52.7 m south of the north edge gives y = 210.3.
+TRUE_PX = np.array([149.9, 210.3])
 NADIR = np.array([95.0, 70.0])  # the nadir's pixel in the ground view
 GRID_COLS, GRID_ROWS = np.meshgrid(np.arange(10, 180, 12.0), np.arange(10, 130, 12.0))
 GRID = np.column_stack([GRID_COLS.ravel(), GRID_ROWS.ravel()])  # ground-view pixels a matcher finds
-
-
-def _map_pixel(x: float, y: float) -> np.ndarray:
-    return np.array([(x - MIN_X) / RES - 0.5, (MAX_Y - y) / RES - 0.5])
 
 
 # The map window is noise, so every tile of it is unique and a stand-in
@@ -62,7 +61,7 @@ class ExactMatcher:
     def __call__(self, query: np.ndarray, reference: np.ndarray) -> Matches:
         self.seen_shapes.append((query.shape, reference.shape))
         query_xy = GRID.copy()
-        in_window = (query_xy - NADIR) @ self.linear.T + _map_pixel(TRUE_X, TRUE_Y)
+        in_window = (query_xy - NADIR) @ self.linear.T + TRUE_PX
         ref_xy = in_window - self._tile_offset(reference)
         height, width = reference.shape
         seen = (ref_xy[:, 0] >= 0) & (ref_xy[:, 0] <= width - 1)
@@ -70,7 +69,7 @@ class ExactMatcher:
         query_xy, ref_xy = query_xy[seen], ref_xy[seen]
         wrong = self.rng.random(len(query_xy)) < self.outlier_share
         ref_xy[wrong] = self.rng.uniform(0, min(width, height) - 1, size=(wrong.sum(), 2))
-        return Matches(query_xy=query_xy, reference_xy=ref_xy, confidence=np.ones(len(query_xy)))
+        return Matches(query_xy=query_xy, reference_xy=ref_xy)
 
 
 def _views() -> tuple[GroundView, MapWindow]:

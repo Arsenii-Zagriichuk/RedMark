@@ -62,7 +62,6 @@ def loftr_matcher(weights: Path, device) -> Matcher:
         return Matches(
             query_xy=out["keypoints0"].cpu().numpy().astype(np.float64),
             reference_xy=out["keypoints1"].cpu().numpy().astype(np.float64),
-            confidence=out["confidence"].cpu().numpy().astype(np.float64),
         )
 
     return match
@@ -87,12 +86,11 @@ def lightglue_matcher(hub: Path, device) -> Matcher:
         with torch.inference_mode():
             kq, dq, lq = features(query)
             kr, dr, lr = features(reference)
-            scores, pairs = glue(dq, dr, lq, lr, hw1=query.shape, hw2=reference.shape)
+            _, pairs = glue(dq, dr, lq, lr, hw1=query.shape, hw2=reference.shape)
         pairs = pairs.cpu().numpy()
         return Matches(
             query_xy=kq.cpu().numpy()[pairs[:, 0]].astype(np.float64),
             reference_xy=kr.cpu().numpy()[pairs[:, 1]].astype(np.float64),
-            confidence=scores.cpu().numpy().ravel().astype(np.float64),
         )
 
     return match

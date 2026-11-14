@@ -4,7 +4,7 @@
         HNM_0152_0680432606_392FDR_N0100001HELI02756_0000LUJ05 [--matcher lightglue]
 
 Straightens the frame onto the ground at the map's 25 cm, searches a window
-of the flight's map crop around the drone's own position estimate, matches,
+of the flight's map crop around the drone's onboard position, matches,
 and fits the fix. Writes the overlay to results/drone/overlays/<frame>-<matcher>.png.
 LoFTR is the matcher of record, so only its fix is written to
 results/drone/fixes/<frame>.json; the LightGlue fallback's fix is printed
@@ -28,7 +28,7 @@ from PIL import Image, ImageDraw
 
 from contracts.models.common import Provenance, TerrainType
 from contracts.paths import REPO_ROOT, data_root
-from locate.drone.fix import DroneEstimate, GroundView, MapWindow, build_fix_result, locate_on_map
+from locate.drone.fix import DroneFix, GroundView, MapWindow, build_fix_result, locate_on_map
 from locate.drone.ground import HALF_SIZE_M, read_map_window, straighten
 from locate.drone.label import onboard_position, read_drone_frame, takeoff_position
 from locate.drone.matchers import (
@@ -40,7 +40,7 @@ from locate.drone.matchers import (
 )
 
 RESOLUTION = 0.25  # the photo map's scale, metres per pixel
-# How far from the drone's own estimate the search reaches, metres. Its track
+# How far from the drone's onboard position the search reaches, metres. Its track
 # can be about 20 m off; the window is wider to leave room.
 SEARCH_RADIUS_M = 60.0
 RESULTS = REPO_ROOT / "results" / "drone"
@@ -65,6 +65,16 @@ def _recorded(path: Path) -> str:
 
 
 def _provenance(inputs: list[Path]) -> Provenance:
+    # The commit only traces the numbers if the code that made them is in it.
+    changed = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=no", "--", ".", ":!results"],
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+        check=True,
+    ).stdout.strip()
+    if changed:
+        raise SystemExit(f"commit the code first; uncommitted changes:\n{changed}")
     commit = subprocess.run(
         ["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=REPO_ROOT, check=True
     ).stdout.strip()
@@ -86,15 +96,15 @@ def _frame_row(frames_csv: Path, stem: str) -> dict:
 def _draw_overlay(
     window: MapWindow,
     ground: GroundView,
-    estimate: DroneEstimate,
-    prior: tuple[float, float],
+    estimate: DroneFix,
+    onboard: tuple[float, float],
     title: str,
     out: Path,
 ) -> None:
     """The map window with the straightened photo laid on it by the fit, as a
     checkerboard of photo and map squares (where the fit is right, rocks and
     ridges run on across the squares' edges), its outline, the agreeing
-    matches, the onboard estimate and the fix; the straightened photo itself
+    matches, the onboard position and the fix; the straightened photo itself
     on the left."""
     k = OVERLAY_SCALE
     rows, cols = window.image.shape
@@ -124,18 +134,15 @@ def _draw_overlay(
     draw = ImageDraw.Draw(canvas)
 
     def to_px(xy: np.ndarray) -> list[tuple[float, float]]:
-        xy = np.atleast_2d(xy)
-        return [
-            ((x - window.min_x) / window.resolution * k, (window.max_y - y) / window.resolution * k)
-            for x, y in xy
-        ]
+        """Map metres to overlay pixels, whose corners sit at k times the window's."""
+        return [tuple(p) for p in (window.to_px(xy) + 0.5) * k]
 
     for px, py in to_px(estimate.inlier_xy):
         draw.ellipse((px - 2, py - 2, px + 2, py + 2), fill=(0, 200, 255))
     outline = to_px(estimate.outline_xy)
     if outline:
         draw.line(outline + outline[:1], fill=(255, 40, 40), width=3)
-    (fx, fy), (ox, oy) = to_px(np.array([estimate.position, prior]))
+    (fx, fy), (ox, oy) = to_px(np.array([estimate.position, onboard]))
     draw.line((ox - 9, oy - 9, ox + 9, oy + 9), fill=(255, 220, 0), width=3)
     draw.line((ox - 9, oy + 9, ox + 9, oy - 9), fill=(255, 220, 0), width=3)
     draw.ellipse((fx - 8, fy - 8, fx + 8, fy + 8), outline=(40, 255, 40), width=3)
@@ -180,14 +187,14 @@ def run(stem: str, matcher_name: str) -> None:
     frame = read_drone_frame(label.read_text())
     with rasterio.open(label) as src:
         raw = src.read(1)
-    prior = onboard_position(frame, takeoff_position(json.loads(waypoints.read_text()), flight))
+    onboard = onboard_position(frame, takeoff_position(json.loads(waypoints.read_text()), flight))
     ground = straighten(raw, frame, RESOLUTION)
-    window = read_map_window(crop, prior, SEARCH_RADIUS_M + HALF_SIZE_M)
+    window = read_map_window(crop, onboard, SEARCH_RADIUS_M + HALF_SIZE_M)
     estimate = locate_on_map(ground, window, matcher)
     seconds = time.perf_counter() - started
 
     overlay = RESULTS / "overlays" / f"{stem}-{matcher_name}.png"
-    shift = np.hypot(estimate.position[0] - prior[0], estimate.position[1] - prior[1])
+    shift = np.hypot(estimate.position[0] - onboard[0], estimate.position[1] - onboard[1])
     title = "\n".join(
         [
             f"Drone fix, flight {flight}, {stem}"
@@ -195,13 +202,13 @@ def run(stem: str, matcher_name: str) -> None:
             "Left: the frame straightened to the HiRISE 25 cm map, north up. Right: the search"
             f" window, the frame laid on it by the fit in {CHECKER_M:g} m squares",
             f"(photo and map alternate), its outline (red), {estimate.inliers} of"
-            f" {estimate.matches} matches agreeing (cyan), the drone's own estimate (yellow x),",
-            f"the fix (green, with heading), {shift:.1f} m from the drone's estimate;"
+            f" {estimate.matches} matches agreeing (cyan), the onboard position (yellow x),",
+            f"the fix (green, with heading), {shift:.1f} m from the onboard position;"
             f" turn {estimate.rotation_deg:+.1f}°, scale {estimate.scale:.3f}."
             " Not yet scored: the answer key is P4-01.",
         ]
     )
-    _draw_overlay(window, ground, estimate, prior, title, overlay)
+    _draw_overlay(window, ground, estimate, onboard, title, overlay)
     hard_mode = row["hard_mode"] == "True"
     inputs = [label, image, crop, waypoints, jezero / "pack" / "frames.csv"]
     fix = build_fix_result(
@@ -224,7 +231,7 @@ def run(stem: str, matcher_name: str) -> None:
         print(text)
     print(
         f"wrote {_recorded(overlay)}; {estimate.inliers}/{estimate.matches} matches agree, "
-        f"{shift:.1f} m from the onboard estimate, {seconds:.1f} s"
+        f"{shift:.1f} m from the onboard position, {seconds:.1f} s"
     )
 
 

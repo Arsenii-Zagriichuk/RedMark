@@ -107,6 +107,6 @@ def takeoff_position(waypoints: dict, flight: int) -> tuple[float, float]:
 
 
 def onboard_position(frame: DroneFrame, takeoff: tuple[float, float]) -> tuple[float, float]:
-    """Map metres of the camera's nadir by the drone's own estimate."""
+    """The drone's onboard position: map metres of the camera's nadir by its own reckoning."""
     north, east, _ = frame.camera_ned
     return takeoff[0] + east, takeoff[1] + north
