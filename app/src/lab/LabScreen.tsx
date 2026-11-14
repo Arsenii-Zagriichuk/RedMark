@@ -12,6 +12,7 @@ import benchmarks from "../../../pitch/benchmarks.json";
 import { useApi } from "../api/ApiContext";
 import { formatDistance } from "../map/geo";
 import { WalkMap } from "../map/WalkMap";
+import { latestOnly } from "./latest";
 import { chartTests, photoList, type ChartGroup, type ChartTest, type TestedPhoto } from "./results";
 
 const METHODS = ["horizon", "ground", "drone"] as const;
@@ -94,20 +95,24 @@ export function LabScreen({ onBack }: { onBack: () => void }) {
   const [maps, setMaps] = useState<Record<string, SiteMap>>({});
 
   // Load the results files, and in live mode reload them so the chart follows a new file.
+  // Only the newest poll's answer is shown, so a slow older poll can't bring back old numbers.
   useEffect(() => {
     let cancelled = false;
-    const load = async () => {
+    const show = latestOnly<[TestSummary[], FixResult[]]>(([loadedSummaries, loadedFixes]) => {
+      if (cancelled) return;
+      setSummaries(loadedSummaries);
+      setFixes(loadedFixes);
+      setError(null);
+    });
+    const load = async (): Promise<[TestSummary[], FixResult[]]> => {
       const [loadedSummaries, ...perMethod] = await Promise.all([
         client.summaries("lab.summaries"),
         ...METHODS.map((method) => client.fixes(`lab.fixes.${method}`, method)),
       ]);
-      if (cancelled) return;
-      setSummaries(loadedSummaries);
-      setFixes(perMethod.flat());
-      setError(null);
+      return [loadedSummaries, perMethod.flat()];
     };
     const run = () =>
-      load().catch((reason: unknown) => {
+      show(load()).catch((reason: unknown) => {
         if (!cancelled) setError(reason instanceof Error ? reason.message : String(reason));
       });
     run();
@@ -123,11 +128,15 @@ export function LabScreen({ onBack }: { onBack: () => void }) {
   const keyOf = (photo: TestedPhoto) => `${photo.method}/${photo.photo_id}`;
   const selected = photos.find((photo) => keyOf(photo) === selectedId) ?? photos[0];
 
-  // The selected photo's site map: its config and base map, loaded once per site.
+  // The selected photo's site map: its config and base map, loaded once per site. A failed
+  // load says so and is tried again on the next refresh, or straight away with Retry.
   const siteId = selected?.site;
+  const [siteError, setSiteError] = useState<string | null>(null);
+  const [siteAttempt, setSiteAttempt] = useState(0);
   useEffect(() => {
     if (!siteId || maps[siteId]) return;
     let cancelled = false;
+    setSiteError(null);
     (async () => {
       const site = await client.site(`lab.site.${siteId}`, siteId);
       const layers = await client.layers(`lab.layers.${siteId}`, siteId).catch(() => [] as LayerMeta[]);
@@ -138,11 +147,18 @@ export function LabScreen({ onBack }: { onBack: () => void }) {
           [siteId]: { site, baseLayer: layers.find((layer) => layer.name === baseName) },
         }));
       }
-    })().catch(() => undefined);
+    })().catch((reason: unknown) => {
+      if (!cancelled) setSiteError(reason instanceof Error ? reason.message : String(reason));
+    });
     return () => {
       cancelled = true;
     };
-  }, [siteId, maps, client]);
+  }, [siteId, maps, client, siteAttempt]);
+  useEffect(() => {
+    if (!siteError) return;
+    const timer = setTimeout(() => setSiteAttempt((attempt) => attempt + 1), REFRESH_MS);
+    return () => clearTimeout(timer);
+  }, [siteError]);
 
   const siteMap = siteId ? maps[siteId] : undefined;
   const origin = useMemo(() => {
@@ -153,6 +169,7 @@ export function LabScreen({ onBack }: { onBack: () => void }) {
       y: (site.bounds.min_y + site.bounds.max_y) / 2,
     };
   }, [siteMap]);
+  const sharedBy = selected ? photos.filter((photo) => photo.overlay === selected.overlay).length : 0;
   // Frame the pair only when another photo is picked, not on every results reload.
   const selectedKey = selected ? keyOf(selected) : null;
   const fitTo = useMemo(
@@ -207,9 +224,16 @@ export function LabScreen({ onBack }: { onBack: () => void }) {
         {selected ? (
           <>
             <div className="lab__photo">
-              <a href={client.fileUrl(`/overlays/${selected.overlay}`)} target="_blank" rel="noreferrer" title="Open the overlay full size">
-                <img src={client.fileUrl(`/overlays/${selected.overlay}`)} alt={`Overlay for ${selected.photo_id}`} />
-              </a>
+              <figure className="lab__figure">
+                <a href={client.fileUrl(`/overlays/${selected.overlay}`)} target="_blank" rel="noreferrer" title="Open the overlay full size">
+                  <img src={client.fileUrl(`/overlays/${selected.overlay}`)} alt={`Overlay for ${selected.photo_id}`} />
+                </a>
+                <figcaption className="data">
+                  {sharedBy > 1
+                    ? `Overlay for this rover stop, shared by ${sharedBy} tested photos; it may not show this frame. The results carry no per-photo image yet.`
+                    : "Overlay for this photo."}
+                </figcaption>
+              </figure>
               <div className="lab__errors">
                 <span className="label">{METHOD_NAMES[selected.method]} · {selected.photo_id}</span>
                 <div className="place__stats">
@@ -253,7 +277,18 @@ export function LabScreen({ onBack }: { onBack: () => void }) {
               />
             ) : (
               <div className="map">
-                <div className="map__status">Loading the {SITE_NAMES[selected.site] ?? selected.site} map…</div>
+                <div className="map__status">
+                  {siteError ? (
+                    <>
+                      Can't load the {SITE_NAMES[selected.site] ?? selected.site} map: {siteError}{" "}
+                      <button type="button" className="sidebar__nav" onClick={() => setSiteAttempt((attempt) => attempt + 1)}>
+                        Retry
+                      </button>
+                    </>
+                  ) : (
+                    `Loading the ${SITE_NAMES[selected.site] ?? selected.site} map…`
+                  )}
+                </div>
               </div>
             )}
           </>

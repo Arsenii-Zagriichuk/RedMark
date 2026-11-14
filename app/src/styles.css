@@ -1088,6 +1088,19 @@ button {
   border-bottom: 1px solid var(--line);
 }
 
+.lab__figure {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 360px;
+  margin: 0;
+}
+
+.lab__figure figcaption {
+  font-size: 12px;
+  line-height: 16px;
+}
+
 .lab__photo img {
   width: 360px;
   max-height: 240px;
