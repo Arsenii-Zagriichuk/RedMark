@@ -3,6 +3,7 @@
 import json
 import math
 
+import numpy as np
 import pytest
 from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
@@ -10,26 +11,7 @@ from referencing.jsonschema import DRAFT202012
 
 from contracts.paths import REPO_ROOT
 from sim.engine import simulate
-
-RESULTS = REPO_ROOT / "results"
-
-
-def write_horizon_summary(results_root, median_error_m: float) -> None:
-    summary = json.loads((RESULTS / "horizon" / "horizon-gale.json").read_text())
-    summary["overall"]["median_error_m"] = median_error_m
-    folder = results_root / "horizon"
-    folder.mkdir()
-    (folder / "horizon-gale.json").write_text(json.dumps(summary))
-
-
-def walk(path, fixes=(), seed=1, **break_it) -> dict:
-    return {
-        "site": "gale",
-        "path": [{"x": x, "y": y} for x, y in path],
-        "fix_schedule": [{"time_s": t, "method": m} for t, m in fixes],
-        "break_it": {"camera_off": False, "radio_off": False, "drone_grounded": False} | break_it,
-        "seed": seed,
-    }
+from sim.tests.helpers import walk, write_summary, write_terrain
 
 
 def test_a_kilometre_walked_at_two_kmh_ends_at_the_path_end_after_half_an_hour():
@@ -61,11 +43,14 @@ def test_the_circle_grows_for_distance_walked_out_and_back_within_one_tick():
     assert last["uncertainty_m"] == pytest.approx(0.5567, abs=0.0001)
 
 
-def test_the_same_seed_replays_the_same_walk_and_another_seed_does_not():
+@pytest.mark.parametrize("seed", [7, -7])
+@pytest.mark.parametrize("fixes", [(), ((100, "horizon"), (1200, "ground"))])
+def test_the_same_seed_replays_the_same_walk_and_another_seed_does_not(seed, fixes):
     path = [(0, 0), (600, 500), (1200, 900)]
 
-    first, again = simulate(walk(path, seed=7)), simulate(walk(path, seed=7))
-    other = simulate(walk(path, seed=8))
+    first = simulate(walk(path, fixes=fixes, seed=seed))
+    again = simulate(walk(path, fixes=fixes, seed=seed))
+    other = simulate(walk(path, fixes=fixes, seed=seed + 1))
 
     assert first == again
     assert first["steps"][-1]["estimated_position"] != other["steps"][-1]["estimated_position"]
@@ -98,7 +83,7 @@ def test_the_circle_shrinks_at_a_fix():
 
 
 def test_a_noisy_fix_emits_its_prediction_before_the_correction(tmp_path):
-    write_horizon_summary(tmp_path, 5)
+    write_summary(tmp_path, 5)
     run = simulate(walk([(0, 0), (1000, 0)], fixes=[(10, "horizon")]), results_root=tmp_path)
 
     correction, prediction = fix_at(run, 10)
@@ -111,10 +96,14 @@ def test_a_noisy_fix_emits_its_prediction_before_the_correction(tmp_path):
     assert "horizon" in correction["sources"]
 
 
-def test_fix_error_sizes_come_from_the_test_summary_it_is_given(tmp_path):
-    write_horizon_summary(tmp_path, 0.1)
+@pytest.mark.parametrize(
+    ("method", "test"),
+    [("horizon", "horizon-gale"), ("ground", "ground-gale"), ("drone", "drone-jezero")],
+)
+def test_fix_error_sizes_come_from_the_test_summary_it_is_given(tmp_path, method, test):
+    write_summary(tmp_path, 0.1, f"{method}/{test}.json")
 
-    run = simulate(walk([(0, 0), (2000, 0)], fixes=[(1800, "horizon")]), results_root=tmp_path)
+    run = simulate(walk([(0, 0), (2000, 0)], fixes=[(1800, method)]), results_root=tmp_path)
 
     # A 0.1 m median radial error is sigma = 0.1 / sqrt(2 ln 2) = 0.0849 m per axis, whose
     # 95% circle is 0.0849 * sqrt(-2 ln 0.05) = 0.208 m; the walked circle barely widens it.
@@ -122,8 +111,11 @@ def test_fix_error_sizes_come_from_the_test_summary_it_is_given(tmp_path):
     assert fix["uncertainty_m"] == pytest.approx(0.208, rel=0.02)
 
 
-def test_a_fix_is_requested_once_when_the_circle_passes_ten_metres_on_open_ground():
-    run = simulate(walk([(0, 0), (6000, 0)], radio_off=True))
+def test_a_fix_is_requested_once_when_the_circle_passes_ten_metres_on_open_ground(
+    tmp_path, monkeypatch
+):
+    sites = write_terrain(tmp_path, monkeypatch, slope=np.zeros((2, 62)), ridges=np.zeros((2, 62)))
+    run = simulate(walk([(0, 0), (6000, 0)], radio_off=True), sites_root=sites)
 
     requested = [s for s in run["steps"] if {"kind": "fix_requested"} in s["events"]]
     assert len(requested) == 1
@@ -150,7 +142,7 @@ def test_the_stub_request_gives_a_simulated_run_that_matches_the_contract():
 
 
 def test_a_test_summary_with_no_error_still_leaves_a_circle(tmp_path):
-    write_horizon_summary(tmp_path, 0)
+    write_summary(tmp_path, 0)
 
     run = simulate(walk([(0, 0), (500, 0)], fixes=[(300, "horizon")]), results_root=tmp_path)
 
@@ -259,7 +251,7 @@ def test_near_a_hazard_a_circle_over_three_metres_says_stop_and_take_a_fix():
 
 
 def test_a_fix_that_cannot_reach_the_crew_needs_no_test_summary(tmp_path):
-    write_horizon_summary(tmp_path, 5)  # no drone summary at all
+    write_summary(tmp_path, 5)  # no drone summary at all
 
     run = simulate(
         walk([(0, 0), (500, 0)], fixes=[(100, "horizon"), (200, "drone")], drone_grounded=True),
@@ -267,3 +259,18 @@ def test_a_fix_that_cannot_reach_the_crew_needs_no_test_summary(tmp_path):
     )
 
     assert {"kind": "fix_unavailable", "method": "drone"} in step_at(run, 200)["events"]
+
+
+def test_replacing_a_test_summary_changes_the_next_run_without_code_changes(tmp_path):
+    write_summary(tmp_path, 0.1)
+    request = walk([(0, 0), (2000, 0)], fixes=[(1800, "horizon")])
+
+    first = simulate(request, results_root=tmp_path)
+    write_summary(tmp_path, 1)
+    refreshed = simulate(request, results_root=tmp_path)
+
+    first_fix, _ = fix_at(first, 1800)
+    refreshed_fix, _ = fix_at(refreshed, 1800)
+    assert refreshed_fix["uncertainty_m"] > first_fix["uncertainty_m"]
+    assert refreshed_fix["true_position"] == first_fix["true_position"]
+    assert refreshed["seed"] == first["seed"]

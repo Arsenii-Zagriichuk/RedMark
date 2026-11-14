@@ -1,8 +1,8 @@
 """Overlay image of a simulated walk (P4-05), for checking by eye.
 
 Left: the true and estimated tracks on the base map, with the uncertainty circle every
-few minutes. Right: the circle's radius through the walk, with each fix and the 10 m
-open-ground fix request line. Run with `uv run python -m sim.plot_walk`; the image goes
+few minutes. Right: the circle's radius through the walk, with each fix and the
+terrain-dependent fix request lines. Run with `uv run python -m sim.plot_walk`; the image goes
 to sim/overlays/p4-05-walk.png.
 """
 
@@ -19,7 +19,12 @@ import yaml  # noqa: E402
 from contracts.models.layer import LayerMeta  # noqa: E402
 from contracts.models.site import SiteConfig  # noqa: E402
 from contracts.paths import REPO_ROOT, data_root  # noqa: E402
-from sim.engine import FIX_REQUEST_OPEN_GROUND_M, simulate  # noqa: E402
+from sim.engine import (  # noqa: E402
+    FIX_REQUEST_BOXWORK_M,
+    FIX_REQUEST_OPEN_GROUND_M,
+    NEAR_HAZARD_FIX_M,
+    simulate,
+)
 
 OUT = REPO_ROOT / "sim" / "overlays"
 REQUEST = REPO_ROOT / "contracts" / "stubs" / "simulate" / "request.json"
@@ -65,7 +70,12 @@ def main() -> None:
     for s in fixes:
         method = next(e["method"] for e in s["events"] if e["kind"] == "fix")
         chart.axvline(s["t_s"] / 60, c="m", ls=":", label=f"{method} fix")
-    chart.axhline(FIX_REQUEST_OPEN_GROUND_M, c="tab:red", ls="--", label="fix request, open ground")
+    for limit_m, terrain, color in (
+        (NEAR_HAZARD_FIX_M, "near hazard", "tab:red"),
+        (FIX_REQUEST_BOXWORK_M, "boxwork", "tab:orange"),
+        (FIX_REQUEST_OPEN_GROUND_M, "open ground", "tab:brown"),
+    ):
+        chart.axhline(limit_m, c=color, ls="--", label=f"fix request, {terrain}: {limit_m:g} m")
     chart.set_xlabel("minutes into the walk")
     chart.set_ylabel("circle radius, ground metres (95%)")
     chart.set_ylim(0, 1.2 * max(FIX_REQUEST_OPEN_GROUND_M, *(s["uncertainty_m"] for s in steps)))

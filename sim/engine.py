@@ -13,15 +13,17 @@ from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
+import yaml
 
 from contracts.models.common import Point
 from contracts.models.simulate_request import SimulateRequest
 from contracts.models.simulate_response import SimulateResponse
+from contracts.models.site import SiteConfig
 from contracts.models.test_summary import TestSummary
 from contracts.paths import REPO_ROOT, data_root
-from route.engine import load_site
 from route.layers import load_grid
 from route.planner import Hazards, NoSafeRoute
+from sim.terrain import terrain_at
 
 # Each fix method's error size comes from its test summary: horizon from Person 3's test,
 # ground from Person 3's stage 2 result, drone from Person 2's Jezero test.
@@ -48,9 +50,10 @@ CAMERA_OFF_DRIFT_PER_M = 0.05
 # Fixes that need a camera; with the helmet camera off the buddy's takes them, shared over
 # the short-range radio.
 PHOTO_METHODS = {"horizon", "ground"}
-# The app asks for a fix when the circle passes this on open ground. The 5 m boxwork and
-# 3 m near-hazard limits need the ridge and slope layers, which the sim doesn't read yet.
+# The app asks for a fix when the circle passes a terrain-dependent limit. Tighter
+# limits apply where the uncertainty circle reaches a ridge or a slope hazard.
 FIX_REQUEST_OPEN_GROUND_M = 10.0
+FIX_REQUEST_BOXWORK_M = 5.0
 # Near a hazard (one inside the uncertainty circle, the route's hazard margin) the app tells
 # the crew to stop and take a fix once the circle passes 3 m (project document).
 NEAR_HAZARD_FIX_M = 3.0
@@ -74,11 +77,24 @@ def simulate(
     request: dict,
     results_root: Path = REPO_ROOT / "results",
     hazard_distance_m: Callable[[float, float], float] | None = None,
+    sites_root: Path = REPO_ROOT / "sites",
 ) -> dict:
     """hazard_distance_m(x, y) gives the ground metres to the nearest hazard; by default it
     comes from the site's slope layer."""
     walk = SimulateRequest.model_validate(request)
-    to_hazard_m = hazard_distance_m or _site_hazard_distance(walk.site)
+    site = SiteConfig.model_validate(yaml.safe_load((sites_root / f"{walk.site}.yaml").read_text()))
+    with terrain_at(site, require_files=hazard_distance_m is None) as terrain:
+        return _simulate(
+            walk, results_root, hazard_distance_m or _site_hazard_distance(site), terrain
+        )
+
+
+def _simulate(
+    walk: SimulateRequest,
+    results_root: Path,
+    to_hazard_m: Callable[[float, float], float],
+    terrain: Callable[[np.ndarray, float], str],
+) -> dict:
     broken = walk.break_it
     drift_per_m = CAMERA_OFF_DRIFT_PER_M if broken.camera_off else DRIFT_PER_M
     tracking = ["motion_sensor", "step_count", "sun"]
@@ -100,7 +116,8 @@ def simulate(
         if _reachable(m, broken)
     }
     ticks = sorted({*np.arange(0.0, end_s, TICK_S), end_s, *(f.time_s for f in walk.fix_schedule)})
-    rng = np.random.default_rng(walk.seed)
+    seed = np.random.SeedSequence(abs(walk.seed), spawn_key=(1,) if walk.seed < 0 else ())
+    rng = np.random.default_rng(seed)
     true = corners[0].copy()
     estimate = true.copy()
     variance = (START_CIRCLE_M / _CIRCLE_PER_SIGMA) ** 2  # per axis, square metres
@@ -108,6 +125,8 @@ def simulate(
     circle_m = START_CIRCLE_M
     near = False
     previous_walked_m = 0.0
+    needs_fix = False
+    previous_limit_m = FIX_REQUEST_OPEN_GROUND_M
     for t in ticks:
         walked_m = min(t * speed_m_s, along_m[-1])
         moved_to = np.array([np.interp(walked_m, along_m, corners[:, i]) for i in (0, 1)])
@@ -147,21 +166,34 @@ def simulate(
         )
         if near and not was_near:
             events.append({"kind": "stop_for_fix"})
+        limit_m = {
+            "open": FIX_REQUEST_OPEN_GROUND_M,
+            "boxwork": FIX_REQUEST_BOXWORK_M,
+            "hazard": NEAR_HAZARD_FIX_M,
+        }[terrain(estimate, circle_m)]
+        if near:
+            limit_m = min(limit_m, NEAR_HAZARD_FIX_M)
+        previous_needs_fix, needs_fix = needs_fix, circle_m > limit_m
         if previous_circle_m <= FIX_REQUEST_OPEN_GROUND_M < circle_m:
             if no_fix_can_reach and mode != "lost":
                 # Nothing can be trusted any more: stop, and follow the lost-mode directions.
                 mode = "lost"
                 events.append({"kind": "lost_mode"})
-            elif not no_fix_can_reach:
-                events.append({"kind": "fix_requested"})
+        if (
+            not no_fix_can_reach
+            and needs_fix
+            and (not previous_needs_fix or limit_m < previous_limit_m)
+        ):
+            events.append({"kind": "fix_requested"})
+        previous_limit_m = limit_m
         steps.append(_step(t, true, estimate, circle_m, sources, events, mode))
     response = {"site": walk.site, "simulated": True, "seed": walk.seed, "steps": steps}
     return SimulateResponse.model_validate(response).model_dump(mode="json", exclude_none=True)
 
 
-def _site_hazard_distance(site_id: str) -> Callable[[float, float], float]:
+def _site_hazard_distance(site: SiteConfig) -> Callable[[float, float], float]:
     """Ground metres to the nearest hazard on the site's slope layer."""
-    hazards = Hazards(load_grid(load_site(site_id), data_root()), HAZARD_SLOPE_DEG)
+    hazards = Hazards(load_grid(site, data_root()), HAZARD_SLOPE_DEG)
 
     def at(x: float, y: float) -> float:
         try:
