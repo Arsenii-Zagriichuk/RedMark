@@ -3,14 +3,16 @@
 Run:  uv run python -m conditions.gen_conditions
 
 Sources:
-  Sun position       – Mars24 algorithm (Allison & McEwen 2000)
-  Radiation           – typical RAD value for non-storm sols (Hassler et al. 2014)
-  Temperature/pressure – sinusoidal REMS seasonal model for Gale (Martínez et al. 2017)
+  Sun position        – Mars24 algorithm (Allison & McEwen 2000)
+  Radiation           – RAD RDR from PDS, else typical value (Hassler et al. 2014)
+  Temperature/pressure – REMS MODRDR from PDS, else sinusoidal seasonal model
   Dust                – seasonal estimate (PDS opacity bundle ends at sol 3902)
 """
 
 from __future__ import annotations
 
+import csv
+import hashlib
 import json
 import math
 import subprocess
@@ -27,9 +29,83 @@ from conditions.mars24 import (
     sun_position,
     sunset_lmst,
 )
+from contracts.paths import data_root
 
 SOL = 4600
 SITE = "gale"
+
+# Default values when PDS files are not available.
+_DEFAULT_RAD_UGY = 232.0  # typical non-storm dose, Hassler et al. 2014
+_DEFAULT_DUST_TAU = 0.50  # typical northern-summer opacity at Gale
+
+
+# ---------------------------------------------------------------------------
+# PDS readers — return (value, provenance_input | None)
+# ---------------------------------------------------------------------------
+
+ProvenanceInput = dict  # {"path": str, "sha256": str}
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _read_rad(sol: int) -> tuple[float, ProvenanceInput | None]:
+    """Try to read daily dose from a RAD RDR CSV under REDMARK_DATA/rad/."""
+    rad_dir = data_root() / "rad"
+    if not rad_dir.is_dir():
+        return _DEFAULT_RAD_UGY, None
+    for csv_path in sorted(rad_dir.glob("*.csv")):
+        try:
+            with csv_path.open(newline="") as f:
+                for row in csv.DictReader(f):
+                    if int(row.get("SOL", -1)) == sol:
+                        dose = float(row["DOSE_RATE_UGY_PER_DAY"])
+                        return dose, {"path": str(csv_path), "sha256": _sha256(csv_path)}
+        except (KeyError, ValueError):
+            continue
+    return _DEFAULT_RAD_UGY, None
+
+
+def _read_rems(sol: int) -> tuple[list[tuple[int, float, float]], ProvenanceInput | None]:
+    """Try to read hourly (lmst_h, temp_c, pressure_pa) from REMS MODRDR CSV.
+
+    Returns (list_of_tuples, provenance_input | None).  An empty list means
+    "use the fallback model".
+    """
+    rems_dir = data_root() / "rems"
+    if not rems_dir.is_dir():
+        return [], None
+    for csv_path in sorted(rems_dir.glob("*.csv")):
+        try:
+            rows: list[tuple[int, float, float]] = []
+            with csv_path.open(newline="") as f:
+                for row in csv.DictReader(f):
+                    if int(row.get("SOL", -1)) == sol:
+                        lmst_h = int(row["LMST_HOUR"])
+                        temp = float(row["TEMPERATURE_C"])
+                        pres = float(row["PRESSURE_PA"])
+                        rows.append((lmst_h, temp, pres))
+            if rows:
+                return rows, {"path": str(csv_path), "sha256": _sha256(csv_path)}
+        except (KeyError, ValueError):
+            continue
+    return [], None
+
+
+def _model_temp_c(lmst_h: float) -> float:
+    """Sinusoidal REMS model: min ≈ −70 °C at 05:00, max ≈ −5 °C at 14:00."""
+    return -37.5 + 32.5 * math.cos(math.radians((lmst_h - 14.0) * 15.0))
+
+
+def _model_pressure_pa(lmst_h: float) -> float:
+    """Diurnal pressure model: mean ≈ 830 Pa, amplitude ≈ 20 Pa."""
+    return 830.0 + 20.0 * math.cos(math.radians((lmst_h - 4.0) * 15.0))
+
+
+# ---------------------------------------------------------------------------
+# Main generator
+# ---------------------------------------------------------------------------
 
 
 def gen_conditions(sol: int = SOL) -> dict:
@@ -44,15 +120,20 @@ def gen_conditions(sol: int = SOL) -> dict:
 
     ss = sunset_lmst(ls, eot, GALE_LAT_DEG)
 
+    # Read PDS data if available, else fall back to models / defaults.
+    rad_ugy, rad_prov = _read_rad(sol)
+    rems_rows, rems_prov = _read_rems(sol)
+    rems_by_hour = {h: (t, p) for h, t, p in rems_rows}
+
     steps = []
     for lmst_h in range(6, 21):
         az, el = sun_position(float(lmst_h), ls, eot, GALE_LAT_DEG)
 
-        # Sinusoidal REMS temperature model: min ≈ −70 °C at 05:00, max ≈ −5 °C at 14:00
-        temp_c = -37.5 + 32.5 * math.cos(math.radians((lmst_h - 14.0) * 15.0))
-
-        # Diurnal pressure model: mean ≈ 830 Pa, amplitude ≈ 20 Pa, min at ~16:00
-        pressure_pa = 830.0 + 20.0 * math.cos(math.radians((lmst_h - 4.0) * 15.0))
+        if lmst_h in rems_by_hour:
+            temp_c, pressure_pa = rems_by_hour[lmst_h]
+        else:
+            temp_c = _model_temp_c(lmst_h)
+            pressure_pa = _model_pressure_pa(lmst_h)
 
         steps.append(
             {
@@ -71,17 +152,19 @@ def gen_conditions(sol: int = SOL) -> dict:
     except (subprocess.CalledProcessError, FileNotFoundError):
         commit = ""
 
+    inputs = [p for p in (rad_prov, rems_prov) if p is not None]
+
     return {
         "site": SITE,
         "sol": sol,
-        "radiation_ugy_per_day": 232.0,
-        "dust": {"optical_depth": 0.50, "source": "estimated"},
+        "radiation_ugy_per_day": rad_ugy,
+        "dust": {"optical_depth": _DEFAULT_DUST_TAU, "source": "estimated"},
         "sunset_lmst": ss,
         "steps": steps,
         "provenance": {
             "script": "conditions/gen_conditions.py",
             "commit": commit,
-            "inputs": [],
+            "inputs": inputs,
         },
     }
 

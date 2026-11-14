@@ -1,14 +1,13 @@
 """P4-02: Tests for the Mars24 sun-position module and conditions generator.
 
-Expected values are worked independently from the code:
-  Sol 4600 → Ls ≈ 113° at Gale Crater (−5.4°, 137.84° E).
-  δ_s = arcsin(0.42565 · sin 113°) + 0.25 · sin 113° ≈ 23.3°
-  Noon elevation  = 90° − |δ_s − φ| ≈ 61.3°
-  Sunset hour angle: cos H = −tan δ_s · tan φ ≈ 0.041 → H ≈ 87.7°
+Independent reference values come from:
+  - Analytical limits: δ_s = 0° at Ls = 0° (equinox), δ_s ≈ 25.44° at Ls = 90°.
+  - Geometric noon elevation: 90° − |δ_s − φ| (different formula from the
+    code's full spherical trig, so it cross-checks the computation).
+  - Sunset hour angle: cos H = −tan δ_s · tan φ  (textbook formula).
 """
 
 import json
-import math
 from pathlib import Path
 
 import jsonschema
@@ -28,19 +27,32 @@ from conditions.mars24 import (
 
 _SOL = 4600
 
-
-# ---- helpers for the independent reference --------------------------------
-
-
-def _independent_noon_elevation(ls_deg: float, lat_deg: float) -> float:
-    """90° − |δ_s − φ|, computed only from the declination formula."""
-    delta = math.degrees(math.asin(0.42565 * math.sin(math.radians(ls_deg)))) + 0.25 * math.sin(
-        math.radians(ls_deg)
-    )
-    return 90.0 - abs(delta - lat_deg)
+# Mars obliquity = 25.19°.  At Ls = 90° the exact declination is
+#   arcsin(sin 25.19°) + 0.25·sin 90° = 25.19° + 0.25° = 25.44°.
+# At Ls = 0° the exact declination is 0°.
+_OBLIQUITY = 25.19
+_DECL_AT_LS90 = _OBLIQUITY + 0.25  # 25.44°
 
 
-# ---- MSD / JDE round-trip -------------------------------------------------
+# ---------------------------------------------------------------------------
+# Solar declination at analytical limits (independent of the code's formula)
+# ---------------------------------------------------------------------------
+
+
+def test_declination_zero_at_equinox():
+    """At Ls = 0° (equinox), declination must be 0°."""
+    assert abs(solar_declination_deg(0.0)) < 0.01
+
+
+def test_declination_at_solstice():
+    """At Ls = 90° (summer solstice), δ_s must equal obliquity + 0.25°."""
+    delta = solar_declination_deg(90.0)
+    assert abs(delta - _DECL_AT_LS90) < 0.05, f"{delta:.3f}° vs expected {_DECL_AT_LS90}°"
+
+
+# ---------------------------------------------------------------------------
+# MSD / JDE round-trip
+# ---------------------------------------------------------------------------
 
 
 def test_msd_jde_round_trip():
@@ -50,7 +62,9 @@ def test_msd_jde_round_trip():
     assert abs(msd - msd2) < 1e-6
 
 
-# ---- Ls in northern-summer range ------------------------------------------
+# ---------------------------------------------------------------------------
+# Ls in northern-summer range
+# ---------------------------------------------------------------------------
 
 
 def test_solar_longitude_range():
@@ -59,20 +73,15 @@ def test_solar_longitude_range():
     assert 90.0 <= ls <= 150.0, f"Ls = {ls:.1f}°"
 
 
-# ---- Solar declination matches its own formula ----------------------------
+# ---------------------------------------------------------------------------
+# Noon elevation vs geometric formula 90° − |δ − φ|
+# (this formula never appears in mars24.py; it cross-checks the spherical trig)
+# ---------------------------------------------------------------------------
 
 
-def test_solar_declination():
-    jde = jde_from_msd(msd_for_sol(_SOL))
-    ls = solar_longitude_deg(jde)
-    delta = solar_declination_deg(ls)
-    ref = math.degrees(math.asin(0.42565 * math.sin(math.radians(ls)))) + 0.25 * math.sin(
-        math.radians(ls)
-    )
-    assert abs(delta - ref) < 0.01
-
-
-# ---- Solar-noon elevation vs independent reference -----------------------
+def _geometric_noon_elevation(ls_deg: float, lat_deg: float) -> float:
+    delta = solar_declination_deg(ls_deg)
+    return 90.0 - abs(delta - lat_deg)
 
 
 def test_noon_elevation():
@@ -83,12 +92,14 @@ def test_noon_elevation():
     eot = equation_of_time_deg(ls, eoc)
     lmst_noon = 12.0 - eot * (24.0 / 360.0)
     _az, el = sun_position(lmst_noon, ls, eot, GALE_LAT_DEG)
-    ref = _independent_noon_elevation(ls, GALE_LAT_DEG)
-    assert abs(el - ref) < 0.5, f"{el:.2f}° vs reference {ref:.2f}°"
+    ref = _geometric_noon_elevation(ls, GALE_LAT_DEG)
+    assert abs(el - ref) < 0.5, f"{el:.2f}° vs geometric {ref:.2f}°"
     assert 55.0 <= el <= 67.0
 
 
-# ---- At solar noon, sun is near north ------------------------------------
+# ---------------------------------------------------------------------------
+# At solar noon, sun is near north for Gale's southern latitude
+# ---------------------------------------------------------------------------
 
 
 def test_noon_azimuth_near_north():
@@ -103,7 +114,9 @@ def test_noon_azimuth_near_north():
     assert from_north < 5.0, f"azimuth {az:.2f}° not near north"
 
 
-# ---- Sunset time in expected window --------------------------------------
+# ---------------------------------------------------------------------------
+# Sunset time in expected window
+# ---------------------------------------------------------------------------
 
 
 def test_sunset_time():
@@ -118,7 +131,9 @@ def test_sunset_time():
     assert 17 * 60 <= total <= 18 * 60 + 10, f"sunset {ss}"
 
 
-# ---- Sun below horizon at midnight --------------------------------------
+# ---------------------------------------------------------------------------
+# Sun below horizon at midnight
+# ---------------------------------------------------------------------------
 
 
 def test_sun_below_horizon_at_midnight():
@@ -131,7 +146,23 @@ def test_sun_below_horizon_at_midnight():
     assert el < 0.0
 
 
-# ---- Generated file validates against the contract -----------------------
+# ---------------------------------------------------------------------------
+# Equinox sunset at equator is exactly 18:00 LTST (independent analytical)
+# ---------------------------------------------------------------------------
+
+
+def test_equinox_sunset_at_equator():
+    """At Ls = 0° and lat = 0°, sunset hour angle = 90° → LTST 18:00."""
+    eot_at_equinox = equation_of_time_deg(0.0, 0.0)
+    ss = sunset_lmst(0.0, eot_at_equinox, 0.0)
+    h, m = map(int, ss.split(":"))
+    total = h * 60 + m
+    assert abs(total - 18 * 60) <= 2, f"equinox equator sunset {ss}, expected ~18:00"
+
+
+# ---------------------------------------------------------------------------
+# Generated conditions file validates against the schema
+# ---------------------------------------------------------------------------
 
 
 def test_conditions_schema():
@@ -150,7 +181,9 @@ def test_conditions_schema():
     jsonschema.validate(result, schema, resolver=resolver)
 
 
-# ---- Provenance is not stub -----------------------------------------------
+# ---------------------------------------------------------------------------
+# Provenance is not stub
+# ---------------------------------------------------------------------------
 
 
 def test_provenance_not_stub():
@@ -161,7 +194,9 @@ def test_provenance_not_stub():
     assert result["provenance"]["script"] != ""
 
 
-# ---- Dust is labelled estimated -------------------------------------------
+# ---------------------------------------------------------------------------
+# Dust is labelled estimated
+# ---------------------------------------------------------------------------
 
 
 def test_dust_estimated():

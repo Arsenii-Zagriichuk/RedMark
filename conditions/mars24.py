@@ -18,9 +18,9 @@ GALE_LON_DEG = 137.84  # east positive
 # Curiosity landing epoch
 # ---------------------------------------------------------------------------
 # Landing: 2012-08-06 05:17:57 UTC
-# JD = 2456145.22079 (UTC midday epoch) + 5h17m57s offset already in decimal
-_LANDING_JD_UTC = 2456145.0 + (5 * 3600 + 17 * 60 + 57) / 86400.0
-# ΔTT = TT − UTC ≈ 32.184 + 34 (leap seconds in 2012) = 66.184 s
+# JD 2456146.5 = 2012-08-06 00:00:00 UTC (JD noon-epoch: .5 = midnight)
+_LANDING_JD_UTC = 2456146.5 + (5 * 3600 + 17 * 60 + 57) / 86400.0  # 2456146.72079
+# ΔTT = TT − UTC ≈ 32.184 + 34 (leap seconds in mid-2012) = 66.184 s
 _DELTA_TT_2012 = 66.184
 _LANDING_JDE = _LANDING_JD_UTC + _DELTA_TT_2012 / 86400.0
 
@@ -36,11 +36,11 @@ _J2000 = 2451545.0
 # ---------------------------------------------------------------------------
 
 
-def _r(deg: float) -> float:
+def _deg2rad(deg: float) -> float:
     return math.radians(deg)
 
 
-def _d(rad: float) -> float:
+def _rad2deg(rad: float) -> float:
     return math.degrees(rad)
 
 
@@ -76,7 +76,7 @@ def alpha_fms_deg(jde: float) -> float:
 
 def equation_of_center_deg(m_deg: float) -> float:
     """Equation of center ν − M (degrees).  PBS perturbers omitted (< 0.03°)."""
-    m = _r(m_deg)
+    m = _deg2rad(m_deg)
     return (
         10.691 * math.sin(m)
         + 0.623 * math.sin(2.0 * m)
@@ -95,13 +95,13 @@ def solar_longitude_deg(jde: float) -> float:
 
 def solar_declination_deg(ls_deg: float) -> float:
     """Solar declination δ_s (degrees).  Mars obliquity = 25.19°."""
-    ls = _r(ls_deg)
-    return _d(math.asin(0.42565 * math.sin(ls))) + 0.25 * math.sin(ls)
+    ls = _deg2rad(ls_deg)
+    return _rad2deg(math.asin(0.42565 * math.sin(ls))) + 0.25 * math.sin(ls)
 
 
 def equation_of_time_deg(ls_deg: float, eoc_deg: float) -> float:
     """Equation of time (degrees)."""
-    ls = _r(ls_deg)
+    ls = _deg2rad(ls_deg)
     return (
         2.861 * math.sin(2.0 * ls)
         - 0.071 * math.sin(4.0 * ls)
@@ -128,34 +128,34 @@ def sun_position(
     ltst_h = lmst_h + eot_deg * (24.0 / 360.0)
     H = (ltst_h - 12.0) * 15.0  # hour angle, degrees
 
-    delta = _r(solar_declination_deg(ls_deg))
-    phi = _r(lat_deg)
-    H_r = _r(H)
+    delta = _deg2rad(solar_declination_deg(ls_deg))
+    phi = _deg2rad(lat_deg)
+    H_r = _deg2rad(H)
 
     cos_z = math.sin(delta) * math.sin(phi) + math.cos(delta) * math.cos(phi) * math.cos(H_r)
     cos_z = max(-1.0, min(1.0, cos_z))
     z = math.acos(cos_z)
     sin_z = math.sin(z)
-    elevation = 90.0 - _d(z)
+    elevation = 90.0 - _rad2deg(z)
 
     if abs(sin_z) < 1e-9:
         return 0.0, elevation
 
     sin_A = -math.cos(delta) * math.sin(H_r) / sin_z
     cos_A = (math.sin(delta) - cos_z * math.sin(phi)) / (sin_z * math.cos(phi))
-    azimuth = _d(math.atan2(sin_A, cos_A)) % 360.0
+    azimuth = _rad2deg(math.atan2(sin_A, cos_A)) % 360.0
 
     return azimuth, elevation
 
 
 def sunset_lmst(ls_deg: float, eot_deg: float, lat_deg: float) -> str:
     """Sunset local mean solar time as HH:MM."""
-    delta = _r(solar_declination_deg(ls_deg))
-    phi = _r(lat_deg)
+    delta = _deg2rad(solar_declination_deg(ls_deg))
+    phi = _deg2rad(lat_deg)
 
     cos_H = -math.tan(delta) * math.tan(phi)
     cos_H = max(-1.0, min(1.0, cos_H))
-    H_set = _d(math.acos(cos_H))
+    H_set = _rad2deg(math.acos(cos_H))
 
     ltst_set = 12.0 + H_set / 15.0
     lmst_set = ltst_set - eot_deg * (24.0 / 360.0)
