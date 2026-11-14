@@ -17,3 +17,5 @@ npm run lint --prefix app       # oxlint
 ```
 
 **Plan screen map (P1-03).** `src/plan/PlanScreen.tsx` loads the site config, layer files and replayed sol (demo steps `plan.site`, `plan.layers`, `plan.conditions`) and draws them with deck.gl in local metres (`src/map/`): the base photo map and one colour layer as tiles, chosen per zoom from each `layer.json`; habitat, base camp, science targets and checkpoints; the 2 km walk limit; and pan, zoom, north-up and 3D tilt. Draping on 3D terrain waits for an elevation layer from Person 2. Restart `npm run dev` after recording new demo steps, so demo mode bundles them.
+
+**Planning (P1-04).** A science target's place card opens Directions (`src/plan/Directions.tsx`): the fastest safe route and the science alternative from base camp to the target, and the cart's trip from the habitat to base camp, each from `POST /route`. The chosen route shows its total time, walk-back margin and all seven walk limits as pass, fail or not checked (a limit the engine didn't return). The 20°/15° slope limit re-plans all three. Demo steps: `plan.route.<mode>.<target>.<slope>` and `plan.route.cart.<slope>`.

@@ -1,15 +1,34 @@
-// The Plan screen at Gale (P1-03 map view): the site config, layer files and replayed sol
-// from the service, or from the demo cache in demo mode.
+// The Plan screen at Gale: the map (P1-03) with the site config, layer files and replayed
+// sol, and the directions to a science target (P1-04) with its three route options. All of
+// it comes from the service, or from the demo cache in demo mode.
 import type { Conditions } from "@contracts/conditions";
 import type { LayerMeta } from "@contracts/layer";
+import type { RouteMode } from "@contracts/route_request";
 import type { SiteConfig } from "@contracts/site";
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../api/ApiContext";
+import { ApiError } from "../api/client";
 import { LayersPanel } from "../map/LayersPanel";
-import { WalkMap, type PointsShown } from "../map/WalkMap";
+import { WalkMap, type MapRoute, type PointsShown } from "../map/WalkMap";
+import { Directions, type RouteState } from "./Directions";
+import { formatDuration, ROUTE_MODES, routeRequests, type SlopeLimit } from "./routes";
 import { Sidebar } from "./Sidebar";
 
 const SITE = "gale";
+const ALL_PLANNING: Record<RouteMode, RouteState> = {
+  fastest: { status: "loading" },
+  science: { status: "loading" },
+  cart: { status: "loading" },
+};
+
+/** Why the service refused a route: the engine's reason when it gave one. */
+function refusal(reason: unknown): string {
+  if (reason instanceof ApiError && reason.body && typeof reason.body === "object") {
+    const detail = (reason.body as { detail?: unknown }).detail;
+    if (typeof detail === "string") return detail;
+  }
+  return reason instanceof Error ? reason.message : String(reason);
+}
 
 interface Loaded {
   site: SiteConfig;
@@ -30,6 +49,10 @@ export function PlanScreen() {
   });
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [planning, setPlanning] = useState(false);
+  const [slopeLimit, setSlopeLimit] = useState<SlopeLimit>(20);
+  const [chosen, setChosen] = useState<RouteMode>("fastest");
+  const [routes, setRoutes] = useState(ALL_PLANNING);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,16 +92,77 @@ export function PlanScreen() {
     [site],
   );
 
+  // Plan all three routes for the target, again whenever the slope limit changes.
+  useEffect(() => {
+    if (!planning || !site || !selected) return;
+    let cancelled = false;
+    const requests = routeRequests(site, selected, slopeLimit);
+    setRoutes(ALL_PLANNING);
+    for (const mode of ROUTE_MODES) {
+      const request = requests[mode];
+      const settle = (state: RouteState) => {
+        if (!cancelled) setRoutes((current) => ({ ...current, [mode]: state }));
+      };
+      if (!request) {
+        settle({ status: "none", message: "the site config has no habitat or base camp" });
+        continue;
+      }
+      const step =
+        mode === "cart"
+          ? `plan.route.cart.${slopeLimit}`
+          : `plan.route.${mode}.${selected.id}.${slopeLimit}`;
+      client.route(step, request).then(
+        (route) => settle({ status: "ok", route }),
+        (reason: unknown) => settle({ status: "error", message: refusal(reason) }),
+      );
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [planning, site, selected, slopeLimit, client]);
+
+  const mapRoutes = useMemo<MapRoute[]>(() => {
+    if (!planning) return [];
+    return ROUTE_MODES.flatMap((mode) => {
+      const state = routes[mode];
+      if (state.status !== "ok") return [];
+      const { route } = state;
+      const isChosen = mode === chosen;
+      const extra = mode === "science" && !isChosen ? route.extra_time_vs_fastest_s : null;
+      const label = extra === null ? formatDuration(route.total_time_s) : `+${formatDuration(extra)}`;
+      return [{ id: `route-${mode}`, path: route.path, label, chosen: isChosen }];
+    });
+  }, [planning, routes, chosen]);
+  const chosenState = routes[chosen];
+  const fitTo = useMemo(
+    () => (planning && chosenState.status === "ok" ? chosenState.route.path : null),
+    [planning, chosenState],
+  );
+
   return (
     <div className="plan">
-      <Sidebar
-        site={site}
-        conditions={loaded?.conditions ?? null}
-        query={query}
-        onQuery={setQuery}
-        selected={selected}
-        onSelect={setSelectedId}
-      />
+      {planning && site && selected ? (
+        <Directions
+          site={site}
+          target={selected}
+          routes={routes}
+          chosen={chosen}
+          onChoose={setChosen}
+          slopeLimit={slopeLimit}
+          onSlopeLimit={setSlopeLimit}
+          onBack={() => setPlanning(false)}
+        />
+      ) : (
+        <Sidebar
+          site={site}
+          conditions={loaded?.conditions ?? null}
+          query={query}
+          onQuery={setQuery}
+          selected={selected}
+          onSelect={setSelectedId}
+          onDirections={() => setPlanning(true)}
+        />
+      )}
       {site && origin ? (
         <WalkMap
           site={site}
@@ -92,6 +176,8 @@ export function PlanScreen() {
           onToggleLayers={() => setLayersOpen((open) => !open)}
           fileUrl={client.fileUrl}
           status={baseLayer ? null : `No base map layer "${baseName}" for ${SITE}.`}
+          routes={mapRoutes}
+          fitTo={fitTo}
         />
       ) : (
         <div className="map">
