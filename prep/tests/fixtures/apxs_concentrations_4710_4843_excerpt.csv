@@ -1,0 +1,2 @@
+sol,target,fit_type,start_time,gnorm,sh_tavg,lifetime,Fe_FWHM,Na2O,Na2O_err,MgO,MgO_err,Al2O3,Al2O3_err,SiO2,SiO2_err,P2O5,P2O5_err,SO3,SO3_err,Cl,Cl_err,K2O,K2O_err,CaO,CaO_err,TiO2,TiO2_err,Cr2O3,Cr2O3_err,MnO,MnO_err,FeO,FeO_err,Ni,Ni_err,Zn,Zn_err,Br,Br_err,data_products
+4842,Challapata_DRT,RGFit_v2,04842M17:50:52,60.8,-20.4,02:11:12,192,2.14,0.14,5.86,0.17,6.95,0.19,39.81,0.43,0.76,0.05,13.42,0.15,0.88,0.03,0.55,0.02,7.75,0.08,0.85,0.03,0.34,0.01,0.07,0.01,20.17,0.26,626,35,552,20,785,25,APB_827373063ESC48421210762_______M1.DAT:APB_827365543ESC48421210762_______M1.DAT
