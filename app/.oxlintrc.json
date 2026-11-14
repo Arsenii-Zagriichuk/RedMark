@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "rules": {
+    "no-restricted-globals": [
+      "error",
+      {
+        "name": "fetch",
+        "message": "Reach the service only through src/api/client.ts, so demo mode can't be bypassed (P1-02)."
+      }
+    ],
+    "no-restricted-properties": [
+      "error",
+      { "object": "window", "property": "fetch", "message": "Use src/api/client.ts (P1-02)." },
+      { "object": "globalThis", "property": "fetch", "message": "Use src/api/client.ts (P1-02)." },
+      { "object": "self", "property": "fetch", "message": "Use src/api/client.ts (P1-02)." }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["src/api/client.ts"],
+      "rules": { "no-restricted-globals": "off" }
+    }
+  ]
+}
