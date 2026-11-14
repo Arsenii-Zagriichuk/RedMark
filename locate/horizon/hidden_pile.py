@@ -10,12 +10,16 @@ Every other Curiosity stop in the walk area may go in the hidden pile.
 `uv run python -m locate.horizon.hidden_pile` fetches it from the PDS Imaging
 Node. The other stops are cut into STRETCHES runs of the traverse, and from
 each the first stop (by sol) with a horizon ring is taken, so the pile spreads
-along the whole traverse and is chosen before any fix is run. The ring frames,
-their labels and an index (photo, stop, file, size, SHA-256, source) go in
-HIDDEN_PILE; the archive's sol listings are cached beside them.
+along the whole traverse and is chosen before any fix is run. Which frames a
+sol has comes from NASA's raw-image catalogue (the archive's own sol listings
+are too big for it to serve reliably); where each frame looks, and so the ring,
+comes from its PDS label. The ring frames, their labels and an index (photo,
+stop, file, size, SHA-256, source) go in HIDDEN_PILE, with the catalogue's
+answers cached beside them.
 """
 
 import csv
+import json
 import re
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
@@ -29,6 +33,9 @@ from locate.horizon.navcam import label_pointing
 from locate.horizon.sources import sha256_file
 
 ARCHIVE = "https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA"
+CATALOGUE = "https://mars.nasa.gov/api/v1/raw_image_items/"
+# A raw Navcam frame's id, and the reduced frame the PDS archive holds for it.
+RAW_NAVCAM = re.compile(r"^(N[LR]B_\d{9})EDR(_[A-Z]\d{7}NCAM\d{5})M_$")
 STRETCHES = 20
 MAX_DOWNLOAD_BYTES = 350_000_000
 # Left or right Navcam reduced frames: full (F), subframe (S) or downsampled (D); not
@@ -181,11 +188,8 @@ def _first_ring(stretch: list[Stop], folder: Path) -> tuple[Stop, list[Pointing]
 
 def _pointings(stop: Stop, folder: Path) -> list[Pointing]:
     """Where every reduced Navcam frame taken at the stop on its sol looks."""
-    listing = folder / "listings" / f"SOL{stop.sol:05d}.html"
-    if not listing.exists() or 0 < listing.stat().st_size < 5_000:  # the archive can truncate
-        _fetch(f"{ARCHIVE}/SOL{stop.sol:05d}/", listing)
     names: dict[str, list[str]] = {}
-    for match in FRAME.finditer(listing.read_text(errors="ignore")):
+    for match in FRAME.finditer("\n".join(_sol_labels(stop.sol, folder))):
         if (int(match[2]), int(match[3])) == (stop.site, stop.drive):
             sequence = f"{match[1]} {match[4]}"
             names.setdefault(sequence, [])
@@ -199,9 +203,41 @@ def _pointings(stop: Stop, folder: Path) -> list[Pointing]:
             path = folder / name
             if not path.exists():
                 _fetch(_url(stop, name), path)
+            if path.stat().st_size == 0:
+                continue  # no reduced frame in the archive for this raw one
             azimuth, elevation = label_pointing(path.read_text(errors="ignore"))
             pointings.append(Pointing(Path(name).stem, sequence, azimuth, elevation))
     return pointings
+
+
+def _sol_labels(sol: int, folder: Path) -> list[str]:
+    """The PDS label name of every Navcam frame the catalogue lists for a sol."""
+    cache = folder / "listings" / f"SOL{sol:05d}.json"
+    if not cache.exists():
+        items, page = [], 0
+        while True:
+            query = (
+                f"{CATALOGUE}?order=sol%20desc&per_page=200&page={page}&condition_1=msl:mission"
+                f"&condition_2={sol}:sol:gte&condition_3={sol}:sol:lte"
+            )
+            answer = json.loads(_get(query))
+            items += [item["imageid"] for item in answer["items"]]
+            if not answer.get("more"):
+                break
+            page += 1
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps(items))
+    raw = json.loads(cache.read_text())
+    return [f"{match[1]}ILT{match[2]}M1.LBL" for match in map(RAW_NAVCAM.match, raw) if match]
+
+
+def _get(url: str) -> str:
+    return subprocess.run(
+        ["curl", "-sfL", "--retry", "5", "--retry-all-errors", "--max-time", "120", url],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
 
 
 def _url(stop: Stop, name: str) -> str:
@@ -209,7 +245,7 @@ def _url(stop: Stop, name: str) -> str:
 
 
 def _fetch(url: str, path: Path) -> None:
-    """Download url to path; a missing sol folder (404) is saved as an empty file."""
+    """Download url to path; a missing file (404) is saved as an empty one."""
     # curl, not urllib: it uses the system's certificate store.
     path.parent.mkdir(parents=True, exist_ok=True)
     partial = path.with_name(path.name + ".part")
