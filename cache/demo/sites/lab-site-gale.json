@@ -1,0 +1,42 @@
+{
+  "step": "lab.site.gale",
+  "request": {
+    "method": "GET",
+    "path": "/sites/gale",
+    "body": null
+  },
+  "status": 200,
+  "contract": "site",
+  "response": {
+    "site": "gale",
+    "name": "Gale crater boxwork",
+    "projection": "+proj=eqc +lat_ts=0 +lon_0=0 +R=3396190 +units=m +no_defs",
+    "bounds": {
+      "min_x": 8140700,
+      "min_y": -287150,
+      "max_x": 8144700,
+      "max_y": -283150
+    },
+    "habitat": {
+      "x": 8142700,
+      "y": -285150
+    },
+    "base_camp": {
+      "x": 8142600,
+      "y": -285250
+    },
+    "science_targets": [],
+    "checkpoints": [],
+    "files": {
+      "photo_map": "gale/crops/photo-map-25cm.tif",
+      "terrain": "gale/crops/terrain-1m.tif",
+      "thermal_inertia": "gale/crops/thermal-inertia-100m.tif",
+      "crism": "gale/crops/crism-summary-18m.tif",
+      "chemistry": "gale/crops/chemistry-apxs.csv",
+      "rover_positions": "gale/crops/rover-positions.csv",
+      "base_map": "gale/layers/base",
+      "slope": "gale/rasters/slope.tif"
+    },
+    "replayed_sol": 4600
+  }
+}

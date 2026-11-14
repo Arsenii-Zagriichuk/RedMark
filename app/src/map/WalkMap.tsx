@@ -67,6 +67,8 @@ interface Props {
   routes: MapRoute[];
   /** Points the view frames when they change, such as the chosen route. */
   fitTo: Point[] | null;
+  /** In the Test lab: a fix's estimated position and the answer key's true position. */
+  pair?: { predicted: Point; truth: Point; label: string } | null;
   /** During a walk: the view follows the crew until the user pans away. */
   crew?: CrewPosition | null;
 }
@@ -189,6 +191,7 @@ export function WalkMap(props: Props) {
 
   // Frame the chosen route when it arrives.
   const { fitTo } = props;
+  const hasSize = size.width > 0 && size.height > 0;
   useEffect(() => {
     if (!fitTo?.length || !size.width || !size.height) return;
     const xs = fitTo.map((point) => point.x);
@@ -206,8 +209,9 @@ export function WalkMap(props: Props) {
         transitionInterpolator: new FlyToInterpolator(),
       },
     );
-    // Only a new set of points re-frames the view; resizing keeps the user's view.
-  }, [fitTo, origin]);
+    // New points re-frame the view, and so does the map first getting its size; later
+    // resizes keep the user's view.
+  }, [fitTo, origin, hasSize]);
 
   // Follow the crew, heading up, until the user drags the map; Recenter follows again.
   const { crew } = props;
@@ -394,6 +398,30 @@ export function WalkMap(props: Props) {
                 </button>
               );
             })}
+
+          {props.pair && (
+            <>
+              <svg className="pair-line" width={size.width} height={size.height} aria-hidden="true">
+                <line
+                  x1={project(props.pair.predicted).left}
+                  y1={project(props.pair.predicted).top}
+                  x2={project(props.pair.truth).left}
+                  y2={project(props.pair.truth).top}
+                  stroke="#f2f5fa"
+                  strokeWidth={2}
+                  strokeDasharray="6 5"
+                />
+              </svg>
+              <div className="marker" style={{ ...project(props.pair.truth), zIndex: 9 }}>
+                <span className="symbol-true" />
+                <span className="marker__label">True position</span>
+              </div>
+              <div className="marker" style={{ ...project(props.pair.predicted), zIndex: 10 }}>
+                <span className="position-dot" />
+                <span className="marker__label">Fix · {props.pair.label}</span>
+              </div>
+            </>
+          )}
 
           {crew && (
             <div className="marker" style={{ ...project(crew.position), zIndex: 10 }}>
