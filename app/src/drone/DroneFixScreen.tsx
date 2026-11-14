@@ -1,7 +1,7 @@
 // The Drone fix screen (P1-09): the drone's top-down photo with the detected astronauts, the
 // photo's matched outline on the Gale map, and the fix itself. The Gale drone fix is
 // simulated (the photo is cut from the map it is matched to), so the screen says so even
-// when it falls back to the static images.
+// when it falls back to the static images, and reports no numbers from it (team plan).
 import type { FixResult } from "@contracts/fix_result";
 import { useEffect, useState } from "react";
 import { useApi } from "../api/ApiContext";
@@ -56,7 +56,11 @@ export function DroneFixScreen({ onClose }: { onClose: () => void }) {
           </figcaption>
         </figure>
       </div>
-      {loaded.status === "ok" && <FixCard fix={loaded.fix} />}
+      {loaded.status === "ok" && (
+        <FixCard method={loaded.fix.method} simulated={loaded.fix.simulated} source={`Drone photo · ${loaded.fix.photo_id}`}>
+          <p className="panel__note">No numbers are reported from the simulated Gale drone fix.</p>
+        </FixCard>
+      )}
     </Panel>
   );
 }

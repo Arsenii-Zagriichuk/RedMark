@@ -1,52 +1,29 @@
-import type { FixResult } from "@contracts/fix_result";
+import type { Method } from "@contracts/fix_result";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { FixCard } from "./FixCard";
 
-const galeDroneFix: FixResult = {
-  photo_id: "gale-sim-drone-0001",
-  site: "gale",
-  method: "drone",
-  position: { x: 8142346.07, y: -285502.04 },
-  heading_deg: 162.2,
-  uncertainty_m: 10,
-  confidence_pct: 0,
-  time_per_fix_s: 10.03,
-  terrain_type: "textured",
-  simulated: true,
-  overlay: "results/drone/overlays/gale-sim-drone-0001-loftr-run.png",
-  truth: null,
-  provenance: { script: "locate/drone/gale_fix.py", commit: "1839c70", inputs: [] },
-};
+const METHODS = ["horizon", "ground", "drone"] as const;
 
-const text = (fix: FixResult) => renderToStaticMarkup(<FixCard fix={fix} />);
+const render = (method: Method, simulated: boolean) =>
+  renderToStaticMarkup(
+    <FixCard method={method} simulated={simulated} source="Curiosity Navcam frame">
+      <span>±100 m</span>
+    </FixCard>,
+  );
 
 describe("FixCard", () => {
-  it("labels a simulated fix Simulated", () => {
-    expect(text(galeDroneFix)).toContain("Simulated");
+  it("always prints the Simulated label on a simulated fix, whatever its method", () => {
+    expect(METHODS.map((method) => render(method, true))).toEqual([
+      expect.stringContaining(">Simulated<"),
+      expect.stringContaining(">Simulated<"),
+      expect.stringContaining(">Simulated<"),
+    ]);
   });
 
-  it("does not label a measured fix Simulated", () => {
-    expect(text({ ...galeDroneFix, simulated: false })).not.toContain("Simulated");
-  });
+  it("labels a fix measured on real photos as measured, never simulated", () => {
+    const html = render("horizon", false);
 
-  it("shows a measured fix's circle, heading, confidence and time", () => {
-    const html = text({ ...galeDroneFix, simulated: false, confidence_pct: 72 });
-    expect(html).toContain("±10 m");
-    expect(html).toContain("162°");
-    expect(html).toContain("72%");
-    expect(html).toContain("10.0 s");
-  });
-
-  it("reports no numbers from the simulated Gale drone fix", () => {
-    const html = text(galeDroneFix);
-    for (const number of ["±10 m", "162°", "0%", "10.0 s"]) expect(html).not.toContain(number);
-  });
-
-  it("shows the numbers of any other simulated fix, labelled", () => {
-    const html = text({ ...galeDroneFix, method: "ground", confidence_pct: 64 });
-    expect(html).toContain("Simulated");
-    expect(html).toContain("±10 m");
-    expect(html).toContain("64%");
+    expect([html.includes(">Measured<"), html.includes("Simulated")]).toEqual([true, false]);
   });
 });

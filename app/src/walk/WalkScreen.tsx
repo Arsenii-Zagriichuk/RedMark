@@ -4,8 +4,9 @@
 // value comes from POST /simulate, the route and the sol file; the walk is labelled simulated.
 // The break-it buttons (P1-07) re-run the walk with sources switched off; when no source
 // can be trusted, Lost mode shows the last known position, the walk back and layer 5's
-// landmark directions. Once the demo walk passes its drone fix, the Drone fix screen opens
-// from the timeline or the sheet (P1-09); the Target preview shows the walk's science stop.
+// landmark directions. Take fix opens the Photo checkpoint (P1-08) over the walk. Once the
+// demo walk passes its drone fix, the Drone fix screen opens from the timeline or the sheet
+// (P1-09); the Target preview shows the walk's science stop.
 import type { Conditions } from "@contracts/conditions";
 import type { LayerMeta } from "@contracts/layer";
 import type { RouteRequest } from "@contracts/route_request";
@@ -14,6 +15,7 @@ import type { Point, ScienceTarget, SiteConfig } from "@contracts/site";
 import type { SimulateResponse } from "@contracts/simulate_response";
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../api/ApiContext";
+import { PhotoCheckpoint } from "../checkpoint/PhotoCheckpoint";
 import { DRONE_FIX_WALK } from "../drone/droneFix";
 import { DroneFixScreen } from "../drone/DroneFixScreen";
 import { distanceAndBearing, formatBearing, formatDistance, formatLatLon } from "../map/geo";
@@ -102,7 +104,7 @@ export function WalkScreen(props: Props) {
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [opened, setOpened] = useState<"drone-fix" | "target" | null>(null);
+  const [opened, setOpened] = useState<"checkpoint" | "drone-fix" | "target" | null>(null);
   const simulation = run?.simulation ?? null;
 
   useEffect(() => {
@@ -361,7 +363,14 @@ export function WalkScreen(props: Props) {
               </button>
             )}
           </div>
-          <button type="button" className="button button--secondary walk__fix" disabled title="The Photo checkpoint arrives in P1-08">
+          <button
+            type="button"
+            className="button button--secondary walk__fix"
+            onClick={() => {
+              setPlaying(false);
+              setOpened("checkpoint");
+            }}
+          >
             Take fix
           </button>
         </div>
@@ -445,6 +454,7 @@ export function WalkScreen(props: Props) {
         </div>
       </section>
 
+      {opened === "checkpoint" && <PhotoCheckpoint projection={site.projection} onClose={() => setOpened(null)} />}
       {opened === "drone-fix" && <DroneFixScreen onClose={() => setOpened(null)} />}
       {opened === "target" && <TargetPreview target={target} onClose={() => setOpened(null)} />}
     </div>
