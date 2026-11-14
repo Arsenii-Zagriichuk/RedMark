@@ -87,6 +87,9 @@ WALK_LIMITS = {
     "max_walk_h": 6,
 }
 DRONE_FIX_AT = 2 / 3
+# The fix must sit on the demo walk, inside the site: the crew is drawn on the
+# route, so a fix further off it than this means the scene or the fit broke.
+ON_ROUTE_M = 5.0
 
 # The simulated scene. These set up the picture, not a result: the crew walks
 # side by side (the buddy rule) facing along the route; the drone hovers
@@ -193,6 +196,25 @@ def walk_point(route: dict, fraction: float) -> tuple[np.ndarray, float]:
     behind, ahead = _along(path, distance - TRAVEL_SPAN_M), _along(path, distance + TRAVEL_SPAN_M)
     east, north = ahead - behind
     return here, float(np.degrees(np.arctan2(east, north)) % 360.0)
+
+
+def _check_on_the_walk(fix: FixResult, route: dict, bounds: dict) -> None:
+    """Stops unless the fix is inside the site and within ON_ROUTE_M of the route."""
+    here = np.array([fix.position.x, fix.position.y])
+    inside = (
+        bounds["min_x"] <= here[0] <= bounds["max_x"]
+        and bounds["min_y"] <= here[1] <= bounds["max_y"]
+    )
+    path = np.array([[p["x"], p["y"]] for p in route["path"]])
+    starts, steps = path[:-1], np.diff(path, axis=0)
+    lengths = np.maximum((steps**2).sum(axis=1), 1e-12)
+    along = np.clip(((here - starts) * steps).sum(axis=1) / lengths, 0.0, 1.0)
+    off_route = float(np.hypot(*(starts + along[:, None] * steps - here).T).min())
+    if not inside or off_route > ON_ROUTE_M:
+        raise SystemExit(
+            f"the fix at ({here[0]:.1f}, {here[1]:.1f}) is {off_route:.1f} m off the demo walk"
+            f"{'' if inside else ' and outside the site'}; the scene or the fit broke"
+        )
 
 
 def _offset(point: np.ndarray, heading_deg: float, forward: float, right: float) -> np.ndarray:
@@ -344,6 +366,7 @@ def run(matcher_name: str) -> None:
         overlay=recorded(overlay),
         provenance=made_by,
     )
+    _check_on_the_walk(fix, route, site["bounds"])
     detected = json.dumps(
         [{"x": a.position[0], "y": a.position[1], "heading_deg": a.heading_deg} for a in found]
     )
@@ -384,6 +407,10 @@ def run(matcher_name: str) -> None:
     cache = write_demo_cache(PHOTO_ID, [recorded(overlay), recorded(photo_png)], REPO_ROOT)
     for written in (path, overlay, photo_png, cache):
         print(f"wrote {recorded(written)}")
+    print(
+        f"the fix is on the walk the demo caches as plan.route.fastest.{target['id']}."
+        f"{WALK_LIMITS['max_slope_deg']} (base camp to {target['id']})"
+    )
     print(
         f"{estimate.inliers}/{estimate.matches} matches agree; {len(found)} astronauts found;"
         f" {seconds:.1f} s (simulated: no accuracy is measured)"
