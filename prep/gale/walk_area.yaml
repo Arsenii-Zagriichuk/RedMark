@@ -1,0 +1,17 @@
+# The Gale walk area (P2-01): the team's walk-area decision, read by
+# prep/gale/build_pack.py, which writes sites/gale.yaml from it.
+#
+# Chosen on 14 Nov 2026 from Curiosity's PLACES positions and the 1 m terrain:
+# the habitat sits on open, gentle ground west of Curiosity's boxwork drive,
+# with off-track boxwork cells south-west of it inside the walk radius, and the
+# base camp on the next gentle 100 m square. The build measures the ground at
+# both and their distance from Curiosity's track each run; the figures are under
+# walk_area_figures in $REDMARK_DATA/gale/crops/pack.json.
+name: Gale crater boxwork
+habitat: {x: 8142700, y: -285150}
+base_camp: {x: 8142600, y: -285250}
+# Artemis surface EVA planning: excursions up to 2 km from the lander.
+walk_radius_m: 2000
+# Extra ground cropped round the walk area, so slope, tiles and routes have
+# neighbours at its edge.
+crop_margin_m: 500

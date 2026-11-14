@@ -4,7 +4,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from prep.jezero.crop import Bounds
+from prep.common import Bounds
 from prep.jezero.site_frame import to_site_frame
 
 Path2D = list[tuple[float, float]]
