@@ -70,7 +70,7 @@ def drill_sites(chemistry_rows: list[dict]) -> list[dict]:
 def check_targets(
     targets: list[dict],
     *,
-    drill_sites: list[dict],
+    drilled: list[dict],
     track: list[tuple[float, float]],
     habitat: tuple[float, float],
     walk_radius_m: float,
@@ -92,7 +92,7 @@ def check_targets(
             problems.append(
                 f"{t['id']}: {math.dist(at, habitat):.0f} m from the habitat, past the walk radius"
             )
-        for site in drill_sites:
+        for site in drilled:
             away = math.dist(at, (site["x"], site["y"]))
             if away < TARGET_CLEAR_OF_DRILL_M:
                 problems.append(f"{t['id']}: {away:.0f} m from drill site {site['name']}")

@@ -65,6 +65,8 @@ SITE = REPO_ROOT / "sites" / "gale.yaml"
 WALK_AREA = REPO_ROOT / "prep" / "gale" / "walk_area.yaml"
 SAND_RASTER = "gale/rasters/sand.tif"
 RIDGE_RASTER = "gale/rasters/ridges.tif"
+# The route engine's rasters this build writes, by their key in the site config `files`.
+ROUTE_RASTERS = {"sand": SAND_RASTER, "ridges": RIDGE_RASTER}
 LAYERS = "gale/layers"
 STAGE = "gale/layers-2-3.next"
 # The app's default walk limits (app/src/plan/routes.ts): a science target must be
@@ -96,9 +98,7 @@ def build(root: Path) -> None:
 
     stage = root / STAGE
     shutil.rmtree(stage, ignore_errors=True)
-    staged = {
-        key: f"{STAGE}/{path}" for key, path in (("sand", SAND_RASTER), ("ridges", RIDGE_RASTER))
-    }
+    staged = {key: f"{STAGE}/{path}" for key, path in ROUTE_RASTERS.items()}
     print("sand from thermal inertia")
     sand = sand_raster(root / files["thermal_inertia"], root / staged["sand"])
     print("ridge map from the photo map")
@@ -111,7 +111,7 @@ def build(root: Path) -> None:
     drilled = drill_sites(chemistry)
     check_targets(
         targets,
-        drill_sites=drilled,
+        drilled=drilled,
         track=track,
         habitat=habitat,
         walk_radius_m=spec["walk_radius_m"],
@@ -190,7 +190,7 @@ def build(root: Path) -> None:
     (root / LAYERS).mkdir(parents=True, exist_ok=True)
     for name in inputs:
         publish_stage(stage / name, root / LAYERS / name)
-    for key, path in (("sand", SAND_RASTER), ("ridges", RIDGE_RASTER)):
+    for key, path in ROUTE_RASTERS.items():
         (root / path).parent.mkdir(parents=True, exist_ok=True)
         os.replace(root / staged[key], root / path)
     # The overlays folder holds layer 1's overlays too, so only these files are replaced.
@@ -255,8 +255,7 @@ def _site_config_with(text: str, targets: list[dict]) -> str:
     config."""
     header = "".join(line + "\n" for line in text.splitlines() if line.startswith("#"))
     config = yaml.safe_load(text)
-    config["files"]["sand"] = SAND_RASTER
-    config["files"]["ridges"] = RIDGE_RASTER
+    config["files"].update(ROUTE_RASTERS)
     config["science_targets"] = [
         {"id": t["id"], "position": {"x": t["x"], "y": t["y"]}, "name": t["name"]} for t in targets
     ]

@@ -289,7 +289,7 @@ CHEMISTRY_ROWS = [
 
 def _check(targets, ridges, **changes):
     args = {
-        "drill_sites": drill_sites(CHEMISTRY_ROWS),
+        "drilled": drill_sites(CHEMISTRY_ROWS),
         "track": TRACK,
         "habitat": (1040.0, 2060.0),
         "walk_radius_m": 100.0,
@@ -319,7 +319,7 @@ def test_a_ridge_centre_and_a_hollow_clear_of_curiosity_pass(ridges):
         (RIDGE_TARGET | {"x": 1024.4}, {}, "not on a ridge pixel"),
         (
             HOLLOW_TARGET,
-            {"drill_sites": [{"name": "Near", "sol": 1, "x": 1030.5, "y": 2140.0}]},
+            {"drilled": [{"name": "Near", "sol": 1, "x": 1030.5, "y": 2140.0}]},
             "from drill site Near",
         ),
         (HOLLOW_TARGET, {"track": [(1030.5, 2110.0), (1030.5, 2120.0)]}, "from Curiosity's track"),
