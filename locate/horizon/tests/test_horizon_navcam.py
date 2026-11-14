@@ -1,10 +1,10 @@
-"""Pixel directions from a Navcam camera model. Expected values are worked by
+"""Pixel headings from a Navcam camera model. Expected values are worked by
 hand, or are JPL's own numbers from the image label."""
 
 import numpy as np
 import pytest
 
-from locate.horizon.navcam import CameraModel, pixel_directions
+from locate.horizon.navcam import CameraModel, pixel_headings
 
 LEVEL = (1.0, 0.0, 0.0, 0.0)  # rover frame lined up with the site frame
 TURNED_EAST = (np.cos(np.pi / 4), 0.0, 0.0, np.sin(np.pi / 4))  # 90° about +Z (down)
@@ -23,13 +23,13 @@ def worked_camera() -> CameraModel:
 
 
 def test_the_optical_centre_looks_along_the_axis():
-    azimuth, elevation = pixel_directions(worked_camera(), LEVEL, np.array([512.0]), [256.0])
+    azimuth, elevation = pixel_headings(worked_camera(), LEVEL, np.array([512.0]), [256.0])
     assert (azimuth[0], elevation[0]) == pytest.approx((0.0, 0.0), abs=1e-9)
 
 
 def test_columns_to_the_right_turn_east_and_rows_up_rise():
     # 1000 * tan(10°) = 176.33 px right; 1000 * tan(5°) = 87.49 px up.
-    azimuth, elevation = pixel_directions(
+    azimuth, elevation = pixel_headings(
         worked_camera(), LEVEL, np.array([512.0 + 176.327, 512.0]), np.array([256.0, 256 - 87.489])
     )
     assert azimuth == pytest.approx([10.0, 0.0], abs=1e-3)
@@ -39,7 +39,7 @@ def test_columns_to_the_right_turn_east_and_rows_up_rise():
 def test_the_rover_attitude_turns_the_camera_into_the_site_frame():
     # Rover turned to face east: the north-looking camera now looks east; a
     # pixel 10° to its left looks 80°.
-    azimuth, elevation = pixel_directions(
+    azimuth, elevation = pixel_headings(
         worked_camera(), TURNED_EAST, np.array([512.0, 512.0 - 176.327]), np.array([256.0, 256.0])
     )
     assert azimuth == pytest.approx([90.0, 80.0], abs=1e-3)
@@ -58,6 +58,6 @@ def test_a_real_frame_points_where_its_label_says():
         v=np.array([31.5501, 210.959, 1307.87]),
     )
     quaternion = (0.15206, 0.126541, 0.0674722, -0.977912)
-    azimuth, elevation = pixel_directions(camera, quaternion, [511.5], [511.5])
+    azimuth, elevation = pixel_headings(camera, quaternion, [511.5], [511.5])
     assert azimuth[0] == pytest.approx(274.965, abs=0.01)
     assert elevation[0] == pytest.approx(-4.96324, abs=0.01)

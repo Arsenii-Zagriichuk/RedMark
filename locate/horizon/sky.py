@@ -22,7 +22,7 @@ STRONG = 8.0  # times the spread of the sky's steps
 MEDIAN_COLS = 31
 
 
-def sky_line_rows(image: np.ndarray) -> np.ndarray:
+def skyline_rows(image: np.ndarray) -> np.ndarray:
     """For each column, the row (fractional) where the sky meets the ground;
     NaN where no skyline is found, and in the outer columns the box can't see."""
     image = np.asarray(image, np.float64).copy()

@@ -38,13 +38,13 @@ from contracts.models.fix_result import FixResult  # noqa: E402
 from contracts.paths import REPO_ROOT, data_root  # noqa: E402
 from contracts.scoring import score_fix  # noqa: E402
 from locate.horizon.match import Match, match_skyline  # noqa: E402
-from locate.horizon.navcam import NavcamFrame, pixel_directions, read_frame  # noqa: E402
-from locate.horizon.sky import sky_line_rows  # noqa: E402
+from locate.horizon.navcam import NavcamFrame, pixel_headings, read_frame  # noqa: E402
+from locate.horizon.sky import skyline_rows  # noqa: E402
 from locate.horizon.sources import git_commit, sha256_file  # noqa: E402
 
 GRID = "gale/horizon/grid.npz"
 PLACES = "places/localized_pos.csv"
-RING = "navcam/NRB_*ILT_S0981520NCAM00266M1.LBL"
+RING_GLOB = "navcam/NRB_*ILT_S0981520NCAM00266M1.LBL"
 RING_ID = "sol3655-site98-drive1520-NCAM00266"
 # Picked before any fix was run: the frame facing the slopes of Mount Sharp.
 SINGLE = "NRB_721967057ILT_S0981520NCAM00266M1"
@@ -78,7 +78,7 @@ def main() -> None:
     root = data_root()
     with np.load(root / GRID) as f:
         grid = Grid(f["xs"], f["ys"], f["azimuths_deg"], f["elevation_deg"])
-    ring_labels = sorted(root.glob(RING))
+    ring_labels = sorted(root.glob(RING_GLOB))
     if len(ring_labels) != 12:
         raise SystemExit(f"expected the 12 ring frames in {root / 'navcam'}")
     cases = [
@@ -99,8 +99,10 @@ def horizon_fix(photo_id: str, labels: list[Path], grid: Grid, root: Path) -> Fi
     started = time.perf_counter()
     frames = [read_frame(path) for path in labels]
     reference = frames[0].heading_deg
-    relative, elevation = photo_skyline(frames, reference)
-    match = match_skyline(grid.elevation_deg, grid.step_deg, relative, elevation)
+    photo = photo_skyline(frames, reference)
+    match = match_skyline(
+        grid.elevation_deg, grid.step_deg, photo.relative_deg, photo.elevation_deg
+    )
     uncertainty = circle_radius_m(match, grid)
     elapsed = time.perf_counter() - started
 
@@ -125,7 +127,7 @@ def horizon_fix(photo_id: str, labels: list[Path], grid: Grid, root: Path) -> Fi
     rover_x, rover_y = rover_position(root / PLACES, first.site, first.drive)
     fix = score_fix(fix, Point(x=rover_x + east, y=rover_y + north), reference)
 
-    draw_overlay(overlay, fix, match, grid, frames, relative, elevation)
+    draw_overlay(overlay, fix, match, grid, frames, photo)
     FIXES.mkdir(parents=True, exist_ok=True)
     (FIXES / f"{photo_id}.json").write_text(
         json.dumps(fix.model_dump(mode="json"), indent=2) + "\n"
@@ -133,17 +135,27 @@ def horizon_fix(photo_id: str, labels: list[Path], grid: Grid, root: Path) -> Fi
     return fix
 
 
-def photo_skyline(frames: list[NavcamFrame], reference_deg: float):
-    """Every skyline pixel of the frames as (heading relative to reference_deg,
-    elevation), both in degrees; relative headings run -180 to 180."""
-    relative, elevation = [], []
+@dataclass(frozen=True)
+class PhotoSkyline:
+    """Every skyline pixel of a stop's frames."""
+
+    relative_deg: np.ndarray
+    """Heading relative to the first frame's pointing, -180 to 180."""
+    elevation_deg: np.ndarray
+    rows: list[np.ndarray]
+    """The skyline row in each column, per frame (NaN where none)."""
+
+
+def photo_skyline(frames: list[NavcamFrame], reference_deg: float) -> PhotoSkyline:
+    relative, elevation, rows = [], [], []
     for frame in frames:
-        rows = sky_line_rows(frame.image)
-        cols = np.flatnonzero(np.isfinite(rows))
-        azimuth, el = pixel_directions(frame.camera, frame.rover_quaternion, cols, rows[cols])
-        relative.append((azimuth - reference_deg + 180.0) % 360.0 - 180.0)
+        found = skyline_rows(frame.image)
+        cols = np.flatnonzero(np.isfinite(found))
+        heading, el = pixel_headings(frame.camera, frame.rover_quaternion, cols, found[cols])
+        relative.append((heading - reference_deg + 180.0) % 360.0 - 180.0)
         elevation.append(el)
-    return np.concatenate(relative), np.concatenate(elevation)
+        rows.append(found)
+    return PhotoSkyline(np.concatenate(relative), np.concatenate(elevation), rows)
 
 
 def circle_radius_m(match: Match, grid: Grid) -> float:
@@ -156,7 +168,7 @@ def circle_radius_m(match: Match, grid: Grid) -> float:
 
 
 def rover_position(places: Path, site: int, drive: int) -> tuple[float, float]:
-    """The rover's (easting, northing) at a stop, from the PLACES localizations."""
+    """The rover's (easting, northing) at a stop, from the PLACES rover positions."""
     with places.open() as f:
         rows = [
             row
@@ -168,14 +180,15 @@ def rover_position(places: Path, site: int, drive: int) -> tuple[float, float]:
     return float(rows[0]["easting"]), float(rows[0]["northing"])
 
 
-def draw_overlay(path, fix, match, grid, frames, relative, elevation) -> None:
+def draw_overlay(path, fix, match, grid, frames, photo: PhotoSkyline) -> None:
     """Photo skyline on the matched calculated skyline, the match cost over the
     grid with the fix, its circle and the true position, and the frames with
     the skyline found in each."""
     fig = plt.figure(figsize=(18, 13))
     layout = fig.add_gridspec(3, 2, height_ratios=(1, 1.3, 0.9), width_ratios=(1.6, 1))
     skylines = fig.add_subplot(layout[0, :])
-    absolute = (fix.heading_deg + relative) % 360.0
+    at_matched_heading = (fix.heading_deg + photo.relative_deg) % 360.0
+    at_label_heading = (fix.truth.heading_deg + photo.relative_deg) % 360.0
     truth = fix.truth.position
     true_ix = int(np.abs(grid.xs - truth.x).argmin())
     true_iy = int(np.abs(grid.ys - truth.y).argmin())
@@ -194,9 +207,11 @@ def draw_overlay(path, fix, match, grid, frames, relative, elevation) -> None:
         lw=1.0,
         label="calculated, matched spot",
     )
-    labelled = (fix.truth.heading_deg + relative) % 360.0
-    skylines.scatter(labelled, elevation, s=1, c="0.75", label="photo, at the label's heading")
-    skylines.scatter(absolute, elevation, s=1, c="tab:blue", label="photo, at the matched heading")
+    for headings, colour, where in (
+        (at_label_heading, "0.75", "the label's heading"),
+        (at_matched_heading, "tab:blue", "the matched heading"),
+    ):
+        skylines.scatter(headings, photo.elevation_deg, s=1, c=colour, label=f"photo, at {where}")
     skylines.set_xlim(0, 360)
     skylines.set_xlabel("heading from map north, degrees")
     skylines.set_ylabel("elevation, degrees")
@@ -223,14 +238,14 @@ def draw_overlay(path, fix, match, grid, frames, relative, elevation) -> None:
     zoom.set_ylim(truth.y - CLOSE_UP_M, truth.y + CLOSE_UP_M)
     zoom.set_title(f"Close up: {CLOSE_UP_M:.0f} m round the true position")
 
-    shown = frames[:: max(1, len(frames) // 4)][:4]
-    strip = layout[2, :].subgridspec(1, len(shown))
-    for i, frame in enumerate(shown):
+    every = max(1, len(frames) // 4)
+    strip = layout[2, :].subgridspec(1, len(frames[::every][:4]))
+    for i, (frame, rows) in enumerate(list(zip(frames, photo.rows, strict=True))[::every][:4]):
         ax = fig.add_subplot(strip[0, i])
         low, high = np.percentile(frame.image, [1, 99])
         ax.imshow(np.clip((frame.image - low) / (high - low), 0, 1), cmap="gray")
-        ax.plot(sky_line_rows(frame.image), c="red", lw=0.8)
-        ax.set_title(f"{frame.photo_id[:13]}, pointing {frame.heading_deg:.0f}°", fontsize=9)
+        ax.plot(rows, c="red", lw=0.8)
+        ax.set_title(f"{frame.photo_id}, pointing {frame.heading_deg:.0f}°", fontsize=7)
         ax.axis("off")
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=90, bbox_inches="tight")

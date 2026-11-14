@@ -5,8 +5,8 @@ A frame's PDS3 label carries its CAHVOR camera model in the rover frame
 from the rover frame to the site frame (+X north, +Y east, +Z down, level).
 Together they give every pixel's heading from north and its elevation above
 the level horizon. The R (radial distortion) part of CAHVOR is left out: for
-Navcam it moves a ray by under 0.01° at the frame's edge, far below a 0.25°
-grid step. The site frame's north is map north, since the site map is
+Navcam its coefficients are about 0.002, which moves a ray far less than the
+grid's 0.25° step. The site frame's north is map north, since the site map is
 equirectangular.
 """
 
@@ -46,13 +46,13 @@ class NavcamFrame:
         return float(east), float(north)
 
 
-def pixel_directions(
+def pixel_headings(
     camera: CameraModel,
     rover_quaternion: tuple[float, float, float, float],
     cols: np.ndarray,
     rows: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Heading from north (0 to 360°) and elevation (°) each pixel looks along."""
+    """The heading from map north (0 to 360°) and elevation (°) each pixel looks along."""
     cols = np.asarray(cols, np.float64)[:, None]
     rows = np.asarray(rows, np.float64)[:, None]
     # A pixel's ray lies in the plane (P - C)·(H - x A) = 0 and in (P - C)·(V - y A) = 0.
@@ -66,29 +66,31 @@ def read_frame(label_path: Path) -> NavcamFrame:
     """A Navcam RDR frame (16-bit, one band) from its .LBL and the .IMG beside it."""
     label = label_path.read_text()
     rover = _group(label, "ROVER_COORD_SYSTEM_PARMS")
-    site, drive = (int(v) for v in _vector(rover, "COORDINATE_SYSTEM_INDEX")[:2])
+    site, drive = (int(v) for v in label_vector(rover, "COORDINATE_SYSTEM_INDEX")[:2])
     image_object = re.search(r"^OBJECT\s*=\s*IMAGE\s*$(.*?)^END_OBJECT", label, re.S | re.M)
-    lines = int(_number(image_object.group(1), "LINES"))
-    samples = int(_number(image_object.group(1), "LINE_SAMPLES"))
-    if "MSB_INTEGER" not in image_object.group(1) or _number(image_object.group(1), "BANDS") != 1:
+    image_object = image_object.group(1)
+    lines = int(label_number(image_object, "LINES"))
+    samples = int(label_number(image_object, "LINE_SAMPLES"))
+    if "MSB_INTEGER" not in image_object or label_number(image_object, "BANDS") != 1:
         raise ValueError(f"{label_path.name}: expected one band of 16-bit MSB integers")
     record = int(re.search(r"\^IMAGE\s*=\s*\([^,]+,\s*(\d+)\)", label).group(1))
     raw = np.fromfile(
         label_path.with_suffix(".IMG"),
         dtype=">i2",
-        offset=(record - 1) * int(_number(label, "RECORD_BYTES")),
+        offset=(record - 1) * int(label_number(label, "RECORD_BYTES")),
         count=lines * samples,
     )
     model = _group(label, "GEOMETRIC_CAMERA_MODEL_PARMS")
     if '"ROVER_NAV_FRAME"' not in model:
         raise ValueError(f"{label_path.name}: camera model is not in the rover frame")
-    c, a, h, v = (np.array(_vector(model, f"MODEL_COMPONENT_{i}")) for i in range(1, 5))
+    c, a, h, v = (np.array(label_vector(model, f"MODEL_COMPONENT_{i}")) for i in range(1, 5))
+    site_geometry = _group(label, "SITE_DERIVED_GEOMETRY_PARMS")
     return NavcamFrame(
         photo_id=re.search(r'PRODUCT_ID\s*=\s*"([^"]+)"', label).group(1),
         image=raw.reshape(lines, samples).astype(np.float32),
         camera=CameraModel(c, a, h, v),
-        rover_quaternion=tuple(_vector(rover, "ORIGIN_ROTATION_QUATERNION")),
-        heading_deg=_number(_group(label, "SITE_DERIVED_GEOMETRY_PARMS"), "INSTRUMENT_AZIMUTH"),
+        rover_quaternion=tuple(label_vector(rover, "ORIGIN_ROTATION_QUATERNION")),
+        heading_deg=label_number(site_geometry, "INSTRUMENT_AZIMUTH"),
         site=site,
         drive=drive,
     )
@@ -112,14 +114,16 @@ def _group(label: str, name: str) -> str:
     return match.group(1)
 
 
-def _number(text: str, key: str) -> float:
+def label_number(text: str, key: str) -> float:
+    """The first number given for key in a PDS3 label."""
     match = re.search(rf"^\s*{key}\s*=\s*\(?\s*(-?[\d.eE+-]+)", text, re.M)
     if match is None:
         raise ValueError(f"{key} not in label")
     return float(match.group(1))
 
 
-def _vector(text: str, key: str) -> list[float]:
+def label_vector(text: str, key: str) -> list[float]:
+    """The numbers in parentheses given for key in a PDS3 label."""
     match = re.search(rf"^\s*{key}\s*=\s*\(([^)]*)\)", text, re.M | re.S)
     if match is None:
         raise ValueError(f"{key} not in label")
