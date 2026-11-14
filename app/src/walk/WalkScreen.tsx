@@ -2,26 +2,36 @@
 // along the chosen route: the dot with its uncertainty circle and confidence %, the next
 // waypoint, time and distance left, the walk-back margin and the conditions strip. Every
 // value comes from POST /simulate, the route and the sol file; the walk is labelled simulated.
+// The break-it buttons (P1-07) re-run the walk with sources switched off; when no source
+// can be trusted, Lost mode shows the last known position, the walk back and layer 5's
+// landmark directions.
 import type { Conditions } from "@contracts/conditions";
 import type { LayerMeta } from "@contracts/layer";
+import type { RouteRequest } from "@contracts/route_request";
 import type { RouteResponse } from "@contracts/route_response";
 import type { Point, ScienceTarget, SiteConfig } from "@contracts/site";
 import type { SimulateResponse } from "@contracts/simulate_response";
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../api/ApiContext";
-import { distanceAndBearing, formatDistance } from "../map/geo";
-import { WalkMap, type CrewPosition } from "../map/WalkMap";
-import { formatDuration } from "../plan/routes";
+import { distanceAndBearing, formatBearing, formatDistance, formatLatLon } from "../map/geo";
+import { WalkMap, type CrewPosition, type MapRoute } from "../map/WalkMap";
+import { formatDuration, limitRows, refusal } from "../plan/routes";
+import { walkBadges } from "./breakIt";
 import { conditionsAt } from "./conditions";
-import { fixEvents, walkStatus } from "./playback";
-import { simulateRequest } from "./schedule";
+import { landmarkDirectionsFor } from "./layer5";
+import { landmarkDirection, lostModeStart, returnHeading, returnRequest, type LostDirection } from "./lost";
+import { fixEvents, indexAtTime, walkStatus, type FixEvent } from "./playback";
+import { simulateRequest, type Scenario } from "./schedule";
 
 interface Props {
   site: SiteConfig;
   origin: Point;
   baseLayer: LayerMeta | undefined;
   route: RouteResponse;
-  step: string;
+  /** The request that planned the route; Lost mode plans the walk back from it. */
+  request: RouteRequest;
+  /** Which walk, in its demo step ids: `<route mode>.<target id>.<slope limit>`. */
+  walkKey: string;
   target: ScienceTarget;
   conditions: Conditions | null;
   onEnd: () => void;
@@ -29,26 +39,79 @@ interface Props {
 
 const STEP_MS = 150;
 const METHOD_LETTERS = { horizon: "H", ground: "G", drone: "D" } as const;
+const BREAK_IT: { scenario: Scenario; label: string }[] = [
+  { scenario: "camera-off", label: "Camera off" },
+  { scenario: "radio-off", label: "Radio off" },
+  { scenario: "drone-grounded", label: "Drone grounded" },
+  { scenario: "everything", label: "Everything" },
+];
+
+type WalkBack = { status: "ok"; route: RouteResponse } | { status: "error"; message: string };
+
+function eventTitle(event: FixEvent): string {
+  const at = `at ${formatDuration(event.t_s)}`;
+  switch (event.kind) {
+    case "fix":
+      return `${event.method} fix${event.buddy ? " from the buddy's camera" : ""} ${at}`;
+    case "fix_unavailable":
+      return `${event.method} fix can't reach the crew ${at}`;
+    case "lost_mode":
+      return `lost mode ${at}`;
+    default:
+      return `fix requested ${at}`;
+  }
+}
+
+function eventLetter(event: FixEvent): string {
+  if (event.kind === "lost_mode") return "L";
+  return event.method ? METHOD_LETTERS[event.method] : "!";
+}
+
+function directionText(direction: LostDirection): { text: string; note: string | null } {
+  switch (direction.kind) {
+    case "landmark":
+      return { text: direction.text, note: `Leg ${direction.leg + 1} of ${direction.legs}, walking out` };
+    case "none-in-view":
+      return { text: `No landmark in view along leg ${direction.leg + 1} of ${direction.legs}`, note: null };
+    case "not-this-route":
+      return { text: "Layer 5 has no landmark directions for this route yet", note: null };
+  }
+}
+
+const samePoint = (a: Point, b: Point | null | undefined) => !!b && a.x === b.x && a.y === b.y;
 
 export function WalkScreen(props: Props) {
   const { site, origin, route, target, conditions } = props;
   const { client } = useApi();
-  const [simulation, setSimulation] = useState<SimulateResponse | null>(null);
+  const [scenario, setScenario] = useState<Scenario>("normal");
+  // The walk's time when a break-it button was pressed, so the new run carries on from there.
+  const [resumeAt, setResumeAt] = useState(0);
+  const [run, setRun] = useState<{ scenario: Scenario; simulation: SimulateResponse } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const simulation = run?.simulation ?? null;
 
   useEffect(() => {
     let cancelled = false;
-    client.simulate(props.step, simulateRequest(route)).then(
-      (result) => !cancelled && setSimulation(result),
-      (reason: unknown) =>
-        !cancelled && setError(reason instanceof Error ? reason.message : String(reason)),
+    setError(null);
+    client.simulate(`walk.simulate.${scenario}.${props.walkKey}`, simulateRequest(route, scenario)).then(
+      (result) => {
+        if (cancelled) return;
+        setRun({ scenario, simulation: result });
+        setIndex(indexAtTime(result, resumeAt));
+      },
+      (reason: unknown) => {
+        if (cancelled) return;
+        // Never leave the last run on screen under another scenario's button.
+        setRun(null);
+        setError(reason instanceof Error ? reason.message : String(reason));
+      },
     );
     return () => {
       cancelled = true;
     };
-  }, [client, props.step, route]);
+  }, [client, props.walkKey, route, scenario, resumeAt]);
 
   // Play: one simulation step at a time, stopping at the end.
   const last = (simulation?.steps.length ?? 1) - 1;
@@ -91,10 +154,56 @@ export function WalkScreen(props: Props) {
     // A new crew only when the step changes, so the map doesn't re-follow on other renders.
     [simulation, index, heading],
   );
-  const mapRoutes = useMemo(
-    () => [{ id: "walk-route", path: route.path, label: "", chosen: true }],
-    [route],
+  // Lost mode: from where it began, the walk back to the start with the circle as its hazard
+  // margin, so the route moves further from steep ground than the planned one.
+  const lostStart = useMemo(() => (simulation ? lostModeStart(simulation) : null), [simulation]);
+  const lastKnown = lostStart && index >= lostStart.index ? lostStart : null;
+  const [walkBack, setWalkBack] = useState<WalkBack | null>(null);
+  const { request, walkKey } = props;
+  const runScenario = run?.scenario;
+  useEffect(() => {
+    setWalkBack(null);
+    if (!lastKnown) return;
+    let cancelled = false;
+    client.route(`walk.route.back.${runScenario}.${walkKey}`, returnRequest(request, lastKnown)).then(
+      (result) => !cancelled && setWalkBack({ status: "ok", route: result }),
+      (reason: unknown) => !cancelled && setWalkBack({ status: "error", message: refusal(reason) }),
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [client, lastKnown, request, runScenario, walkKey]);
+
+  const back = walkBack?.status === "ok" ? walkBack.route : null;
+  const straightBack = lastKnown && distanceAndBearing(lastKnown.position, request.start);
+  const returnBearing = back ? returnHeading(back.path) : straightBack?.bearing ?? 0;
+  const startName = samePoint(request.start, site.base_camp)
+    ? "base camp"
+    : samePoint(request.start, site.habitat)
+      ? "the habitat"
+      : "the start";
+  const direction = useMemo(
+    () => lastKnown && landmarkDirection(landmarkDirectionsFor(site.site), route, lastKnown.position),
+    [lastKnown, route, site.site],
   );
+  const hazardMargin = back && limitRows(back).find((row) => row.limit === "hazard_margin");
+  const badges = simulation ? walkBadges(simulation, index) : [];
+
+  const mapRoutes = useMemo<MapRoute[]>(
+    () =>
+      lastKnown && back
+        ? [
+            { id: "walk-route", path: route.path, label: "", chosen: false },
+            { id: "walk-back", path: back.path, label: `Back · ${formatDuration(back.total_time_s)}`, chosen: true },
+          ]
+        : [{ id: "walk-route", path: route.path, label: "", chosen: true }],
+    [route, lastKnown, back],
+  );
+
+  const breakIt = (next: Scenario) => {
+    setResumeAt(status?.t_s ?? 0);
+    setScenario((current) => (current === next ? "normal" : next));
+  };
 
   return (
     <div className="walk">
@@ -115,25 +224,94 @@ export function WalkScreen(props: Props) {
         crew={crew}
       />
 
-      {status && (
-        <div className="walk__banner">
-          <span className="walk__arrow" aria-hidden="true">
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" style={{ transform: `rotate(${status.waypointBearing - heading}deg)` }}>
-              <path d="M12 20V4M5 11l7-7 7 7" />
-            </svg>
-          </span>
-          <span className="walk__instruction">
-            <span>{status.instruction}</span>
-            <span className="walk__instruction-distance">{formatDistance(status.waypointDistance_m)}</span>
-          </span>
-        </div>
-      )}
+      <div className="walk__top-left">
+        {status && (
+          <div className={`walk__banner${lastKnown ? " walk__banner--lost" : ""}`}>
+            <span className="walk__arrow" aria-hidden="true">
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" style={{ transform: `rotate(${(lastKnown ? returnBearing : status.waypointBearing) - heading}deg)` }}>
+                <path d="M12 20V4M5 11l7-7 7 7" />
+              </svg>
+            </span>
+            <span className="walk__instruction">
+              <span>
+                {lastKnown ? `Head ${formatBearing(returnBearing)} back to ${startName}` : status.instruction}
+              </span>
+              <span className="walk__instruction-distance">
+                {formatDistance(
+                  lastKnown ? (back?.total_distance_m ?? straightBack!.metres) : status.waypointDistance_m,
+                )}
+              </span>
+            </span>
+          </div>
+        )}
+
+        {badges.length > 0 && (
+          <div className="walk__badges">
+            {badges.map((badge) => (
+              <span key={badge.id} className={`badge badge--${badge.id}`}>
+                {badge.label}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {lastKnown && direction && (
+          <section className="walk__lost" aria-label="Lost mode">
+            <div className="walk__lost-head">
+              <span className="walk__lost-title">Lost mode</span>
+              <span className="chip chip--simulated">Simulated</span>
+            </div>
+            <div className="walk__lost-row">
+              <span className="label">Last known position</span>
+              <span className="walk__value">
+                {formatLatLon(lastKnown.position, site.projection) ??
+                  `${Math.round(lastKnown.position.x)}, ${Math.round(lastKnown.position.y)} m`}
+              </span>
+              <span className="walk__lost-note">
+                ±{Math.round(lastKnown.uncertainty_m)} m · {formatDuration(lastKnown.t_s)} into the walk
+              </span>
+            </div>
+            <div className="walk__lost-row">
+              <span className="label">Walk back · re-planned for the ±{Math.round(lastKnown.uncertainty_m)} m circle</span>
+              {back ? (
+                <>
+                  <span className="walk__value">
+                    {formatDistance(back.total_distance_m)} · {formatDuration(back.total_time_s)}
+                  </span>
+                  {hazardMargin && (
+                    <span className="walk__lost-note">Hazard margin {hazardMargin.text}</span>
+                  )}
+                </>
+              ) : walkBack?.status === "error" ? (
+                <span className="walk__lost-note walk__lost-note--fail">
+                  No safe route back: {walkBack.message}. The arrow points straight at {startName}.
+                </span>
+              ) : (
+                <span className="walk__lost-note">Planning the walk back…</span>
+              )}
+            </div>
+            <div className="walk__lost-row">
+              <span className="label">Landmarks · layer 5</span>
+              <span className="walk__lost-direction">{directionText(direction).text}</span>
+              {directionText(direction).note && (
+                <span className="walk__lost-note">{directionText(direction).note}</span>
+              )}
+            </div>
+          </section>
+        )}
+      </div>
 
       <div className="walk__top-right">
         {simulation?.simulated && <span className="chip chip--simulated">Simulated walk</span>}
-        {(["Camera", "Radio", "Drone"] as const).map((source) => (
-          <button key={source} type="button" className="pill" disabled title="Break-it buttons arrive in P1-07">
-            {source}
+        {BREAK_IT.map(({ scenario: option, label }) => (
+          <button
+            key={option}
+            type="button"
+            className={`pill${scenario === option ? " pill--on" : ""}`}
+            aria-pressed={scenario === option}
+            onClick={() => breakIt(option)}
+          >
+            {label}
           </button>
         ))}
       </div>
@@ -216,13 +394,13 @@ export function WalkScreen(props: Props) {
                 type="button"
                 className={`timeline__event timeline__event--${event.kind}`}
                 style={{ left: `${event.fraction * 100}%` }}
-                title={event.kind === "fix" ? `${event.method} fix at ${formatDuration(event.t_s)}` : `fix requested at ${formatDuration(event.t_s)}`}
+                title={eventTitle(event)}
                 onClick={() => {
                   setPlaying(false);
                   setIndex(event.index);
                 }}
               >
-                {event.method ? METHOD_LETTERS[event.method] : "!"}
+                {eventLetter(event)}
               </button>
             ))}
           </div>

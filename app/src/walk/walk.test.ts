@@ -3,7 +3,7 @@ import type { RouteResponse } from "@contracts/route_response";
 import type { SimStep, SimulateResponse } from "@contracts/simulate_response";
 import { describe, expect, it } from "vitest";
 import { conditionsAt } from "./conditions";
-import { fixEvents, walkStatus } from "./playback";
+import { fixEvents, indexAtTime, walkStatus } from "./playback";
 import { fixSchedule, simulateRequest } from "./schedule";
 
 // A straight 1800 m walk due north, with one checkpoint halfway.
@@ -112,9 +112,37 @@ describe("walkStatus", () => {
 describe("fixEvents", () => {
   it("lists every fix and fix request with where it falls on the timeline", () => {
     expect(fixEvents(simulation)).toEqual([
-      { index: 1, t_s: 1080, fraction: 1 / 3, kind: "fix_requested", method: null },
-      { index: 2, t_s: 1080, fraction: 1 / 3, kind: "fix", method: "horizon" },
-      { index: 4, t_s: 2160, fraction: 2 / 3, kind: "fix", method: "drone" },
+      { index: 1, t_s: 1080, fraction: 1 / 3, kind: "fix_requested", method: null, buddy: false },
+      { index: 2, t_s: 1080, fraction: 1 / 3, kind: "fix", method: "horizon", buddy: false },
+      { index: 4, t_s: 2160, fraction: 2 / 3, kind: "fix", method: "drone", buddy: false },
+    ]);
+  });
+
+  it("adds the fixes that can't reach the crew, the buddy's camera fixes and the start of lost mode", () => {
+    const broken: SimulateResponse = {
+      ...simulation,
+      steps: [
+        step(0, 0, 0.5, [{ kind: "camera_off" }, { kind: "drone_grounded" }]),
+        step(1080, 600, 3, [{ kind: "fix", method: "horizon" }, { kind: "buddy_camera" }]),
+        step(2160, 1200, 9, [{ kind: "fix_unavailable", method: "drone" }]),
+        step(2700, 1500, 10, [{ kind: "lost_mode" }]),
+        step(3240, 1800, 12),
+      ],
+    };
+
+    expect(fixEvents(broken)).toEqual([
+      { index: 1, t_s: 1080, fraction: 1 / 3, kind: "fix", method: "horizon", buddy: true },
+      { index: 2, t_s: 2160, fraction: 2 / 3, kind: "fix_unavailable", method: "drone", buddy: false },
+      { index: 3, t_s: 2700, fraction: 2700 / 3240, kind: "lost_mode", method: null, buddy: false },
+    ]);
+  });
+});
+
+describe("indexAtTime", () => {
+  it("finds the step at a time in another run, after the fix when one falls there", () => {
+    // Steps at 0, 1080, 1080 (the fix), 2160, 2160 (the fix), 3240 s.
+    expect([0, 1080, 1500, 2160, 9999].map((t_s) => indexAtTime(simulation, t_s))).toEqual([
+      0, 2, 2, 4, 5,
     ]);
   });
 });

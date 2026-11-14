@@ -7,11 +7,10 @@ import type { RouteMode } from "@contracts/route_request";
 import type { SiteConfig } from "@contracts/site";
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../api/ApiContext";
-import { ApiError } from "../api/client";
 import { LayersPanel } from "../map/LayersPanel";
 import { WalkMap, type MapRoute, type PointsShown } from "../map/WalkMap";
 import { Directions, type RouteState } from "./Directions";
-import { formatDuration, ROUTE_MODES, routeRequests, type SlopeLimit } from "./routes";
+import { formatDuration, refusal, ROUTE_MODES, routeRequests, type SlopeLimit } from "./routes";
 import { Sidebar } from "./Sidebar";
 import { WalkScreen } from "../walk/WalkScreen";
 
@@ -21,20 +20,6 @@ const ALL_PLANNING: Record<RouteMode, RouteState> = {
   science: { status: "loading" },
   cart: { status: "loading" },
 };
-
-/** Why the service refused a route: the engine's reason when it gave one. */
-function refusal(reason: unknown): string {
-  if (reason instanceof ApiError && reason.body && typeof reason.body === "object") {
-    const detail = (reason.body as { detail?: unknown }).detail;
-    // The screen already says "No safe route:", so drop the engine's own prefix.
-    if (typeof detail === "string") return detail.replace(/^no safe route:\s*/i, "");
-    // A request that breaks the route_request contract: FastAPI lists what is wrong.
-    if (Array.isArray(detail)) {
-      return detail.map((item: { msg?: string }) => item.msg ?? JSON.stringify(item)).join("; ");
-    }
-  }
-  return reason instanceof Error ? reason.message : String(reason);
-}
 
 interface Loaded {
   site: SiteConfig;
@@ -99,11 +84,16 @@ export function PlanScreen() {
     [site],
   );
 
+  // One set of requests per target and slope limit, so the walk gets a stable one.
+  const requests = useMemo(
+    () => (site && selected ? routeRequests(site, selected, slopeLimit) : null),
+    [site, selected, slopeLimit],
+  );
+
   // Plan all three routes for the target, again whenever the slope limit changes.
   useEffect(() => {
-    if (!planning || !site || !selected) return;
+    if (!planning || !site || !selected || !requests) return;
     let cancelled = false;
-    const requests = routeRequests(site, selected, slopeLimit);
     setRoutes(ALL_PLANNING);
     for (const mode of ROUTE_MODES) {
       const request = requests[mode];
@@ -126,7 +116,7 @@ export function PlanScreen() {
     return () => {
       cancelled = true;
     };
-  }, [planning, site, selected, slopeLimit, client]);
+  }, [planning, site, selected, slopeLimit, requests, client]);
 
   const mapRoutes = useMemo<MapRoute[]>(() => {
     if (!planning) return [];
@@ -146,14 +136,16 @@ export function PlanScreen() {
     [planning, chosenState],
   );
 
-  if (walking && site && origin && selected && chosenState.status === "ok") {
+  const walkRequest = requests?.[chosen];
+  if (walking && site && origin && selected && walkRequest && chosenState.status === "ok") {
     return (
       <WalkScreen
         site={site}
         origin={origin}
         baseLayer={baseLayer}
         route={chosenState.route}
-        step={`walk.simulate.${chosen}.${selected.id}.${slopeLimit}`}
+        request={walkRequest}
+        walkKey={`${chosen}.${selected.id}.${slopeLimit}`}
         target={selected}
         conditions={loaded?.conditions ?? null}
         onEnd={() => setWalking(false)}
