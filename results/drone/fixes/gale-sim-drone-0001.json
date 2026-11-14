@@ -1,0 +1,51 @@
+{
+  "photo_id": "gale-sim-drone-0001",
+  "site": "gale",
+  "method": "drone",
+  "position": {
+    "x": 8142394.6692854585,
+    "y": -285531.7645327289
+  },
+  "heading_deg": 33.848907475447525,
+  "uncertainty_m": 10.0,
+  "confidence_pct": 0.0,
+  "time_per_fix_s": 10.51,
+  "terrain_type": "textured",
+  "simulated": true,
+  "overlay": "results/drone/overlays/gale-sim-drone-0001-loftr-898d20f2120f44bd82792e7613be5d7f.png",
+  "truth": null,
+  "provenance": {
+    "script": "locate/drone/gale_fix.py",
+    "commit": "b453aaa85769905100ee7c3986f2b6de73705dba",
+    "inputs": [
+      {
+        "path": "gale/crops/photo-map-25cm.tif",
+        "sha256": "166157ff4e241024486b19f58a31f8b0024b369b5ebcc84cd9a8f7479c9cbafb"
+      },
+      {
+        "path": "sites/gale.yaml",
+        "sha256": "49316aef27b2e676e6654f881e944b1caeb777e68089b62e2ccf8431a8231653"
+      },
+      {
+        "path": "conditions/4600.json",
+        "sha256": "f76e1ac6c2eb54f174b40919d581fe536ab7dd91124b90b6451910ee25f645f3"
+      },
+      {
+        "path": "gale/rasters/slope.tif",
+        "sha256": "4a6cea4b10b33374d31d5b199ca177627270ab2bf8ec391c1595d9ec3b67fb22"
+      },
+      {
+        "path": "gale/rasters/sand.tif",
+        "sha256": "8f7ea92d826b8deffd0e7667ea3d2460d41b079631d0c2b2cb9b1d8de3df3674"
+      },
+      {
+        "path": "gale/rasters/ridges.tif",
+        "sha256": "a8d9e08524f331f48f45f1de19c5fa37b962fadadd8519e89a1cdc5a198811c9"
+      },
+      {
+        "path": "weights/mbl-mars/loftr/V1/finetuned/2024_08_23-05_52_53.pt",
+        "sha256": "0cde28a10ab7e5c2159ca6814c628a289b1fbde2dad67b5bbdd7704c6c4268a0"
+      }
+    ]
+  }
+}
