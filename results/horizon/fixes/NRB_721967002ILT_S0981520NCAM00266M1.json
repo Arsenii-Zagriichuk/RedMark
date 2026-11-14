@@ -1,5 +1,5 @@
 {
-  "photo_id": "sol3655-site98-drive1520-NCAM00266",
+  "photo_id": "NRB_721967002ILT_S0981520NCAM00266M1",
   "site": "gale",
   "method": "horizon",
   "position": {
@@ -9,10 +9,10 @@
   "heading_deg": 64.75,
   "uncertainty_m": 3041.38126514911,
   "confidence_pct": 0.0,
-  "time_per_fix_s": 6.26,
+  "time_per_fix_s": 6.3,
   "terrain_type": "textured",
   "simulated": false,
-  "overlay": "results/horizon/overlays/p3-02-sol3655-site98-drive1520-NCAM00266.png",
+  "overlay": "results/horizon/overlays/p3-02-NRB_721967002ILT_S0981520NCAM00266M1.png",
   "truth": {
     "position": {
       "x": 8144027.521682549,
@@ -24,7 +24,7 @@
   },
   "provenance": {
     "script": "locate/horizon/fix.py",
-    "commit": "53d3757381febc430d2890fea2b8e1a3da04f549",
+    "commit": "10f1eeebbc04d7eb2e5616879efea93f563606c3",
     "inputs": [
       {
         "path": "gale/horizon/grid.npz",
