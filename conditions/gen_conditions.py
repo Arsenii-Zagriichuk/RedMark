@@ -29,7 +29,7 @@ from conditions.mars24 import (
     sun_position,
     sunset_lmst,
 )
-from contracts.paths import data_root
+from contracts.paths import STUB_DATA, data_root
 
 SOL = 4600
 SITE = "gale"
@@ -125,8 +125,10 @@ def gen_conditions(sol: int = SOL) -> dict:
     rems_rows, rems_prov = _read_rems(sol)
     rems_by_hour = {h: (t, p) for h, t, p in rems_rows}
 
+    emitted_hours = range(6, 21)
+    used_model = False
     steps = []
-    for lmst_h in range(6, 21):
+    for lmst_h in emitted_hours:
         az, el = sun_position(float(lmst_h), ls, eot, GALE_LAT_DEG)
 
         if lmst_h in rems_by_hour:
@@ -134,6 +136,7 @@ def gen_conditions(sol: int = SOL) -> dict:
         else:
             temp_c = _model_temp_c(lmst_h)
             pressure_pa = _model_pressure_pa(lmst_h)
+            used_model = True
 
         steps.append(
             {
@@ -154,11 +157,13 @@ def gen_conditions(sol: int = SOL) -> dict:
 
     inputs = [p for p in (rad_prov, rems_prov) if p is not None]
 
-    # Mark as stub when any required measurement fell back to defaults (AGENTS rule 5).
-    # This covers both the explicit stub-data directory and a REDMARK_DATA that is
-    # missing the RAD/REMS files for this sol.
-    has_all_inputs = rad_prov is not None and rems_prov is not None
-    script = "conditions/gen_conditions.py" if has_all_inputs else "stub"
+    # Mark as stub (AGENTS rule 5) when:
+    #   - data comes from the bundled stub-data fixtures, OR
+    #   - any required measurement is missing (no RAD/REMS file found), OR
+    #   - REMS coverage is incomplete (model filled in for some hours).
+    from_stubs = data_root().resolve() == STUB_DATA.resolve()
+    has_all_inputs = rad_prov is not None and rems_prov is not None and not used_model
+    script = "stub" if from_stubs or not has_all_inputs else "conditions/gen_conditions.py"
 
     return {
         "site": SITE,
