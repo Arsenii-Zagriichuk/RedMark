@@ -82,7 +82,8 @@ than just checking whether the key filename exists. Incomplete keys, corrupt
 overlays and orphan overlays are preserved under
 `answer-key/incomplete/<photo_id>-<unique id>/`; the frame is then offered again.
 Recovery does not delete those files. Read errors are reported, not treated as
-corruption, and a frame being saved by another process is left alone.
+corruption, and a frame being saved by another process is skipped with a warning;
+the session goes on with the next frame.
 
 Outputs stay separate from the pack and tuning inputs, under
 `$REDMARK_DATA/jezero/answer-key/`:
@@ -97,6 +98,10 @@ Outputs stay separate from the pack and tuning inputs, under
 - `overlays/<photo_id>.png`: the reviewed alignment on the map.
 - `flights.json`: `excluded_flights` lists whole flights Person 2 must keep out
   of tuning, not just the keyed frames. It is updated before publishing a key.
+
+The drone test (P2-06) reads the key with `route.answer_key.read_answer_key(root)`:
+every complete key that is not simulated. Simulated fixture keys can share the
+`keys/` folder, but are never part of the answer key.
 
 Person 4 still keys and visually checks at least 20 real frames; the tool does
 not invent their answer key. Pack sources are listed in `prep/data-manifest.yaml`.

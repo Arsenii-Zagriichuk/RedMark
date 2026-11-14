@@ -4,6 +4,7 @@ import os
 import shutil
 from dataclasses import replace
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -212,7 +213,7 @@ def test_a_failed_key_write_leaves_no_overlay_that_would_block_retry(
     "damage", ["truncated", "empty_record", "orphan_overlay", "missing_overlay", "corrupt_overlay"]
 )
 def test_resuming_preserves_incomplete_outputs_and_allows_rekeying(tmp_path, frame, damage):
-    from route.answer_key import answer_is_saved
+    from route.answer_key import recover_saved_answer
 
     tags = {"terrain_type": "plain", "hard_mode": True, "reviewed": True, "simulated": True}
     path = save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags)
@@ -230,19 +231,19 @@ def test_resuming_preserves_incomplete_outputs_and_allows_rekeying(tmp_path, fra
     damaged = {p.name: p.read_bytes() for p in (path, overlay) if p.exists()}
 
     with pytest.warns(UserWarning, match="incomplete"):
-        assert not answer_is_saved(tmp_path, frame.source.photo_id)
+        assert not recover_saved_answer(tmp_path, frame.source.photo_id)
 
     recovered = path.parent.parent / "incomplete"
     assert {p.name: p.read_bytes() for p in recovered.glob("*/*")} == damaged
     assert not path.exists() and not overlay.exists()
     saved = save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags)
     before = saved.read_bytes()
-    assert answer_is_saved(tmp_path, frame.source.photo_id)
+    assert recover_saved_answer(tmp_path, frame.source.photo_id)
     assert saved.read_bytes() == before
 
 
 def test_a_read_error_never_quarantines_a_valid_key(tmp_path, frame, monkeypatch):
-    from route.answer_key import answer_is_saved
+    from route.answer_key import recover_saved_answer
 
     tags = {"terrain_type": "plain", "hard_mode": True, "reviewed": True, "simulated": True}
     key = save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags)
@@ -257,14 +258,14 @@ def test_a_read_error_never_quarantines_a_valid_key(tmp_path, frame, monkeypatch
     with monkeypatch.context() as patch:
         patch.setattr(Path, "open", unreadable)
         with pytest.raises(OSError, match="temporary read failure"):
-            answer_is_saved(tmp_path, frame.source.photo_id)
+            recover_saved_answer(tmp_path, frame.source.photo_id)
 
     assert key.read_bytes() == before
     assert not (key.parent.parent / "incomplete").exists()
 
 
 def test_resuming_never_moves_another_writers_in_progress_overlay(tmp_path, frame, monkeypatch):
-    from route.answer_key import answer_is_saved
+    from route.answer_key import recover_saved_answer
 
     publish = Path.rename if os.name == "nt" else os.link
 
@@ -272,7 +273,7 @@ def test_resuming_never_moves_another_writers_in_progress_overlay(tmp_path, fram
         result = publish(source, destination)
         if Path(destination).parent.name == "overlays":
             with pytest.raises(OSError):
-                answer_is_saved(tmp_path, frame.source.photo_id)
+                recover_saved_answer(tmp_path, frame.source.photo_id)
         return result
 
     if os.name == "nt":
@@ -290,7 +291,7 @@ def test_resuming_never_moves_another_writers_in_progress_overlay(tmp_path, fram
         simulated=True,
     )
 
-    assert answer_is_saved(tmp_path, frame.source.photo_id)
+    assert recover_saved_answer(tmp_path, frame.source.photo_id)
     assert not (key.parent.parent / "incomplete").exists()
 
 
@@ -299,7 +300,7 @@ def test_resuming_never_moves_another_writers_in_progress_overlay(tmp_path, fram
 def test_interrupting_publication_never_commits_partial_json_or_overwrites_a_saved_key(
     tmp_path, frame, monkeypatch, destination_folder, after
 ):
-    from route.answer_key import answer_is_saved
+    from route.answer_key import recover_saved_answer
 
     publish = Path.rename if os.name == "nt" else os.link
 
@@ -322,7 +323,7 @@ def test_interrupting_publication_never_commits_partial_json_or_overwrites_a_sav
             save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags)
 
     committed = destination_folder == "keys" and after
-    assert answer_is_saved(tmp_path, frame.source.photo_id) == committed
+    assert recover_saved_answer(tmp_path, frame.source.photo_id) == committed
     if committed:
         path = tmp_path / "jezero" / "answer-key" / "keys" / "frame-09.json"
         before = path.read_bytes()
@@ -335,7 +336,7 @@ def test_interrupting_publication_never_commits_partial_json_or_overwrites_a_sav
         "x": pytest.approx(4353940),
         "y": pytest.approx(1092120),
     }
-    assert answer_is_saved(tmp_path, frame.source.photo_id)
+    assert recover_saved_answer(tmp_path, frame.source.photo_id)
 
 
 def test_no_data_on_the_map_cannot_be_a_tie_point(tmp_path, frame):
@@ -471,3 +472,50 @@ def test_clicking_four_pairs_and_reviewing_the_overlay_saves_the_tagged_key(tmp_
     assert saved["true_heading_deg"] == pytest.approx(90, abs=0.01)
     assert saved["terrain_type"] == "textured"
     assert saved["checked_by_eye"] and saved["hard_mode"] and saved["simulated"]
+
+
+def test_a_frame_another_process_is_saving_is_skipped_and_the_others_still_offered(
+    tmp_path, frame, monkeypatch
+):
+    from route.answer_key import frames_to_key
+
+    pack = [SimpleNamespace(source=SimpleNamespace(photo_id=p)) for p in ("frame-09", "frame-10")]
+    offered = []
+    publish = Path.rename if os.name == "nt" else os.link
+
+    def list_frames_mid_save(source, destination):
+        result = publish(source, destination)
+        if Path(destination).parent.name == "overlays" and not offered:
+            offered.extend(f.source.photo_id for f in frames_to_key(tmp_path, pack))
+        return result
+
+    if os.name == "nt":
+        monkeypatch.setattr(Path, "rename", list_frames_mid_save)
+    else:
+        monkeypatch.setattr(os, "link", list_frames_mid_save)
+    save_answer(
+        tmp_path,
+        frame,
+        PHOTO_PAIRS,
+        MAP_PAIRS,
+        terrain_type="plain",
+        hard_mode=True,
+        reviewed=True,
+        simulated=True,
+    )
+
+    assert offered == ["frame-10"]
+
+
+def test_the_answer_key_for_the_drone_test_has_only_real_complete_keys(tmp_path, frame):
+    from route.answer_key import read_answer_key
+
+    tags = {"terrain_type": "textured", "hard_mode": False, "reviewed": True}
+    save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags, simulated=True)
+    real = replace(frame, source=replace(frame.source, photo_id="frame-10"))
+    save_answer(tmp_path, real, PHOTO_PAIRS, MAP_PAIRS, **tags, simulated=False)
+
+    keys = read_answer_key(tmp_path)
+
+    assert [k["photo_id"] for k in keys] == ["frame-10"]
+    assert keys[0]["simulated"] is False and keys[0]["terrain_type"] == "textured"

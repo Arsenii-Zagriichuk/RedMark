@@ -12,9 +12,9 @@ from matplotlib.widgets import Button, CheckButtons, RadioButtons
 from contracts.paths import data_root
 from route.answer_key import (
     KeyFrame,
-    answer_is_saved,
     draw_overlay,
-    draw_tie_point,
+    draw_tie_points,
+    frames_to_key,
     load_key_frame,
     read_crop,
     read_pack,
@@ -121,11 +121,9 @@ class KeyingWindow:
         for mark in self.marks:
             mark.remove()
         self.marks = []
-        for index, (photo, position) in enumerate(
-            zip(self.photo_points, self.map_points, strict=True), 1
-        ):
-            for ax, point in ((self.photo_ax, photo), (self.map_ax, position)):
-                self.marks.extend(draw_tie_point(ax, point, index))
+        self.marks = draw_tie_points(
+            self.photo_ax, (self.map_ax,), self.photo_points, self.map_points
+        )
         if self.pending is not None:
             self.marks.extend(self.photo_ax.plot(*self.pending, "yo", mfc="none", ms=10))
         action = "click its map feature" if self.pending else "select another pair or preview"
@@ -220,9 +218,7 @@ def main() -> None:
             frames = [frame for frame in frames if frame.source.photo_id == args.photo_id]
             if not frames:
                 raise ValueError(f"photo id {args.photo_id!r} is not in the Jezero pack")
-        for frame in frames:
-            if answer_is_saved(root, frame.source.photo_id):
-                continue
+        for frame in frames_to_key(root, frames):
             window = KeyingWindow(
                 root, load_key_frame(frame), hard_mode=frame.hard_mode, simulated=args.simulated
             )

@@ -8,7 +8,7 @@ import re
 import subprocess
 import uuid
 import warnings
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -130,7 +130,46 @@ def _data_path(root: Path, relative: str) -> Path:
     return path
 
 
-def answer_is_saved(root: Path, photo_id: str) -> bool:
+class AnswerBeingSaved(OSError):
+    """Another process holds this frame's lock: it is saving the frame's key right now."""
+
+
+def frames_to_key(root: Path, frames: Iterable) -> Iterator:
+    """The frames still needing a key. A frame another process is saving is skipped."""
+    for frame in frames:
+        try:
+            if recover_saved_answer(root, frame.source.photo_id):
+                continue
+        except AnswerBeingSaved:
+            warnings.warn(
+                f"{frame.source.photo_id} is being saved by another process; skipped",
+                stacklevel=2,
+            )
+            continue
+        yield frame
+
+
+def read_answer_key(root: Path) -> list[dict]:
+    """The drone test's answer key: every complete key that is not simulated, by photo id.
+
+    Simulated fixture keys can sit in the same folder; they are never part of the key.
+    """
+    folder = root.resolve() / "jezero" / "answer-key"
+    keys = []
+    for path in sorted((folder / "keys").glob("*.json")):
+        photo_id = path.stem
+        if not _complete_answer(path, folder / "overlays" / f"{photo_id}.png", photo_id):
+            continue
+        record = json.loads(path.read_bytes())
+        if not record["simulated"]:
+            keys.append(record)
+    return keys
+
+
+def recover_saved_answer(root: Path, photo_id: str) -> bool:
+    """Whether the frame has a complete key. Moves any incomplete key or overlay aside to
+    answer-key/incomplete/ first, so the frame can be keyed again; raises
+    AnswerBeingSaved while another process is saving it."""
     if not re.fullmatch(r"[A-Za-z0-9_-]+", photo_id):
         raise ValueError("a safe photo id is required")
     folder = root.resolve() / "jezero" / "answer-key"
@@ -149,11 +188,17 @@ def _file_lock(path: Path) -> Iterator[None]:
                 lock.write(b"\0")
                 lock.flush()
             lock.seek(0)
-            msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+            try:
+                msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+            except OSError as error:
+                raise AnswerBeingSaved(f"{path.stem} is being saved by another process") from error
         else:
             import fcntl
 
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except OSError as error:
+                raise AnswerBeingSaved(f"{path.stem} is being saved by another process") from error
         try:
             yield
         finally:
@@ -253,7 +298,7 @@ def save_answer(
     folder = root / "jezero" / "answer-key"
     path = folder / "keys" / f"{source.photo_id}.json"
     overlay = folder / "overlays" / f"{source.photo_id}.png"
-    if answer_is_saved(root, source.photo_id):
+    if recover_saved_answer(root, source.photo_id):
         raise FileExistsError(
             f"{source.photo_id} already has a key or overlay; nothing was replaced"
         )
@@ -359,6 +404,17 @@ def draw_tie_point(ax: Axes, point: np.ndarray | tuple[float, float], index: int
     ]
 
 
+def draw_tie_points(photo_ax: Axes, map_axes: Iterable[Axes], photo_px, map_xy) -> list[Artist]:
+    """Each numbered pair: its photo pixel on the photo, its map position on every map."""
+    map_axes = list(map_axes)
+    marks: list[Artist] = []
+    for index, (pixel, position) in enumerate(zip(photo_px, map_xy, strict=True), 1):
+        marks += draw_tie_point(photo_ax, pixel, index)
+        for ax in map_axes:
+            marks += draw_tie_point(ax, position, index)
+    return marks
+
+
 def draw_overlay(
     figure: Figure,
     frame: KeyFrame,
@@ -373,9 +429,7 @@ def draw_overlay(
     base, extent = read_crop(frame)
     photo_ax.imshow(np.ma.masked_where(~frame.valid, frame.image), cmap="gray")
     photo_ax.plot(*frame.reference_px, "c+", ms=12)
-    for index, (pixel, position) in enumerate(zip(photo_px, map_xy, strict=True), 1):
-        for ax, point in ((photo_ax, pixel), (map_ax, position), (aligned_ax, position)):
-            draw_tie_point(ax, point, index)
+    draw_tie_points(photo_ax, (map_ax, aligned_ax), photo_px, map_xy)
     height, width = frame.image.shape
     outline = fit.to_map(
         np.array([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]])
@@ -389,17 +443,7 @@ def draw_overlay(
         ax.tick_params(labelsize=7)
         ax.set_xlabel("easting, ground metres")
         ax.set_ylabel("northing, ground metres")
-    west, south = outline.min(axis=0)
-    east, north = outline.max(axis=0)
-    dx, dy = (east - west) / 500, (north - south) / 500
-    xs, ys = np.meshgrid(west + (np.arange(500) + 0.5) * dx, north - (np.arange(500) + 0.5) * dy)
-    target = np.column_stack([xs.ravel(), ys.ravel(), np.ones(xs.size)])
-    source = target @ np.linalg.inv(fit.transform).T
-    source = source[:, :2] / source[:, 2, None]
-    sample = [source[:, 1], source[:, 0]]
-    grey = map_coordinates(frame.image.astype(float), sample, order=1, mode="constant") / 255
-    alpha = map_coordinates(frame.valid.astype(float), sample, order=0, mode="constant") * 0.55
-    rgba = np.column_stack([grey, grey, grey, alpha]).reshape(500, 500, 4)
+    rgba, (west, east, south, north) = _photo_over_map(frame, fit, outline)
     aligned_ax.imshow(rgba, extent=(west, east, south, north))
     margin = max(east - west, north - south) * 0.1
     aligned_ax.set_xlim(west - margin, east + margin)
@@ -420,6 +464,23 @@ def draw_overlay(
         f"({fit.position[0]:.3f}, {fit.position[1]:.3f}) m; heading {fit.heading_deg:.2f} degrees; "
         f"fit residual {fit.residual_m:.3f} m (not measured position error)"
     )
+
+
+def _photo_over_map(frame: KeyFrame, fit: TiePointFit, outline: np.ndarray, size: int = 500):
+    """The photo resampled onto the map grid under its footprint, at 55% opacity, with the
+    footprint's extent (west, east, south, north) in map metres."""
+    west, south = outline.min(axis=0)
+    east, north = outline.max(axis=0)
+    dx, dy = (east - west) / size, (north - south) / size
+    xs, ys = np.meshgrid(west + (np.arange(size) + 0.5) * dx, north - (np.arange(size) + 0.5) * dy)
+    target = np.column_stack([xs.ravel(), ys.ravel(), np.ones(xs.size)])
+    source = target @ np.linalg.inv(fit.transform).T
+    source = source[:, :2] / source[:, 2, None]
+    sample = [source[:, 1], source[:, 0]]
+    grey = map_coordinates(frame.image.astype(float), sample, order=1, mode="constant") / 255
+    alpha = map_coordinates(frame.valid.astype(float), sample, order=0, mode="constant") * 0.55
+    rgba = np.column_stack([grey, grey, grey, alpha]).reshape(size, size, 4)
+    return rgba, (west, east, south, north)
 
 
 def read_crop(frame: KeyFrame) -> tuple[np.ma.MaskedArray, tuple[float, float, float, float]]:
