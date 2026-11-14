@@ -15,7 +15,11 @@ def test_provenance_records_the_frames_grid_answer_key_site_config_and_base_map(
     base_map = read_layer_image(tmp_path / "gale/layers/base", pixels_across=8)
 
     provenance = fix_provenance(
-        [tmp_path / "navcam/A.LBL"], tmp_path, REPO_ROOT / "sites/gale.yaml", base_map
+        [tmp_path / "navcam/A.LBL"],
+        tmp_path,
+        REPO_ROOT / "sites/gale.yaml",
+        base_map,
+        commit="0" * 40,
     )
 
     recorded = {item.path for item in provenance.inputs}

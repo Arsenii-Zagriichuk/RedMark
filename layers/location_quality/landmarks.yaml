@@ -1,0 +1,44 @@
+# The four landmarks layer 5 checks the view of (GLOSSARY.md, Landmark), and how each one's
+# position is found in the terrain. Positions are map metres in the Gale site projection
+# (equirectangular on the 3,396,190 m sphere, 59,274.7 m per degree). Read by
+# layers/location_quality/landmarks.py; the positions found go in layer5-gale.json.
+#
+# Each landmark is one or more points; a cell sees the landmark if its eye sees any of them.
+# Ground within body_radius_m of a point is the landmark itself and never hides it.
+#
+# Three ways to find a point:
+#   summit_of:     the highest terrain within radius_m of (x, y)
+#   skyline_point: the terrain forming the skyline at heading_deg from Curiosity's position
+#                  at a PLACES stop (site, drive)
+#   rim:           for each heading, the terrain between nearest_m and farthest_m that forms
+#                  the skyline seen from the walk area's centre (nearer ridges don't count)
+landmarks:
+  - id: mount_sharp_peak
+    title: Upper Mount Sharp peak
+    # The pale peak NASA's sol 4611 Navcam mosaic (PIA26632, sequence NCAM00722 at site 117,
+    # drive 2730) names behind the buttes: the bright dome on the skyline from about 80° to 110°,
+    # highest at 98°. The mountain's true summit, further south-east, is hidden behind nearer
+    # slopes from the boxwork, so it is not the peak a walker steers by.
+    skyline_point: {site: 117, drive: 2730, heading_deg: 98}
+    body_radius_m: 2000
+  - id: texoli
+    title: Texoli
+    # The butte whose northern tip Curiosity rounded on sols 4391 to 4398 (NASA Curiosity blog,
+    # "Sols 4393-4395: Weekend Work at the Base of Texoli Butte"), at about (8144235, -283523):
+    # the long mesa running south-east from there. Its high point is at its south-east end,
+    # where it joins the rising slope of Mount Sharp, so the search stays on the mesa's end.
+    summit_of: {x: 8144950, y: -285150, radius_m: 300}
+    body_radius_m: 1500
+  - id: mishe_mokwa
+    title: Mishe Mokwa
+    # NASA's sol 4611 Navcam mosaic (PIA26632, sequence NCAM00722 at site 117, drive 2730)
+    # labels Mishe Mokwa on the skyline at its right edge, right of Texoli. The mosaic spans
+    # headings 334° to 163°, so that butte is at about 150° to 160°; its jagged top is at 155°.
+    skyline_point: {site: 117, drive: 2730, heading_deg: 155}
+    body_radius_m: 300
+  - id: crater_rim
+    title: Gale crater rim
+    # The rim across the crater floor, west through north to north-east of the walk area
+    # (Mount Sharp fills the south and east), every 10°.
+    rim: {from_deg: 240, to_deg: 60, step_deg: 10, nearest_m: 15000, farthest_m: 80000}
+    body_radius_m: 1000
