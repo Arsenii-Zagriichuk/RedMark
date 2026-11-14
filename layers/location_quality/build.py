@@ -181,6 +181,14 @@ def main() -> None:
         cells,
         step_m=DIRECTION_STEP_M,
     )
+    off_map = [leg["leg"] + 1 for leg in directions if leg["share_in_walk_area"] < 1.0]
+    if off_map:
+        print(
+            f"WARNING: legs {off_map} of the demo route ({DEMO_ROUTE.relative_to(REPO_ROOT)})"
+            " leave the walk area, where layer 5 can't tell what is in view: re-record the"
+            " route on this site config and rerun",
+            file=sys.stderr,
+        )
     computed = time.perf_counter()
 
     layers_dir = root / "gale" / "layers"

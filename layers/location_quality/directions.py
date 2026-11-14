@@ -13,6 +13,9 @@ comes from the mean of those angles over the samples that see it:
 A leg's direction uses the first landmark, in landmarks.yaml's order, in view
 from at least MIN_SHARE_IN_VIEW of the leg; with none, the leg has no direction.
 A landmark of several points (the crater rim) lies at the mean of their bearings.
+Layer 5 only knows what is in view inside the walk area, so each leg also records
+the share of it that lies there; anything less than 1 means the route needs
+replanning on the current site config.
 Headings are degrees clockwise from map north.
 """
 
@@ -39,9 +42,15 @@ def landmark_bearing_deg(landmark: Landmark, at: tuple[float, float]) -> float:
 
 def in_view(mask: np.ndarray, cells: Cells, at: tuple[float, float]) -> bool:
     """Whether the cell holding `at` sees the landmark; False outside the cells."""
+    if not _inside(cells, at):
+        return False
     col = math.floor((at[0] - cells.left) / cells.res)
     row = math.floor((cells.top - at[1]) / cells.res)
-    return 0 <= row < cells.shape[0] and 0 <= col < cells.shape[1] and bool(mask[row, col])
+    return bool(mask[row, col])
+
+
+def _inside(cells: Cells, at: tuple[float, float]) -> bool:
+    return cells.left <= at[0] < cells.right and cells.bottom < at[1] <= cells.top
 
 
 def landmark_view(
@@ -104,6 +113,9 @@ def leg_directions(
                 "start_index": start,
                 "end_index": end,
                 "heading_deg": round(bearing_deg(points[start], points[end]), 1),
+                "share_in_walk_area": round(
+                    sum(_inside(cells, at) for at, _ in samples) / len(samples), 3
+                ),
                 "landmark": chosen[0].id if chosen else None,
                 "side": chosen[1]["side"] if chosen else None,
                 "text": _text(chosen[0], chosen[1]["side"]) if chosen else None,

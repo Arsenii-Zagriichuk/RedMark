@@ -106,6 +106,15 @@ def test_a_leg_with_no_landmark_in_view_has_no_direction():
     assert leg["text"] is None
 
 
+def test_a_leg_records_how_much_of_it_lies_inside_the_walk_area():
+    # From x = 50 to 150 m on cells that end at x = 100 m: half the leg is off the map,
+    # where layer 5 can't tell what is in view, so the route needs replanning on it.
+    leg = one_leg([(50.0, 50.0), (150.0, 50.0)])
+    assert leg["share_in_walk_area"] == 0.5
+    assert leg["landmarks"][0]["share_of_leg_in_view"] == 0.5
+    assert one_leg([(10.0, 50.0), (90.0, 50.0)])["share_in_walk_area"] == 1.0
+
+
 def test_a_checkpoints_landmark_view_lists_what_it_sees_and_where():
     masks = {**SEE_ALL, "crater_rim": np.zeros(CELLS.shape, bool)}
     view = landmark_view([TEXOLI, RIM], masks, CELLS, (50.0, 50.0))
