@@ -1,0 +1,4 @@
+# Layer 5's provenance records the SHA-256 of landmarks.yaml, and its test re-hashes the
+# checked-out file. Without this, a Windows clone (core.autocrlf=true) checks text out with
+# CRLF, so the hash never matches and a Windows build records different checksums.
+* text=auto eol=lf
