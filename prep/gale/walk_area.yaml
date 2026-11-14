@@ -1,0 +1,19 @@
+# The Gale walk area (P2-01): the team's walk-area decision, read by
+# prep/gale/build_pack.py, which writes sites/gale.yaml from it.
+#
+# Chosen on 14 Nov 2026 from Curiosity's PLACES positions and the 1 m terrain.
+# Curiosity crossed the boxwork from about (8143700, -284100) to
+# (8143200, -285340), sols 4500 to 4865. The habitat sits on an open, flat
+# patch about 480 m west of that track and 540 m from the boxwork cells
+# Curiosity studied: in the 100 m square round it the mean slope is 5.9° and
+# 5.7% of the 1 m cells are steeper than 10°. The base camp is the next flat
+# 100 m square, about 140 m south-west (mean slope 5.6°). Off-track boxwork
+# cells lie south-west of the habitat, inside the walk radius.
+name: Gale crater boxwork
+habitat: {x: 8142700, y: -285150}
+base_camp: {x: 8142600, y: -285250}
+# Artemis surface EVA planning: excursions up to 2 km from the lander.
+walk_radius_m: 2000
+# Extra ground cropped round the walk area, so slope, tiles and routes have
+# neighbours at its edge.
+crop_margin_m: 500

@@ -8,5 +8,6 @@ Small excerpts of public NASA files, committed so the tests run without `REDMARK
 | `m20_heli_flight_path.json` | Paths of flights 9 and 10 | https://mars.nasa.gov/mmgis-maps/M20/Layers/json/m20_heli_flight_path.json (NASA/JPL-Caltech) |
 | `collection_data_inventory.csv` | 20 rows, sols 133 and 152 | https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/collection_data_inventory.csv |
 | `HNM_0152_0680432615_348FDR_N0100001HELI03026_0000LUJ05.xml` | One whole Navcam label, flight 10 | https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/sol/00152/ids/fdr/heli/ |
+| `places_localized_pos_excerpt.csv` | 11 rows of Curiosity's PLACES positions: the landing, sols 299 and 1800, and the boxwork drive (sols 4600 to 4662) | https://planetarydata.jpl.nasa.gov/img/data/msl/msl_places/data_localizations/localized_pos.csv (MSL PLACES localization archive, NASA/JPL-Caltech, PDS Imaging Node) |
 
 The Helicam files are from the Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech.
