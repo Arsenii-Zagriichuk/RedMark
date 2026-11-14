@@ -219,3 +219,25 @@ def test_a_tile_shows_the_legend_colour_for_its_slope(terrain: Path, tmp_path: P
     assert tile[20, 20, 3] == 255
     # The hole is at terrain row 200, col 200: map x 1200, y 1800, so layer col 150, row 150.
     assert tile[150, 150, 3] == 0
+
+
+def test_an_overview_tile_shows_the_mean_slope_in_legend_colours(tmp_path: Path):
+    # A 1 m checkerboard of 3° and 25° cells: each 2 x 2 block at the zoom above holds both.
+    cols, rows = np.meshgrid(np.arange(600), np.arange(400))
+    degrees = np.where((cols + rows) % 2, 25.0, 3.0).astype(np.float32)
+    slope = _geotiff(tmp_path / "slope.tif", degrees, 1000.0, 2000.0, 1.0, np.nan)
+    out = tmp_path / "slope"
+    # 300 m x 200 m at 1 m: max zoom 1; zoom 0 is 150 x 100 px of 2 m.
+    build_slope_layer(slope, (1050.0, 1750.0, 1350.0, 1950.0), out, SOURCE)
+
+    legend = {
+        e["label"]: e["color"] for e in json.loads((out / "layer.json").read_text())["legend"]
+    }
+    overview = _tile(out, 0, 0, 0, "png")
+    shown = overview[:100, :150]
+    assert (shown[..., 3] == 255).all()
+    # Each 2 m pixel is the mean of its four 1 m slopes, 14°, coloured as 14°: not a
+    # blend of the 0–5° and 20–30° colours, which the legend does not hold.
+    colours = {"#{:02x}{:02x}{:02x}".format(*pixel) for pixel in shown[..., :3].reshape(-1, 3)}
+    assert colours == {legend["10–15°"]}
+    assert (overview[100:, :, 3] == 0).all() and (overview[:, 150:, 3] == 0).all()

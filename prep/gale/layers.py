@@ -5,7 +5,9 @@ layer contract (contracts/schemas/layer.json): at max_zoom one pixel is
 resolution_m, each lower zoom halves the resolution, and tile (x, y) counts
 from the north-west corner of the bounds. Zoom 0 is one tile holding the whole
 layer. A tile reaching past the bounds is transparent there; a tile wholly past
-them is not written, as the app never asks for it.
+them is not written, as the app never asks for it. Going down a zoom, the photo
+averages its pixels and the slope averages its degrees before they are coloured,
+so slope tiles at every zoom are coloured only in legend colours.
 
 The slope itself, in degrees on the terrain's own grid, is also written as a
 GeoTIFF for the route engine (route/layers.py).
@@ -76,7 +78,7 @@ def build_base_layer(photo: Path, bounds: Bounds, folder: Path, source: dict) ->
     """The photo map cut to `bounds` at 25 cm, as grey JPEG tiles."""
     image = _on_layer_grid(photo, bounds, BASE_RES_M, Resampling.nearest)
     grey = np.nan_to_num(image, nan=0).astype(np.uint8)
-    zooms = write_tiles(Image.fromarray(grey, "L"), folder, "jpg")
+    zooms = write_tiles(photo_levels(Image.fromarray(grey, "L")), folder, "jpg")
     return _write_meta(
         folder,
         name="base",
@@ -94,8 +96,8 @@ def build_base_layer(photo: Path, bounds: Bounds, folder: Path, source: dict) ->
 def build_slope_layer(slope: Path, bounds: Bounds, folder: Path, source: dict) -> dict:
     """The slope raster on a 1 m grid over `bounds`, coloured by band, as PNG tiles."""
     degrees = _on_layer_grid(slope, bounds, SLOPE_RES_M, Resampling.bilinear)
-    rgba = slope_colours(degrees)
-    zooms = write_tiles(Image.fromarray(rgba, "RGBA"), folder, "png")
+    levels = [Image.fromarray(slope_colours(d), "RGBA") for d in slope_levels(degrees)]
+    zooms = write_tiles(levels, folder, "png")
     return _write_meta(
         folder,
         name="slope",
@@ -129,14 +131,15 @@ def slope_colours(degrees: np.ndarray) -> np.ndarray:
     return rgba
 
 
-def write_tiles(image: Image.Image, folder: Path, ext: str) -> tuple[int, int]:
-    """Write the zoom pyramid of `image` (pixel 0, 0 at the north-west corner) under
-    folder/tiles/{z}/{x}/{y}.<ext>. Returns (min_zoom, max_zoom)."""
-    for z, x, y, tile in tile_pyramid(image, TILE_SIZE):
-        path = folder / "tiles" / str(z) / str(x) / f"{y}.{ext}"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        tile.save(path, quality=90) if ext == "jpg" else tile.save(path, optimize=True)
-    return 0, max_zoom(image.width, image.height, TILE_SIZE)
+def write_tiles(levels: list[Image.Image], folder: Path, ext: str) -> tuple[int, int]:
+    """Write a zoom pyramid, levels[z] being the layer at zoom z (pixel 0, 0 at the
+    north-west corner), under folder/tiles/{z}/{x}/{y}.<ext>. Returns (min_zoom, max_zoom)."""
+    for z, level in enumerate(levels):
+        for x, y, tile in _cut(level, TILE_SIZE):
+            path = folder / "tiles" / str(z) / str(x) / f"{y}.{ext}"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tile.save(path, quality=90) if ext == "jpg" else tile.save(path, optimize=True)
+    return 0, len(levels) - 1
 
 
 def max_zoom(width: int, height: int, tile_size: int) -> int:
@@ -145,19 +148,39 @@ def max_zoom(width: int, height: int, tile_size: int) -> int:
     return math.ceil(math.log2(math.ceil(max(width, height) / tile_size)))
 
 
-def tile_pyramid(image: Image.Image, tile_size: int) -> Iterator[tuple[int, int, int, Image.Image]]:
-    """Every (z, x, y, tile) from max_zoom down to 0, each zoom half the last."""
-    top = max_zoom(image.width, image.height, tile_size)
-    # Average colours weighted by opacity, so unknown cells never darken their neighbours.
-    level = image.convert("RGBa") if image.mode == "RGBA" else image
-    for z in range(top, -1, -1):
-        if z < top:
-            level = level.reduce(2)
-        out = level.convert("RGBA") if level.mode == "RGBa" else level
-        for x in range(math.ceil(out.width / tile_size)):
-            for y in range(math.ceil(out.height / tile_size)):
-                box = (x * tile_size, y * tile_size, (x + 1) * tile_size, (y + 1) * tile_size)
-                yield z, x, y, out.crop(box)
+def photo_levels(image: Image.Image) -> list[Image.Image]:
+    """The photo at every zoom, 0 first: each zoom down averages 2 x 2 pixels."""
+    levels = [image]
+    for _ in range(max_zoom(image.width, image.height, TILE_SIZE)):
+        levels.append(levels[-1].reduce(2))
+    return levels[::-1]
+
+
+def slope_levels(degrees: np.ndarray) -> list[np.ndarray]:
+    """The slope at every zoom, 0 first: each zoom down takes the mean slope of the
+    known cells among 2 x 2, before any colour is given, so every zoom shows legend
+    colours and the bands stay put as the map zooms. A cell is unknown only where
+    all four below it are."""
+    levels = [degrees]
+    for _ in range(max_zoom(degrees.shape[1], degrees.shape[0], TILE_SIZE)):
+        below = levels[-1]
+        rows, cols = below.shape
+        even = np.full((rows + rows % 2, cols + cols % 2), np.nan, dtype=below.dtype)
+        even[:rows, :cols] = below
+        quads = [even[r::2, c::2] for r in (0, 1) for c in (0, 1)]
+        known = sum(np.isfinite(q).astype(below.dtype) for q in quads)
+        total = sum(np.nan_to_num(q, nan=0) for q in quads)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            levels.append(np.where(known > 0, total / known, np.nan).astype(below.dtype))
+    return levels[::-1]
+
+
+def _cut(image: Image.Image, tile_size: int) -> Iterator[tuple[int, int, Image.Image]]:
+    """Every (x, y, tile) of one zoom; a tile reaching past the image is transparent there."""
+    for x in range(math.ceil(image.width / tile_size)):
+        for y in range(math.ceil(image.height / tile_size)):
+            box = (x * tile_size, y * tile_size, (x + 1) * tile_size, (y + 1) * tile_size)
+            yield x, y, image.crop(box)
 
 
 def _on_layer_grid(path: Path, bounds: Bounds, res: float, resampling: Resampling) -> np.ndarray:

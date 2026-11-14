@@ -227,7 +227,9 @@ def slope_layer(root, photo, layer, walk, habitat, folder) -> None:
         loc="lower left",
         fontsize=9,
     )
-    wide.set_title("Slope layer tiles (zoom 2, 4 m) at 55% on the base map")
+    wide.set_title(
+        "Slope tiles at zoom 2 (each 4 m pixel the mean of its 1 m slopes), 55% on the base map"
+    )
     x, y = habitat
     box = (x - ZOOM_HALF_M, y - ZOOM_HALF_M, x + ZOOM_HALF_M, y + ZOOM_HALF_M)
     detail, p_extent = read_window(photo, box)
@@ -248,7 +250,7 @@ def base_tiles(photo, layer, walk, habitat, positions, folder) -> None:
     fig, (wide, tiles, crop) = plt.subplots(1, 3, figsize=(30, 10.5), gridspec_kw={"wspace": 0.1})
     overview, o_extent = _mosaic(layer, 3)
     _show_gray(wide, overview, o_extent)
-    step = meta["tiles"]["tile_size"] * meta["resolution_m"] * 2 ** (meta["tiles"]["max_zoom"] - 3)
+    step = _tile_metres(meta, 3)
     for edge in np.arange(walk[0], walk[2] + 1, step):
         wide.axvline(edge, c="orange", lw=0.6)
     for edge in np.arange(walk[1], walk[3] + 1, step):
@@ -282,7 +284,7 @@ def _mosaic(layer: Path, zoom: int, box: Bounds | None = None) -> tuple[np.ndarr
     meta = json.loads((layer / "layer.json").read_text())
     b, t = meta["bounds"], meta["tiles"]
     size = t["tile_size"]
-    tile_m = size * meta["resolution_m"] * 2 ** (t["max_zoom"] - zoom)
+    tile_m = _tile_metres(meta, zoom)
     columns = math.ceil((b["max_x"] - b["min_x"]) / tile_m)
     rows = math.ceil((b["max_y"] - b["min_y"]) / tile_m)
     x0, y0, x1, y1 = 0, 0, columns - 1, rows - 1
@@ -304,6 +306,13 @@ def _mosaic(layer: Path, zoom: int, box: Bounds | None = None) -> tuple[np.ndarr
     west, north = b["min_x"] + x0 * tile_m, b["max_y"] - y0 * tile_m
     extent = (west, west + (x1 - x0 + 1) * tile_m, north - (y1 - y0 + 1) * tile_m, north)
     return pasted, extent
+
+
+def _tile_metres(meta: dict, zoom: int) -> float:
+    """The ground span of one tile at `zoom`, by layer.json's rule: at max_zoom one
+    pixel is resolution_m, and each zoom down doubles it."""
+    t = meta["tiles"]
+    return t["tile_size"] * meta["resolution_m"] * 2 ** (t["max_zoom"] - zoom)
 
 
 def _read_small(path: Path, float_data: bool = False) -> tuple[np.ndarray, tuple]:

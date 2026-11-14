@@ -8,7 +8,8 @@ in sites/gale.yaml) and writes, under $REDMARK_DATA/gale/:
                               the whole crop; read by the route engine
   layers/base/                the 25 cm photo map over the walk area, JPEG tiles
   layers/slope/               the slope over the walk area at 1 m, coloured by band
-  layers/*/provenance.json    the script, commit and input checksums behind each layer
+  layers/*/provenance.json    the script, commit and input checksums behind each layer,
+                              the site config's among them
   layers/overlays/*.png       slope on the photo map, and the tiles placed by their
                               layer.json against the crop, to check by eye
 and, in the repo, `files.slope` in sites/gale.yaml and copies of the overlays in
@@ -19,6 +20,7 @@ so the app never reads half a layer.
 """
 
 import csv
+import hashlib
 import json
 import os
 import shutil
@@ -47,7 +49,10 @@ def main() -> None:
 
 
 def build(root: Path) -> None:
-    site = SiteConfig.model_validate(yaml.safe_load(SITE.read_text()))
+    # The config sets the layers' bounds and names their inputs, so its checksum, as read
+    # here, goes in each layer's provenance alongside the input files'.
+    config = SITE.read_bytes()
+    site = SiteConfig.model_validate(yaml.safe_load(config))
     b = site.bounds
     walk = (b.min_x, b.min_y, b.max_x, b.max_y)
     habitat = (site.habitat.x, site.habitat.y)
@@ -72,7 +77,8 @@ def build(root: Path) -> None:
         provenance = {
             "script": "prep/gale/build_layers.py",
             "commit": commit,
-            "inputs": [{"path": p, "sha256": sha256(root / p)} for p in paths],
+            "inputs": [{"path": p, "sha256": sha256(root / p)} for p in paths]
+            + [{"path": "sites/gale.yaml", "sha256": hashlib.sha256(config).hexdigest()}],
         }
         (stage / name / "provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")
 
