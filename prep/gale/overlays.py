@@ -471,13 +471,15 @@ def science(photo, layers, walk, habitat, targets, drilled, track, folder) -> Pa
     _show_gray(overview, image, extent)
     colours, c_extent = _mosaic(layers / "chemistry", meta["tiles"]["max_zoom"])
     overview.imshow(_masked(colours), extent=c_extent)
-    _drill_labels(overview, inside)
+    places = _drill_places(inside)
+    _drill_labels(overview, places)
     overview.plot(*habitat, "*", c="cyan", ms=16, mec="black")
     overview.set_xlim(whole[0], whole[2])
     overview.set_ylim(whole[1], whole[3])
     overview.legend(handles=_legend(meta), loc="lower left", fontsize=8)
     overview.set_title(
-        f"Whole chemistry layer, 1 m tiles: APXS points by SO3 and {len(inside)} drill sites"
+        f"Whole chemistry layer, 1 m tiles: APXS points by SO3; {len(inside)} APXS records on"
+        f" drill tailings at {len(places)} places"
     )
 
     cx = sum(d["x"] for d in inside) / len(inside)
@@ -488,7 +490,7 @@ def science(photo, layers, walk, habitat, targets, drilled, track, folder) -> Pa
     colours, c_extent = _mosaic(layers / "chemistry", meta["tiles"]["max_zoom"], box)
     zoom.imshow(_masked(colours), extent=c_extent)
     _drill_labels(
-        zoom, [d for d in inside if box[0] <= d["x"] <= box[2] and box[1] <= d["y"] <= box[3]]
+        zoom, [p for p in places if box[0] <= p["x"] <= box[2] and box[1] <= p["y"] <= box[3]]
     )
     zoom.set_xlim(box[0], box[2])
     zoom.set_ylim(box[1], box[3])
@@ -498,11 +500,33 @@ def science(photo, layers, walk, habitat, targets, drilled, track, folder) -> Pa
     return out
 
 
-def _drill_labels(ax, drilled) -> None:
+# Drill-tailings records this close share one label: the record does not say whether
+# they are one hole (Nevado Sajama and Nevado Sajama2 sit 0.7 m apart).
+DRILL_PLACE_M = 2.0
+
+
+def _drill_places(drilled) -> list[dict]:
+    """Drill-tailings records grouped by place, each {"x", "y", "label"}."""
+    places: list[dict] = []
     for d in drilled:
+        near = next(
+            (p for p in places if math.dist((p["x"], p["y"]), (d["x"], d["y"])) <= DRILL_PLACE_M),
+            None,
+        )
+        if near is None:
+            near = {"x": d["x"], "y": d["y"], "records": []}
+            places.append(near)
+        near["records"].append(f"{d['name']} (sol {d['sol']})")
+    return [{"x": p["x"], "y": p["y"], "label": ", ".join(p["records"])} for p in places]
+
+
+def _drill_labels(ax, places) -> None:
+    # Each label one line lower than the last, so places metres apart stay readable.
+    for i, p in enumerate(places):
         ax.annotate(
-            f"{d['name']} (sol {d['sol']})", (d["x"], d["y"]), color="cyan", fontsize=8,
-            xytext=(8, -4), textcoords="offset points",
+            p["label"], (p["x"], p["y"]), color="cyan", fontsize=8,
+            xytext=(8, -4 - 11 * i), textcoords="offset points",
+            arrowprops={"arrowstyle": "-", "color": "cyan", "lw": 0.5},
         )  # fmt: skip
 
 

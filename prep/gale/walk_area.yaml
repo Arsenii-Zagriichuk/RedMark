@@ -40,9 +40,9 @@ boxwork_zones:
 science_targets:
   - id: sw-ridge
     name: Boxwork ridge, south-west field
-    kind: ridge  # a lit ridge between two dark pits
-    x: 8142410.0
-    y: -285456.0
+    kind: ridge  # a lit ridge between two dark pits, on a ridge pixel's centre
+    x: 8142409.75
+    y: -285455.25
   - id: sw-hollow
     name: Boxwork hollow, south-west field
     kind: hollow  # the floor of a 20 m cell closed in by ridges, 50 m south of that ridge

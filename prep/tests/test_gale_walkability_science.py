@@ -5,14 +5,16 @@ hole stays unknown; the ridge finder finds a grid of bright 1 m lines on flat gr
 not the hollows between them nor a lone bright speck; the route's own reader reads
 both files as masks. Layer writer: each layer.json validates with its group,
 resolution and source. Science targets: a target on a drill site, on Curiosity's
-track or past the walk radius is refused; a ridge target must sit on a ridge and a
-hollow target off one, and a target with any other kind is refused; a target walled off
-from base camp by ground over the slope limit is refused. The sand layer's tiles show
-firm ground in its own legend colour and leave only unknown ground transparent.
+track or past the walk radius is refused; a ridge target must sit on a ridge pixel,
+not beside one, and a hollow target off any; a target with any other kind is refused;
+a target walled off from base camp by ground over the slope limit is refused, and the
+build checks reachability under the app's own default limits. The sand layer's tiles
+show firm ground in its own legend colour and leave only unknown ground transparent.
 
 Expected values are worked by hand from the fixtures, not from the code.
 """
 
+import re
 from pathlib import Path
 
 import numpy as np
@@ -26,9 +28,9 @@ from contracts.models.common import Point
 from contracts.models.layer import LayerMeta
 from contracts.models.route_request import Limits
 from contracts.models.site import SiteConfig
+from contracts.paths import REPO_ROOT
+from prep.gale.build_layers_2_3 import APP_LIMITS
 from prep.gale.layers import (
-    FIRM_COLOUR,
-    SAND_COLOUR,
     build_chemistry_layer,
     build_minerals_layer,
     build_ridges_layer,
@@ -94,11 +96,12 @@ def test_the_sand_tiles_colour_sand_and_firm_ground_and_leave_unknown_transparen
         for r in range(2)
         for c in range(2)
     }
+    # The legend's own swatches, written out so two equal colours can't pass.
     assert colour == {
-        (0, 0): SAND_COLOUR,
-        (0, 1): FIRM_COLOUR,
+        (0, 0): "#e0a43a",
+        (0, 1): "#7a8c99",
         (1, 0): None,
-        (1, 1): FIRM_COLOUR,
+        (1, 1): "#7a8c99",
     }
 
 
@@ -296,7 +299,7 @@ def _check(targets, ridges, **changes):
     check_targets(targets, **args)
 
 
-def test_drill_sites_are_the_tailings_rows_one_per_hole():
+def test_drill_sites_are_the_tailings_rows_one_per_rover_position():
     assert drill_sites(CHEMISTRY_ROWS) == [
         {"name": "Deep_Hole", "sol": 4706, "x": 1110.0, "y": 2010.0}
     ]
@@ -310,7 +313,10 @@ def test_a_ridge_centre_and_a_hollow_clear_of_curiosity_pass(ridges):
     ("target", "changes", "reason"),
     [
         (HOLLOW_TARGET | {"x": 1038.0}, {}, "sits on a ridge"),
-        (RIDGE_TARGET | {"x": 1030.5, "y": 2104.5}, {}, "no ridge within"),
+        (RIDGE_TARGET | {"x": 1030.5, "y": 2104.5}, {}, "not on a ridge pixel"),
+        # Ridge pixels run x 1022 to 1024 here: 1024.4 is beside the crest, 0.65 m
+        # from the nearest ridge pixel's centre.
+        (RIDGE_TARGET | {"x": 1024.4}, {}, "not on a ridge pixel"),
         (
             HOLLOW_TARGET,
             {"drill_sites": [{"name": "Near", "sol": 1, "x": 1030.5, "y": 2140.0}]},
@@ -364,3 +370,19 @@ def test_a_target_walled_off_from_base_camp_is_refused_and_an_open_one_passes():
         )
     refused_ids = [line.split(":")[0] for line in str(refused.value).splitlines()[1:]]
     assert refused_ids == ["walled"]
+
+
+def test_the_builds_route_limits_are_the_apps_defaults():
+    # The app's own defaults, read from its source, so a change there fails here.
+    app = (REPO_ROOT / "app" / "src" / "plan" / "routes.ts").read_text()
+
+    def const(name: str) -> float:
+        return float(re.search(rf"const {name} = ([0-9.]+);", app).group(1))
+
+    default_slope = float(re.search(r"SLOPE_LIMITS = \[([0-9.]+),", app).group(1))
+    assert APP_LIMITS.model_dump() == {
+        "max_slope_deg": default_slope,
+        "max_distance_from_habitat_m": const("MAX_DISTANCE_FROM_HABITAT_M"),
+        "planning_speed_kmh": const("PLANNING_SPEED_KMH"),
+        "max_walk_h": const("MAX_WALK_H"),
+    }

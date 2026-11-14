@@ -16,10 +16,11 @@ $REDMARK_DATA/gale/:
 and, in the repo, `files.sand`, `files.ridges` and `science_targets` in sites/gale.yaml
 and copies of the overlays in prep/gale/evidence/.
 
-The science targets are checked before anything is published, the sand and ridge
-rasters included: each must sit inside the walk radius and a boxwork zone, clear of
-Curiosity's track and drill sites, a ridge target on the ridge map and a hollow target
-off it, and the route engine must find a safe route to it from base camp within the
+Nothing live changes until every layer, raster and overlay is built and the science
+targets are checked; then all are published together, the sand and ridge rasters
+included. The targets: each must sit inside the walk radius and a boxwork zone, clear of
+Curiosity's track and drill sites, a ridge target on a ridge pixel and a hollow target
+off the ridge map, and the route engine must find a safe route to it from base camp within the
 app's default limits on the new rasters.
 """
 
@@ -125,11 +126,6 @@ def build(root: Path) -> None:
         daylight_s=daylight_s(json.loads(conditions.read_text())),
     )
     print(f"{len(targets)} science targets pass; {len(drilled)} drill sites in the crop")
-    # Only now do the route engine's rasters change.
-    for key, path in (("sand", SAND_RASTER), ("ridges", RIDGE_RASTER)):
-        (root / path).parent.mkdir(parents=True, exist_ok=True)
-        os.replace(root / staged[key], root / path)
-    sand, ridges = root / SAND_RASTER, root / RIDGE_RASTER
 
     points = [
         {"x": float(r["x"]), "y": float(r["y"]), "so3": float(r["SO3"]), "drill": False}
@@ -142,17 +138,18 @@ def build(root: Path) -> None:
     build_minerals_layer(root / files["crism"], walk, stage / "minerals", crism_source)
     apxs_source = {"name": "MSL APXS RDR concentrations (" + APXS_CREDIT + ")", "url": APXS_URL}
     build_chemistry_layer(points, walk, stage / "chemistry", apxs_source)
+    # Each input as (the path it is published at, where it is now).
     inputs = {
-        "sand": [files["thermal_inertia"], SAND_RASTER],
-        "ridges": [files["photo_map"], RIDGE_RASTER],
-        "minerals": [files["crism"]],
-        "chemistry": [files["chemistry"]],
+        "sand": [(files["thermal_inertia"], root / files["thermal_inertia"]), (SAND_RASTER, sand)],
+        "ridges": [(files["photo_map"], root / files["photo_map"]), (RIDGE_RASTER, ridges)],
+        "minerals": [(files["crism"], root / files["crism"])],
+        "chemistry": [(files["chemistry"], root / files["chemistry"])],
     }
     for name, paths in inputs.items():
         provenance = {
             "script": "prep/gale/build_layers_2_3.py",
             "commit": commit,
-            "inputs": [{"path": p, "sha256": sha256(root / p)} for p in paths]
+            "inputs": [{"path": p, "sha256": sha256(now)} for p, now in paths]
             + [
                 {"path": "sites/gale.yaml", "sha256": hashlib.sha256(config).hexdigest()},
                 {
@@ -163,29 +160,37 @@ def build(root: Path) -> None:
         }
         (stage / name / "provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")
 
+    print("overlays")
+    overlay_dir = stage / "overlays"
+    overlay_dir.mkdir(parents=True, exist_ok=True)
+    photo = root / files["photo_map"]
+    written = [
+        overlays.walkability(photo, stage, walk, habitat, zones, track, overlay_dir),
+        overlays.ridge_samples(
+            photo, stage / "ridges", _sample_areas(spec, track), targets, overlay_dir
+        ),
+        overlays.science(photo, stage, walk, habitat, targets, drilled, track, overlay_dir),
+    ]
+
+    # Everything built and checked: only now does anything live change, the route
+    # engine's rasters included.
     (root / LAYERS).mkdir(parents=True, exist_ok=True)
     for name in inputs:
         publish_stage(stage / name, root / LAYERS / name)
-    shutil.rmtree(stage, ignore_errors=True)
-
-    print("overlays")
-    overlay_dir = root / LAYERS / "overlays"
-    overlay_dir.mkdir(parents=True, exist_ok=True)
-    photo = root / files["photo_map"]
-    layers = root / LAYERS
-    written = [
-        overlays.walkability(photo, layers, walk, habitat, zones, track, overlay_dir),
-        overlays.ridge_samples(
-            photo, layers / "ridges", _sample_areas(spec, track), targets, overlay_dir
-        ),
-        overlays.science(photo, layers, walk, habitat, targets, drilled, track, overlay_dir),
-    ]
+    for key, path in (("sand", SAND_RASTER), ("ridges", RIDGE_RASTER)):
+        (root / path).parent.mkdir(parents=True, exist_ok=True)
+        os.replace(root / staged[key], root / path)
+    # The overlays folder holds layer 1's overlays too, so only these files are replaced.
+    live_overlays = root / LAYERS / "overlays"
+    live_overlays.mkdir(parents=True, exist_ok=True)
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     for png in written:
-        shutil.copy(png, EVIDENCE / png.name)
+        os.replace(png, live_overlays / png.name)
+        shutil.copy(live_overlays / png.name, EVIDENCE / png.name)
+    shutil.rmtree(stage, ignore_errors=True)
 
     _add_to_site_config(targets)
-    print(f"layers written to {layers}")
+    print(f"layers written to {root / LAYERS}")
 
 
 def _sample_areas(spec: dict, track) -> list[tuple[str, tuple[float, float]]]:

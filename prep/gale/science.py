@@ -45,14 +45,16 @@ def mineral_classes(bands: dict[str, np.ndarray]) -> np.ndarray:
 TARGET_CLEAR_OF_TRACK_M = 25.0
 TARGET_CLEAR_OF_DRILL_M = 50.0
 TARGET_KINDS = ("ridge", "hollow")
-# A ridge target sits on the ridge map; a hollow target has no ridge this close.
-RIDGE_TARGET_WITHIN_M = 1.0
+# A ridge target sits on a ridge pixel of the ridge map (its centre, not beside it); a
+# hollow target has no ridge pixel this close.
 HOLLOW_CLEAR_OF_RIDGE_M = 3.0
 
 
 def drill_sites(chemistry_rows: list[dict]) -> list[dict]:
-    """Curiosity's drill holes, one per hole: the APXS rows measured on drill tailings,
-    named after the hole (e.g. Altadena_tailings -> Altadena), at the first such sol."""
+    """Curiosity's drill sites, one per rover position: the APXS rows measured on drill
+    tailings, named after the hole (e.g. Altadena_tailings -> Altadena), at the first
+    such sol. Two records at different positions stay two, even when they may be the
+    same hole."""
     sites: dict[tuple[float, float], dict] = {}
     for row in sorted(chemistry_rows, key=lambda r: int(r["sol"])):
         name, found, _ = row["target"].partition("_tailings")
@@ -99,10 +101,8 @@ def check_targets(
             problems.append(f"{t['id']}: {to_track:.0f} m from Curiosity's track")
         if not any(inside_polygon(at, zone) for zone in zones):
             problems.append(f"{t['id']}: outside every boxwork zone")
-        if t["kind"] == "ridge" and not _ridge_within(
-            ridge_map, transform, at, RIDGE_TARGET_WITHIN_M
-        ):
-            problems.append(f"{t['id']}: no ridge within {RIDGE_TARGET_WITHIN_M:g} m")
+        if t["kind"] == "ridge" and not _on_ridge(ridge_map, transform, at):
+            problems.append(f"{t['id']}: not on a ridge pixel")
         if t["kind"] == "hollow" and _ridge_within(
             ridge_map, transform, at, HOLLOW_CLEAR_OF_RIDGE_M
         ):
@@ -134,6 +134,12 @@ def check_reachable(
             problems.append(f"{t['id']}: no safe route from base camp ({refused.detail})")
     if problems:
         raise ValueError("science targets not reachable:\n" + "\n".join(problems))
+
+
+def _on_ridge(ridge_map: np.ndarray, transform, at: tuple[float, float]) -> bool:
+    col, row = (math.floor(v) for v in ~transform * at)
+    inside = 0 <= row < ridge_map.shape[0] and 0 <= col < ridge_map.shape[1]
+    return inside and bool(ridge_map[row, col] == 1)
 
 
 def _ridge_within(ridge_map: np.ndarray, transform, at: tuple[float, float], radius: float) -> bool:
