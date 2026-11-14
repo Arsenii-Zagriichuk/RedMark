@@ -38,7 +38,11 @@ describe("fixSchedule", () => {
     expect(simulateRequest(route)).toEqual({
       site: "gale",
       path: route.path,
-      fix_schedule: fixSchedule(route),
+      fix_schedule: [
+        { time_s: 1080, method: "horizon" },
+        { time_s: 1620, method: "ground" },
+        { time_s: 2160, method: "drone" },
+      ],
       break_it: { camera_off: false, radio_off: false, drone_grounded: false },
       seed: 1,
     });

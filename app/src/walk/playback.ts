@@ -1,4 +1,4 @@
-// Reading a simulated walk at one step: where the walker is, how sure the position is, how
+// Reading a simulated walk at one step: where the crew is, how sure the position is, how
 // much walk is left and where to head next. Steps play in array order: at a fix the
 // simulation gives the predicted step and then the corrected one, at the same time.
 import type { Point, RouteResponse } from "@contracts/route_response";
