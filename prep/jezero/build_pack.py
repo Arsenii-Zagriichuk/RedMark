@@ -15,7 +15,6 @@ otherwise straight from USGS's S3 bucket (only the rows each crop needs).
 """
 
 import csv
-import json
 import math
 import os
 import sys
@@ -27,14 +26,22 @@ import rasterio
 import truststore
 import yaml
 from PIL import Image, ImageDraw
+from rasterio.crs import CRS
 
 from contracts.models.data_manifest import DataManifest
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
 from prep.jezero.crop import Bounds, crop_to_site_frame
-from prep.jezero.flights import flight_bounds, load_flight_paths
-from prep.jezero.frames import NavcamFrame, choose_frames, navcam_products, read_label
+from prep.jezero.flights import flight_bounds, load_flights
+from prep.jezero.frames import (
+    NavcamFrame,
+    NavcamProduct,
+    choose_frames,
+    navcam_products,
+    read_label,
+)
 from prep.jezero.pack import manifest_entry, merge_manifest, site_config, stretch_to_8bit
+from prep.jezero.site_frame import SITE_PROJ
 
 MAP_NAME = "JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first.tif"
 MAP_URL = (
@@ -58,6 +65,8 @@ INVENTORY_URL = f"https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helica
 HELICAM_CREDIT = "Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech"
 USER_AGENT = "redmark-prep/0.1"
 OVERLAY_MAX_PX = 2000
+# The ticket's floor: enough candidates that Person 4 can key 20 good frames.
+MIN_CANDIDATE_FRAMES = 30
 
 
 def _download(url: str, dest: Path) -> Path:
@@ -91,17 +100,23 @@ def _round_out(bounds: Bounds) -> Bounds:
     return (math.floor(min_x), math.floor(min_y), math.ceil(max_x), math.ceil(max_y))
 
 
-def _frames_for_flight(
-    flight: int, sol: int, inventory: list[str], source: Path
-) -> list[NavcamFrame]:
-    products = navcam_products(inventory, sol)
-    labels = source / "helicam" / f"sol-{sol:05d}"
+def _crop_is_current(crop: Path, bounds: Bounds) -> bool:
+    """A crop from an earlier run already covers exactly these bounds in the site frame."""
+    if not crop.exists():
+        return False
+    with rasterio.open(crop) as src:
+        same_bounds = all(abs(a - b) < 1e-6 for a, b in zip(src.bounds, bounds, strict=True))
+        return same_bounds and src.crs == CRS.from_proj4(SITE_PROJ)
 
-    def fetch(product):
-        path = _download(
-            f"{product.url_dir}{product.file_stem}.xml", labels / f"{product.file_stem}.xml"
-        )
-        return read_label(path.read_text())
+
+def _frames_for_flight(
+    flight: int, products: list[NavcamProduct], folder: Path
+) -> list[NavcamFrame]:
+    """Every Navcam frame of `flight`, read from its label (downloaded once)."""
+
+    def fetch(product: NavcamProduct) -> NavcamFrame:
+        name = f"{product.file_stem}.xml"
+        return read_label(_download(f"{product.url_dir}{name}", folder / name).read_text())
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         frames = list(pool.map(fetch, products))
@@ -155,11 +170,7 @@ def build(root: Path) -> None:
         _download(f"{MMGIS}/{name}", source / "nasa" / name)
     _download(INVENTORY_URL, source / "helicam" / INVENTORY)
     inventory = (source / "helicam" / INVENTORY).read_text().splitlines()
-    paths = load_flight_paths(source / "nasa" / "m20_heli_flight_path.json")
-    sols = {
-        int(f["properties"]["Flight"]): int(f["properties"]["Sol"])
-        for f in json.loads((source / "nasa" / "m20_heli_flight_path.json").read_text())["features"]
-    }
+    flights = load_flights(source / "nasa" / "m20_heli_flight_path.json")
 
     map_size, map_etag = _remote_size_and_etag(MAP_URL)
     map_source = _map_source(source / MAP_NAME, map_size)
@@ -167,13 +178,17 @@ def build(root: Path) -> None:
 
     rows, crops, manifest = [], {}, []
     for spec in config["flights"]:
-        flight, sol = spec["flight"], sols[spec["flight"]]
-        frames = _frames_for_flight(flight, sol, inventory, source)
+        flight, sol = spec["flight"], flights[spec["flight"]].sol
+        products = navcam_products(inventory, sol)
+        if not products:
+            sys.exit(f"flight {flight}: the Helicam inventory has no Navcam frames for sol {sol}")
+        url_dir = products[0].url_dir
+        folder = source / "helicam" / f"sol-{sol:05d}"
+        frames = _frames_for_flight(flight, products, folder)
         picked = choose_frames(frames, config["frames_per_flight"], config["min_altitude_ratio"])
         print(f"flight {flight} (sol {sol}): {len(frames)} frames, {len(picked)} picked")
+        crop = pack / "crops" / f"flight-{flight:02d}.tif"
         for frame in picked:
-            folder = source / "helicam" / f"sol-{sol:05d}"
-            url_dir = navcam_products(inventory, sol)[0].url_dir
             img = _download(f"{url_dir}{frame.file_stem}.IMG", folder / f"{frame.file_stem}.IMG")
             png = pack / "frames" / f"{frame.file_stem}.png"
             _write_frame_png(folder / f"{frame.file_stem}.xml", png)
@@ -193,6 +208,7 @@ def build(root: Path) -> None:
                     "sol": sol,
                     "frame_png": png.name,
                     "product": f"{frame.file_stem}.IMG",
+                    "crop": crop.name,
                     "altitude_m": round(frame.altitude_m, 3),
                     "sclk": frame.sclk,
                     "lines": frame.lines,
@@ -202,16 +218,22 @@ def build(root: Path) -> None:
                 }
             )
 
-        bounds = _round_out(flight_bounds(paths[flight], config["margin_m"]))
-        crop = pack / "crops" / f"flight-{flight:02d}.tif"
-        with rasterio.Env(
-            GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_CHUNK_SIZE=4 << 20
-        ):
-            crop_to_site_frame(map_source, bounds, crop)
-        _write_overlay(crop, paths[flight], flight, pack / "overlays" / f"flight-{flight:02d}.png")
+        path = flights[flight].path
+        bounds = _round_out(flight_bounds(path, config["margin_m"]))
+        if not _crop_is_current(crop, bounds):
+            with rasterio.Env(
+                GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_CHUNK_SIZE=4 << 20
+            ):
+                crop_to_site_frame(map_source, bounds, crop)
+        _write_overlay(crop, path, flight, pack / "overlays" / f"flight-{flight:02d}.png")
         crops[flight] = bounds
         print(f"flight {flight}: crop {bounds}")
 
+    if len(rows) < MIN_CANDIDATE_FRAMES:
+        sys.exit(
+            f"only {len(rows)} candidate frames; Person 4 needs at least "
+            f"{MIN_CANDIDATE_FRAMES} to key 20 good ones. Add a flight to pack.yaml."
+        )
     with (pack / "frames.csv").open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0]))
         writer.writeheader()
@@ -263,7 +285,7 @@ def build(root: Path) -> None:
     manifest_path = REPO_ROOT / "prep" / "data-manifest.yaml"
     text = manifest_path.read_text()
     comments = "".join(line + "\n" for line in text.splitlines() if line.startswith("#"))
-    merged = merge_manifest(yaml.safe_load(text) or {}, manifest)
+    merged = merge_manifest(yaml.safe_load(text) or {}, manifest, replace_prefix="jezero/")
     DataManifest.model_validate(merged)
     manifest_path.write_text(comments + yaml.safe_dump(merged, sort_keys=False, allow_unicode=True))
     print(f"pack: {len(rows)} frames from {len(crops)} flights in {pack}")

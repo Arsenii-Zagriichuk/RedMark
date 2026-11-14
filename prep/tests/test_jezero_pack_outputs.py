@@ -7,8 +7,8 @@ import pytest
 
 from contracts.models.data_manifest import DataManifest
 from contracts.models.site import SiteConfig
-from prep.jezero.frame import SITE_PROJ
 from prep.jezero.pack import manifest_entry, merge_manifest, site_config, stretch_to_8bit
+from prep.jezero.site_frame import SITE_PROJ
 
 
 def test_site_config_covers_every_crop_and_validates():
@@ -48,7 +48,7 @@ def test_manifest_entry_records_size_and_sha256(tmp_path: Path):
     DataManifest.model_validate({"files": [entry]})
 
 
-def test_merge_manifest_replaces_entries_by_path_and_keeps_the_rest():
+def test_merge_manifest_replaces_the_jezero_entries_and_keeps_the_rest():
     old = {
         "files": [
             {
@@ -80,7 +80,9 @@ def test_merge_manifest_replaces_entries_by_path_and_keeps_the_rest():
         },
     ]
 
-    merged = merge_manifest(old, new)
+    old["files"].append(dict(old["files"][1], name="Dropped flight", path="jezero/c.json"))
+
+    merged = merge_manifest(old, new, replace_prefix="jezero/")
 
     assert [(f["path"], f["name"]) for f in merged["files"]] == [
         ("gale/a.tif", "Gale"),

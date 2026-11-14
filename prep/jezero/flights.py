@@ -1,21 +1,30 @@
-"""Ingenuity flight paths from NASA's flight-path GeoJSON, in the site frame."""
+"""Ingenuity flights from NASA's flight-path GeoJSON, in the site frame."""
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 
 from prep.jezero.crop import Bounds
-from prep.jezero.frame import to_site_frame
+from prep.jezero.site_frame import to_site_frame
 
 Path2D = list[tuple[float, float]]
 
 
-def load_flight_paths(geojson: Path) -> dict[int, Path2D]:
-    """Flight number to its ground track in site-frame metres, in flight order."""
+@dataclass(frozen=True)
+class Flight:
+    sol: int
+    path: Path2D  # ground track in site-frame metres, in flight order
+
+
+def load_flights(geojson: Path) -> dict[int, Flight]:
+    """Flight number to its sol and ground track."""
     features = json.loads(geojson.read_text())["features"]
     return {
-        int(f["properties"]["Flight"]): [to_site_frame(lon, lat) for lon, lat, *_ in coords]
+        int(f["properties"]["Flight"]): Flight(
+            sol=int(f["properties"]["Sol"]),
+            path=[to_site_frame(lon, lat) for lon, lat, *_ in f["geometry"]["coordinates"]],
+        )
         for f in features
-        for coords in [f["geometry"]["coordinates"]]
     }
 
 

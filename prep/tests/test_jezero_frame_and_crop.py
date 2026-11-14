@@ -14,7 +14,7 @@ import rasterio
 from rasterio.transform import from_origin
 
 from prep.jezero.crop import crop_to_site_frame
-from prep.jezero.frame import SITE_LAT_TS, SOURCE_PROJ, to_site_frame
+from prep.jezero.site_frame import SITE_LAT_TS, SOURCE_PROJ, to_site_frame
 
 FIXTURES = Path(__file__).parent / "fixtures"
 MARS_RADIUS = 3396190.0  # metres, the sphere both projections use

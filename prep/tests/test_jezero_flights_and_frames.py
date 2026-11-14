@@ -5,22 +5,23 @@ from pathlib import Path
 
 import pytest
 
-from prep.jezero.flights import flight_bounds, load_flight_paths
+from prep.jezero.flights import flight_bounds, load_flights
 from prep.jezero.frames import NavcamFrame, choose_frames, navcam_products, read_label
 
 FIXTURES = Path(__file__).parent / "fixtures"
 LABEL = FIXTURES / "HNM_0152_0680432615_348FDR_N0100001HELI03026_0000LUJ05.xml"
 
 
-def test_flight_paths_load_in_the_site_frame():
-    paths = load_flight_paths(FIXTURES / "m20_heli_flight_path.json")
+def test_flights_load_with_their_sol_and_a_site_frame_track():
+    flights = load_flights(FIXTURES / "m20_heli_flight_path.json")
 
-    assert sorted(paths) == [9, 10]
+    assert sorted(flights) == [9, 10]
+    assert flights[10].sol == 152
     # Flight 10 took off where flight 9 landed: NASA's waypoint file gives
     # that spot (flight 9's landing) as Easting 4354187.8, Northing 1092319.7.
     waypoints = json.loads((FIXTURES / "m20_heli_waypoints.json").read_text())["features"]
     flight_9_end = next(f["properties"] for f in waypoints if f["properties"]["Flight"] == 9)
-    x, y = paths[10][0]
+    x, y = flights[10].path[0]
     assert x == pytest.approx(flight_9_end["Easting"], abs=1.0)
     assert y == pytest.approx(flight_9_end["Northing"], abs=1.0)
 
@@ -50,7 +51,7 @@ def test_navcam_products_are_the_full_frames_of_one_sol():
 def test_a_label_gives_flight_altitude_and_clock():
     frame = read_label(LABEL.read_text())
 
-    # Label: HELI_G_FRAME_10, helicopter at z = -12.278 m (z points down).
+    # Label: HELI_G_FRAME_10, the drone at z = -12.278 m (z points down).
     assert frame.flight == 10
     assert frame.altitude_m == pytest.approx(12.278, abs=0.001)
     assert frame.sclk == pytest.approx(680432615.348227)
@@ -78,3 +79,16 @@ def test_choose_frames_takes_all_cruise_frames_when_there_are_few():
     picked = choose_frames(frames, count=10, min_altitude_ratio=0.8)
 
     assert [f.file_stem for f in picked] == ["F01", "F02"]
+
+
+def test_choose_frames_takes_the_middle_cruise_frame_when_asked_for_one():
+    frames = [_frame(i, alt) for i, alt in enumerate([1, 12, 12, 12, 1])]
+
+    picked = choose_frames(frames, count=1, min_altitude_ratio=0.8)
+
+    assert [f.file_stem for f in picked] == ["F02"]
+
+
+def test_choose_frames_refuses_an_empty_flight():
+    with pytest.raises(ValueError, match="no Navcam frames"):
+        choose_frames([], count=10, min_altitude_ratio=0.8)

@@ -27,7 +27,7 @@ class NavcamFrame:
 
     file_stem: str
     flight: int
-    altitude_m: float  # Ingenuity's own estimate, height above take-off
+    altitude_m: float  # the drone's own estimate, height above take-off
     sclk: float  # spacecraft clock at the exposure, seconds
     lines: int
     samples: int
@@ -54,7 +54,7 @@ def _first(pattern: str, text: str) -> str:
 def read_label(xml: str) -> NavcamFrame:
     """Parse a Navcam frame's PDS4 label.
 
-    The helicopter's in-flight pose is the HELI_M_FRAME's offset from the
+    The drone's in-flight pose is the HELI_M_FRAME's offset from the
     flight's HELI_G_FRAME (take-off point, z down).
     """
     flight = int(_first(r"<local_identifier>HELI_G_FRAME_(\d+)</local_identifier>", xml))
@@ -82,11 +82,15 @@ def choose_frames(
     Cruise frames are those at least `min_altitude_ratio` of the flight's
     highest frame; take-off and landing frames see too little ground.
     """
+    if not frames:
+        raise ValueError("no Navcam frames for this flight")
     ceiling = max(f.altitude_m for f in frames)
     cruise = sorted(
         (f for f in frames if f.altitude_m >= min_altitude_ratio * ceiling), key=lambda f: f.sclk
     )
     if len(cruise) <= count:
         return cruise
+    if count == 1:
+        return [cruise[len(cruise) // 2]]
     step = (len(cruise) - 1) / (count - 1)
     return [cruise[round(i * step)] for i in range(count)]

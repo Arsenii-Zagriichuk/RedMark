@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 
 from prep.jezero.crop import Bounds
-from prep.jezero.frame import SITE_PROJ
+from prep.jezero.site_frame import SITE_PROJ
 
 
 def site_config(crops: dict[int, Bounds], files: dict[str, str]) -> dict:
@@ -57,9 +57,16 @@ def manifest_entry(
     return entry
 
 
-def merge_manifest(manifest: dict, entries: list[dict]) -> dict:
-    """Put `entries` into `manifest`, replacing any entry with the same path."""
-    by_path = {f["path"]: f for f in manifest.get("files") or []}
+def merge_manifest(manifest: dict, entries: list[dict], replace_prefix: str) -> dict:
+    """Put `entries` into `manifest` in place of every entry under `replace_prefix`.
+
+    Entries from other folders stay; entries a rebuild no longer writes go.
+    """
+    by_path = {
+        f["path"]: f
+        for f in manifest.get("files") or []
+        if not f["path"].startswith(replace_prefix)
+    }
     by_path.update({e["path"]: e for e in entries})
     return {"files": sorted(by_path.values(), key=lambda f: f["path"])}
 

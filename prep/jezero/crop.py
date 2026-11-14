@@ -8,7 +8,7 @@ from rasterio.transform import from_origin
 from rasterio.warp import Resampling, reproject, transform_bounds
 from rasterio.windows import from_bounds
 
-from prep.jezero.frame import SITE_PROJ
+from prep.jezero.site_frame import SITE_PROJ
 
 Bounds = tuple[float, float, float, float]  # min_x, min_y, max_x, max_y
 RESOLUTION = 0.25  # metres, the photo map's own scale
