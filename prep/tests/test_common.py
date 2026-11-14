@@ -6,7 +6,13 @@ import pytest
 import yaml
 
 from contracts.models.data_manifest import DataManifest
-from prep.common import manifest_entry, merge_manifest, update_manifest, written_atomically
+from prep.common import (
+    download,
+    manifest_entry,
+    merge_manifest,
+    update_manifest,
+    written_atomically,
+)
 
 # The SHA-256 of "abc", from FIPS 180-2's worked example.
 SHA256_ABC = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
@@ -106,3 +112,16 @@ def test_a_finished_write_appears_at_its_path(tmp_path: Path):
 
     assert out.read_bytes() == b"whole"
     assert list(out.parent.iterdir()) == [out]
+
+
+def test_a_download_is_fetched_once_and_then_reused(tmp_path: Path):
+    source = tmp_path / "published.csv"
+    source.write_bytes(b"sol,target\n")
+    dest = tmp_path / "data" / "copy.csv"
+
+    download(source.as_uri(), dest)
+    source.write_bytes(b"changed")
+    download(source.as_uri(), dest)
+
+    assert dest.read_bytes() == b"sol,target\n"
+    assert list(dest.parent.iterdir()) == [dest]

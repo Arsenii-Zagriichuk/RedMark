@@ -90,3 +90,51 @@ def test_bounds_past_the_edge_of_the_source_are_refused(tmp_path: Path):
             source, (990.0, 1980.0, 1030.0, 1995.0), tmp_path / "c.tif", SITE_PROJ, "test source"
         )
     assert not (tmp_path / "c.tif").exists()
+
+
+def test_a_moved_crop_puts_a_known_pixel_at_its_moved_place(tmp_path: Path):
+    # A source mislocated by 3 m west and 2 m north: moving it 3 m east and
+    # 2 m south puts the marked pixel's centre at (1024.0, 1987.5).
+    source = _source(tmp_path / "source.tif")
+    out = tmp_path / "crop.tif"
+
+    covered = crop_on_source_grid(
+        source,
+        (1010.0, 1980.0, 1030.0, 1995.0),
+        out,
+        SITE_PROJ,
+        "test source",
+        move_m=(3.0, -2.0),
+    )
+
+    with rasterio.open(out) as crop:
+        row, col = crop.index(1024.0, 1987.5)
+        assert crop.read(1)[row, col] == MARKER
+        assert crop.xy(row, col) == (1024.0, 1987.5)
+    # Still the asked bounds, overshooting by under a pixel a side.
+    assert covered == (1009.5, 1980.0, 1030.5, 1995.0)
+
+
+def test_every_band_and_its_name_is_kept(tmp_path: Path):
+    source = tmp_path / "cube.tif"
+    with rasterio.open(
+        source,
+        "w",
+        driver="GTiff",
+        width=10,
+        height=10,
+        count=2,
+        dtype="float32",
+        crs=CRS.from_proj4(SITE_PROJ),
+        transform=from_origin(0.0, 10.0, 1.0, 1.0),
+    ) as dst:
+        dst.write(np.full((2, 10, 10), [[[1.0]], [[2.0]]], dtype=np.float32))
+        dst.descriptions = ("R770", "BD1900R2")
+    out = tmp_path / "crop.tif"
+
+    crop_on_source_grid(source, (2.0, 2.0, 6.0, 6.0), out, SITE_PROJ, "cube")
+
+    with rasterio.open(out) as crop:
+        assert crop.count == 2
+        assert crop.descriptions == ("R770", "BD1900R2")
+        assert crop.read(2).min() == 2.0

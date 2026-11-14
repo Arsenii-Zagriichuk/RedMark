@@ -14,6 +14,7 @@ import pytest
 from contracts.models.site import SiteConfig
 from prep.gale.pack import (
     PixelGrid,
+    best_move,
     best_shift,
     compare_heights,
     fit_pixel_grid,
@@ -134,6 +135,28 @@ def test_the_shift_that_best_lines_a_coarse_layer_up_with_a_fine_one_is_found():
     assert found["shift_px"] == (-2, 3)
     assert found["r"] == pytest.approx(1.0)
     assert found["r_unshifted"] < 0.5
+
+
+def test_the_move_that_lines_a_coarse_layer_up_is_found_in_metres():
+    # A 6 m image with its top-left corner at (0, 0), and an 18 m layer made by
+    # averaging it in 3 x 3 blocks from fine column 18, row 23: its true corner
+    # is at (108, -138). The layer's own grid claims (122.4, -120), off the
+    # fine grid by 0.4 of a pixel, so it must move 14.4 m west and 18 m south.
+    rng = np.random.default_rng(1)
+    fine = rng.normal(size=(150, 150))
+    coarse = fine[23 : 23 + 3 * 30, 18 : 18 + 3 * 30].reshape(30, 3, 30, 3).mean(axis=(1, 3))
+
+    found = best_move(
+        coarse,
+        PixelGrid(left=122.4, top=-120.0, res=18.0),
+        fine,
+        PixelGrid(left=0.0, top=0.0, res=6.0),
+        search_m=30.0,
+    )
+
+    assert found["move_m"] == pytest.approx([-14.4, -18.0])
+    assert found["r"] == pytest.approx(1.0)
+    assert found["r_unmoved"] < 0.5
 
 
 def test_terrain_heights_at_curiosity_agree_with_places_elevations():

@@ -21,6 +21,8 @@ files:
   photo_map: gale/crops/photo-map-25cm.tif
   terrain: gale/crops/terrain-1m.tif
   thermal_inertia: gale/crops/thermal-inertia-100m.tif
+  crism: gale/crops/crism-summary-18m.tif
+  chemistry: gale/crops/chemistry-apxs.csv
   rover_positions: gale/crops/rover-positions.csv
   base_map: gale/layers/base
 replayed_sol: 4600

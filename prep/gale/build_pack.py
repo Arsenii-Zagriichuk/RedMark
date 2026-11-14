@@ -6,19 +6,26 @@ Reads, from $REDMARK_DATA (file names as published):
   MSL_Gale_Orthophoto_Mosaic_25cm_v3.tif      the 25 cm photo map (the base map)
   MSL_Gale_DEM_Mosaic_1m_v3.tif               the 1 m terrain
   THEMIS_TI_Mosaic_Quant_30S120E_100mpp.cub   THEMIS thermal inertia, 100 m
-  places/localized_pos.csv                    Curiosity's positions (PLACES)
+  places/localized_pos.csv                    Curiosity's localised positions (PLACES)
+and downloads once, if missing:
+  gale/source/crism/frt0000b6f1_07_sr165j_mtr3.img, .hdr
+                                              CRISM summary parameters, 18 m
+  gale/source/apxs/msl_apxs_concentrations_*.csv
+                                              Curiosity's APXS chemistry, sols 4489 to 4843
+  places/localized_interp.csv                 Curiosity's position at every drive (PLACES)
 and writes, under $REDMARK_DATA/gale/crops/:
-  photo-map-25cm.tif, terrain-1m.tif, thermal-inertia-100m.tif
+  photo-map-25cm.tif, terrain-1m.tif, thermal-inertia-100m.tif, crism-summary-18m.tif
                         each source cut to the walk area plus a margin, on its own grid
-  rover-positions.csv   Curiosity's positions inside the crops
+  rover-positions.csv   Curiosity's localised positions inside the crops
+  chemistry-apxs.csv    APXS measurements inside the crops, at the rover's position
   overlays/*.png        one overlay per source on the base map, to check by eye
-  pack.json             crop bounds, frame check and provenance
+  pack.json             crop bounds, frame check, offsets and provenance
 and, in the repo, sites/gale.yaml, the Gale entries in prep/data-manifest.yaml
 and copies of the overlays in prep/gale/evidence/.
 
 Walk area and margins come from prep/gale/walk_area.yaml, so a new walk area is
-a rerun, not a code change. CRISM and Curiosity chemistry join in a later pull
-request, once downloaded.
+a rerun, not a code change. Only the crops are read once they exist, so a rerun
+does not need the 50 GB photo map.
 """
 
 import csv
@@ -32,20 +39,24 @@ from pathlib import Path
 import matplotlib
 import numpy as np
 import rasterio
+import truststore
 import yaml
 from rasterio.enums import Resampling
+from rasterio.windows import Window, from_bounds
 
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
-from prep.common import Bounds, manifest_entry, sha256, update_manifest
+from prep.common import Bounds, download, manifest_entry, sha256, update_manifest
 from prep.gale.crop import crop_is_current, crop_on_source_grid
 from prep.gale.pack import (
     PixelGrid,
-    best_shift,
+    apxs_points,
+    best_move,
     compare_heights,
     grow,
     offset_in_pixels,
     places_grids,
+    rover_poses,
     rover_positions,
     site_config,
     walk_area,
@@ -90,10 +101,41 @@ SOURCES = {
         "Center; THEMIS: NASA/JPL-Caltech/Arizona State University",
     },
 }
+PLACES_INTERP = "places/localized_interp.csv"
+PLACES_INTERP_URL = (
+    "https://planetarydata.jpl.nasa.gov/img/data/msl/msl_places/data_localizations/"
+    "localized_interp.csv"
+)
+PLACES_CREDIT = "MSL PLACES localization archive, NASA/JPL-Caltech, PDS Imaging Node."
+# The one CRISM targeted cube covering the whole crop (FRT0000B6F1, 9 Jul 2008,
+# 18 m), found with the PDS ODE footprint search. Its refined summary
+# parameters are the per-pixel mineral indices; P2-03 picks the highlights.
+CRISM_URL = (
+    "https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/"
+    "mtrdr/2008/2008_191/frt0000b6f1/"
+)
+CRISM = {
+    "file": "gale/source/crism/frt0000b6f1_07_sr165j_mtr3.img",
+    # The ENVI header places the cube; GDAL reads it next to the .img.
+    "header": "gale/source/crism/frt0000b6f1_07_sr165j_mtr3.hdr",
+    "crop": "gale/crops/crism-summary-18m.tif",
+    "name": "CRISM MTRDR refined spectral summary parameters, FRT0000B6F1, 18 m",
+    "credit": "CRISM Map-projected Targeted Reduced Data Records (MTRDR), "
+    "MRO-M-CRISM-5-RDR-MPTARGETED-V1.0: NASA/JPL-Caltech/JHU-APL, PDS Geosciences Node",
+}
+APXS_URL = "https://pds-geosciences.wustl.edu/msl/msl-m-apxs-4_5-rdr-v1/mslapx_1xxx/extras/"
+# The tables covering Curiosity's boxwork drive (sols 4500 to 4865).
+APXS_TABLES = [
+    "msl_apxs_concentrations_4489_4612.csv",
+    "msl_apxs_concentrations_4613_4709.csv",
+    "msl_apxs_concentrations_4710_4843.csv",
+]
+APXS_DIR = "gale/source/apxs"
+APXS_CREDIT = "MSL APXS RDR (MSL-M-APXS-4/5-RDR-V1.0), NASA/JPL-Caltech, PDS Geosciences Node"
 OUT = "gale/crops"
 # The data-manifest entries this pack owns: its own folder and its sources at the
 # data root. A rebuild replaces them all, so a source it stops using drops out.
-MANIFEST_OWNED = ("gale/", "MSL_Gale_", "THEMIS_TI_", PLACES)
+MANIFEST_OWNED = ("gale/", "MSL_Gale_", "THEMIS_TI_", PLACES, PLACES_INTERP)
 EVIDENCE = REPO_ROOT / "prep" / "gale" / "evidence"
 OVERLAY_PX = 2000  # long side of the downsampled base map in each overlay
 ZOOM_HALF_M = 300  # half-width of the full-detail zoom panels
@@ -104,11 +146,20 @@ HEIGHT_SHARE = 0.9
 # The THEMIS offset search: every 25 m shift up to 300 m (three THEMIS pixels) each way.
 OFFSET_STEP_M = 25.0
 OFFSET_SEARCH_M = 300.0
+# The CRISM offset search: CRISM's 770 nm reflectance against the photo map's
+# brightness at 6 m, every move up to 300 m each way. CRISM's pointing is not
+# tied to HiRISE, so the best move is applied when the match is clear, r of
+# 0.6 or more; THEMIS's best is |r| 0.34 and stays unapplied.
+CRISM_STEP_M = 6.0
+CRISM_SEARCH_M = 300.0
+CRISM_MIN_R = 0.6
 
 
 def main() -> None:
     if not os.environ.get("REDMARK_DATA"):
         sys.exit("set REDMARK_DATA to the shared data folder; the pack never goes in the stub data")
+    # Verify HTTPS with the system's certificates, as the Jezero pack does.
+    truststore.inject_into_ssl()
     build(data_root())
 
 
@@ -120,7 +171,18 @@ def build(root: Path) -> None:
     asked = grow(walk, spec["crop_margin_m"])
     out = root / OUT
 
-    checksums = _source_checksums(root, [s["file"] for s in SOURCES.values()] + [PLACES])
+    for name in ("file", "header"):
+        download(CRISM_URL + Path(CRISM[name]).name, root / CRISM[name])
+    for table in APXS_TABLES:
+        download(APXS_URL + table, root / APXS_DIR / table)
+    download(PLACES_INTERP_URL, root / PLACES_INTERP)
+    apxs = [f"{APXS_DIR}/{t}" for t in APXS_TABLES]
+    checksums = _source_checksums(
+        root,
+        [s["file"] for s in SOURCES.values()]
+        + [PLACES, PLACES_INTERP, CRISM["file"], CRISM["header"]]
+        + apxs,
+    )
     crops: dict[str, dict] = {}
     for key, source in SOURCES.items():
         crop = root / source["crop"]
@@ -135,6 +197,30 @@ def build(root: Path) -> None:
             res = src.res[0]
         crops[key] = {"path": source["crop"], "bounds": list(covered), "res_m": res}
         print(f"{key}: {source['crop']} covers {covered} at {res:g} m")
+
+    crism_offset = _crism_offset(root, crops, asked)
+    print(f"CRISM offset: {json.dumps(crism_offset)}")
+    move = crism_offset["move_m"] if crism_offset["applied"] else [0.0, 0.0]
+    crism = root / CRISM["crop"]
+    source_id = f"{CRISM['file']} sha256:{checksums[CRISM['file']]} bounds:{asked} move:{move}"
+    if not crop_is_current(crism, source_id):
+        print(f"cropping {CRISM['file']}")
+        crop_on_source_grid(root / CRISM["file"], asked, crism, PROJECTION, source_id, tuple(move))
+    with rasterio.open(crism) as src:
+        crops["crism"] = {
+            "path": CRISM["crop"],
+            "bounds": list(src.bounds),
+            "res_m": src.res[0],
+            "bands": list(src.descriptions),
+        }
+    print(f"crism: {CRISM['crop']} covers {crops['crism']['bounds']}, moved {move} m")
+
+    chemistry = apxs_points([root / t for t in apxs], rover_poses(root / PLACES_INTERP), asked)
+    with (out / "chemistry-apxs.csv").open("w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(chemistry[0]))
+        writer.writeheader()
+        writer.writerows(chemistry)
+    print(f"APXS measurements in the crops: {len(chemistry)}")
 
     positions = rover_positions(root / PLACES, asked)
     with (out / "rover-positions.csv").open("w", newline="") as f:
@@ -153,6 +239,8 @@ def build(root: Path) -> None:
     _photo_map_overlay(root, crops, walk, habitat, base_camp, positions, frame_check, overlays)
     _terrain_overlay(root, crops, walk, habitat, overlays)
     _thermal_inertia_overlay(root, crops, walk, habitat, ti_offset, overlays)
+    _crism_overlay(root, crops, walk, habitat, crism_offset, overlays)
+    _chemistry_overlay(root, crops, walk, habitat, positions, chemistry, overlays)
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     for png in sorted(overlays.glob("*.png")):
         shutil.copy(png, EVIDENCE / png.name)
@@ -164,8 +252,15 @@ def build(root: Path) -> None:
         "base_camp": list(base_camp),
         "crops": crops,
         "rover_positions": f"{OUT}/rover-positions.csv",
+        "chemistry": {
+            "path": f"{OUT}/chemistry-apxs.csv",
+            "count": len(chemistry),
+            "position": "the rover's PLACES position at the measurement's site and drive; "
+            "APXS is on the arm, so the target is within about 2 m",
+        },
         "frame_check": frame_check,
         "thermal_inertia_offset": ti_offset,
+        "crism_offset": crism_offset,
         "provenance": {
             "script": "prep/gale/build_pack.py",
             "commit": _git_commit(),
@@ -207,8 +302,9 @@ def _frame_check(root: Path, crops: dict, positions: list[dict]) -> dict:
     result["passed"] &= (
         abs(heights["median_m"]) < HEIGHT_WITHIN_M and heights["share_within"] >= HEIGHT_SHARE
     )
+    # A crop is a whole-pixel window on its source's grid, so it has that grid.
     for kind, key in (("map", "photo_map"), ("dem", "terrain")):
-        with rasterio.open(root / SOURCES[key]["file"]) as src:
+        with rasterio.open(root / crops[key]["path"]) as src:
             ours = PixelGrid(src.bounds.left, src.bounds.top, src.res[0])
         col, row = offset_in_pixels(fitted[kind], on=ours)
         off_grid_m = max(abs(col - round(col)), abs(row - round(row))) * ours.res
@@ -238,31 +334,30 @@ def _thermal_inertia_offset(root: Path, crops: dict) -> dict:
         ("photo_brightness", brightness, photo_grid),
         ("slope", np.degrees(np.arctan(np.hypot(dx, dy))), terrain_grid),
     ):
-        col, row = offset_in_pixels(PixelGrid(ti_grid.left, ti_grid.top, grid.res), on=grid)
-        found = best_shift(
-            ti,
-            fine,
-            factor=round(ti_grid.res / grid.res),
-            origin_px=(round(col), round(row)),
-            search_px=round(OFFSET_SEARCH_M / OFFSET_STEP_M),
-        )
-        d_col, d_row = found["shift_px"]
+        found = best_move(ti, ti_grid, fine, grid, OFFSET_SEARCH_M)
         result[name] = {
             # Move THEMIS east by x and north by y (metres) to line up best.
-            "best_move_m": [d_col * OFFSET_STEP_M, -d_row * OFFSET_STEP_M],
+            "best_move_m": found["move_m"],
             "r_best": round(found["r"], 3),
-            "r_unmoved": round(found["r_unshifted"], 3),
+            "r_unmoved": round(found["r_unmoved"], 3),
         }
     return result
 
 
 def _read_at(path: Path, res_m: float) -> tuple[np.ndarray, PixelGrid]:
-    """A crop averaged to `res_m` pixels, with NaN for no data, and its grid."""
+    """A crop averaged to `res_m` pixels, with NaN for no data, and its grid.
+
+    `res_m` must be a whole number of the crop's pixels; only whole blocks are
+    read, so each averaged pixel is exactly `res_m` wide.
+    """
     with rasterio.open(path) as src:
-        factor = res_m / src.res[0]
-        shape = (round(src.height / factor), round(src.width / factor))
-        data = src.read(1, out_shape=shape, resampling=Resampling.average, masked=True)
-        grid = PixelGrid(src.bounds.left, src.bounds.top, src.width * src.res[0] / shape[1])
+        factor = round(res_m / src.res[0])
+        shape = (src.height // factor, src.width // factor)
+        window = Window(0, 0, shape[1] * factor, shape[0] * factor)
+        data = src.read(
+            1, window=window, out_shape=shape, resampling=Resampling.average, masked=True
+        )
+        grid = PixelGrid(src.bounds.left, src.bounds.top, factor * src.res[0])
     data = data.astype(np.float64)
     if src.dtypes[0] == "uint8":  # the photo map's 0 is no data
         data = np.ma.masked_equal(data, 0)
@@ -372,6 +467,124 @@ def _thermal_inertia_overlay(root, crops, walk, habitat, offset, folder) -> None
     _save(fig, folder / "thermal-inertia.png")
 
 
+def _crism_offset(root: Path, crops: dict, asked: Bounds) -> dict:
+    """How far CRISM must move to line up with the base map, and whether to move it.
+
+    CRISM's 770 nm reflectance (R770) and the photo map's brightness both
+    show albedo, so they correlate where the two line up. Every move in
+    CRISM_STEP_M steps up to CRISM_SEARCH_M is tried from where CRISM's ENVI
+    header places the cube. (Its PDS3 label, read by GDAL's PDS driver, puts
+    the cube one pixel further west and north; the measured move corrects
+    either.)
+    """
+    with rasterio.open(root / CRISM["file"]) as src:
+        window = from_bounds(*asked, transform=src.transform).round_offsets().round_lengths()
+        band = src.descriptions.index("R770") + 1
+        r770 = src.read(band, window=window, masked=True).astype(np.float64).filled(np.nan)
+        transform = src.window_transform(window)
+        grid = PixelGrid(transform.c, transform.f, src.res[0])
+    r770[np.abs(r770) > 1e3] = np.nan  # fill values other than the header's no-data
+    brightness, photo_grid = _read_at(root / crops["photo_map"]["path"], CRISM_STEP_M)
+    found = best_move(r770, grid, brightness, photo_grid, CRISM_SEARCH_M)
+    return {
+        "compared": "CRISM R770 against the photo map's brightness",
+        "search_m": CRISM_SEARCH_M,
+        "step_m": CRISM_STEP_M,
+        # Move CRISM east by x and north by y (metres) to line up best.
+        "move_m": found["move_m"],
+        "r_best": round(found["r"], 3),
+        "r_unmoved": round(found["r_unmoved"], 3),
+        "applied": found["r"] >= CRISM_MIN_R,
+    }
+
+
+def _crism_overlay(root, crops, walk, habitat, offset, folder) -> None:
+    """R770 on the base map: the whole crop moved, and at the habitat before and after."""
+    image, extent = _read_small(root / crops["photo_map"]["path"])
+    with rasterio.open(root / crops["crism"]["path"]) as src:
+        r770 = src.read(src.descriptions.index("R770") + 1, masked=True)
+        b = src.bounds
+    r770 = r770.astype(np.float32).filled(np.nan)
+    r770[np.abs(r770) > 1e3] = np.nan
+    moved = (b.left, b.right, b.bottom, b.top)
+    east, north = offset["move_m"] if offset["applied"] else (0.0, 0.0)
+    unmoved = (b.left - east, b.right - east, b.bottom - north, b.top - north)
+    low, high = np.nanpercentile(r770, [2, 98])
+    fig, axes = plt.subplots(1, 3, figsize=(30, 10.5), gridspec_kw={"wspace": 0.12})
+    x, y = habitat
+    box = (x - 2 * ZOOM_HALF_M, y - 2 * ZOOM_HALF_M, x + 2 * ZOOM_HALF_M, y + 2 * ZOOM_HALF_M)
+    detail, d_extent = _read_window(root / crops["photo_map"]["path"], box)
+    for ax, layer_extent, title in (
+        (axes[0], moved, f"CRISM R770 (45%) on the base map, moved {[east, north]} m"),
+        (axes[1], unmoved, "At the habitat, as published (ENVI header)"),
+        (axes[2], moved, f"At the habitat, moved {[east, north]} m: bright and dark should match"),
+    ):
+        if ax is axes[0]:
+            _show_gray(ax, image, extent)
+            _walk_area_patches(ax, walk, habitat)
+        else:
+            _show_gray(ax, detail, d_extent)
+            ax.set_xlim(d_extent[0], d_extent[1])
+            ax.set_ylim(d_extent[2], d_extent[3])
+        ax.imshow(
+            r770,
+            cmap="viridis",
+            vmin=low,
+            vmax=high,
+            extent=layer_extent,
+            alpha=0.45,
+            interpolation="nearest",
+        )
+        ax.plot(*habitat, "*", c="cyan", ms=16, mec="black")
+        ax.set_title(title, fontsize=10)
+    fig.suptitle(
+        f"CRISM FRT0000B6F1, 18 m. Best move by correlation with the photo map: "
+        f"{offset['move_m']} m, r {offset['r_unmoved']} unmoved to {offset['r_best']} "
+        f"({'applied' if offset['applied'] else 'not applied'})",
+        fontsize=12,
+    )
+    _save(fig, folder / "crism.png")
+
+
+def _chemistry_overlay(root, crops, walk, habitat, positions, chemistry, folder) -> None:
+    """Curiosity's APXS measurements on the base map, coloured by sulphate (SO3)."""
+    image, extent = _read_small(root / crops["photo_map"]["path"])
+    fig, (wide, zoom) = plt.subplots(1, 2, figsize=(22, 11), gridspec_kw={"wspace": 0.12})
+    xs, ys = [p["x"] for p in chemistry], [p["y"] for p in chemistry]
+    so3 = [p["SO3"] for p in chemistry]
+    low, high = np.percentile(so3, [2, 98])  # so one high reading does not wash out the rest
+    pad = 60.0
+    box = (min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
+    detail, d_extent = _read_window(root / crops["photo_map"]["path"], box)
+    _show_gray(wide, image, extent)
+    _walk_area_patches(wide, walk, habitat)
+    _show_gray(zoom, detail, d_extent)
+    for ax in (wide, zoom):
+        ax.plot([p["x"] for p in positions], [p["y"] for p in positions], "-", c="red", lw=1)
+        shown = ax.scatter(
+            xs, ys, c=so3, cmap="plasma", vmin=low, vmax=high, s=40, edgecolors="black", zorder=3
+        )
+        ax.plot(*habitat, "*", c="cyan", ms=16, mec="black")
+    zoom.set_xlim(d_extent[0], d_extent[1])
+    zoom.set_ylim(d_extent[2], d_extent[3])
+    for p in chemistry[:: max(1, len(chemistry) // 15)]:
+        zoom.annotate(
+            f"{p['target']} (sol {p['sol']})",
+            (p["x"], p["y"]),
+            fontsize=7,
+            color="white",
+            xytext=(5, 5),
+            textcoords="offset points",
+        )
+    fig.colorbar(shown, ax=[wide, zoom], shrink=0.7, extend="both", label="SO3 (wt%)")
+    wide.set_title(
+        f"{len(chemistry)} APXS measurements (sols {chemistry[0]['sol']} to "
+        f"{chemistry[-1]['sol']}) at the rover's PLACES position, on the base map"
+    )
+    zoom.set_title("Along the track: each point within about 2 m of its target (arm reach)")
+    _save(fig, folder / "chemistry.png")
+
+
 def _read_small(path: Path, float_data: bool = False) -> tuple[np.ndarray, tuple]:
     with rasterio.open(path) as src:
         scale = max(src.width, src.height) / OVERLAY_PX
@@ -440,6 +653,8 @@ def _write_site_config(spec: dict, habitat, base_camp) -> None:
     # The replayed sol is Person 4's: keep whatever the config holds.
     current = yaml.safe_load(path.read_text())
     files = {key: source["crop"] for key, source in SOURCES.items()} | {
+        "crism": CRISM["crop"],
+        "chemistry": f"{OUT}/chemistry-apxs.csv",
         "rover_positions": f"{OUT}/rover-positions.csv",
         "base_map": "gale/layers/base",
     }
@@ -478,9 +693,39 @@ def _write_manifest(root: Path, checksums: dict[str, str]) -> None:
             PLACES,
             name="MSL PLACES rover localizations (localized_pos.csv)",
             source_url=PLACES_URL,
-            credit="MSL PLACES localization archive, NASA/JPL-Caltech, PDS Imaging Node.",
+            credit=PLACES_CREDIT,
             checksum=checksums[PLACES],
+        ),
+        manifest_entry(
+            root,
+            PLACES_INTERP,
+            name="MSL PLACES rover positions at every drive (localized_interp.csv)",
+            source_url=PLACES_INTERP_URL,
+            credit=PLACES_CREDIT,
+            checksum=checksums[PLACES_INTERP],
+        ),
+    ]
+    entries += [
+        manifest_entry(
+            root,
+            CRISM[name],
+            name=CRISM["name"] + label,
+            source_url=CRISM_URL + Path(CRISM[name]).name,
+            credit=CRISM["credit"],
+            checksum=checksums[CRISM[name]],
         )
+        for name, label in (("file", ""), ("header", " (ENVI header)"))
+    ]
+    entries += [
+        manifest_entry(
+            root,
+            f"{APXS_DIR}/{table}",
+            name=f"MSL APXS concentrations, sols {table[24:28]} to {table[29:33]}",
+            source_url=APXS_URL + table,
+            credit=APXS_CREDIT,
+            checksum=checksums[f"{APXS_DIR}/{table}"],
+        )
+        for table in APXS_TABLES
     ]
     update_manifest(entries, owned=MANIFEST_OWNED)
 

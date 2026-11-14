@@ -1,6 +1,7 @@
 """Helpers every prep pack shares: checksums, the data manifest and crop files."""
 
 import hashlib
+import urllib.request
 import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -16,6 +17,7 @@ Bounds = tuple[float, float, float, float]  # min_x, min_y, max_x, max_y
 # GeoTIFF tag naming the source version a crop was cut from, so a rerun can skip it.
 SOURCE_TAG = "REDMARK_SOURCE"
 MANIFEST = REPO_ROOT / "prep" / "data-manifest.yaml"
+USER_AGENT = "redmark-prep/0.1"
 
 
 def sha256(path: Path) -> str:
@@ -94,3 +96,15 @@ def source_tag(raster: Path) -> str | None:
         return None
     with rasterio.open(raster) as src:
         return src.tags().get(SOURCE_TAG)
+
+
+def download(url: str, dest: Path) -> Path:
+    """Fetch `url` to `dest` once; later runs reuse the file."""
+    if dest.exists() and dest.stat().st_size > 0:
+        return dest
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    with urllib.request.urlopen(request, timeout=600) as response, written_atomically(dest) as part:
+        with part.open("wb") as f:
+            while block := response.read(1 << 20):
+                f.write(block)
+    return dest

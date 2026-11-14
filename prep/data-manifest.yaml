@@ -25,6 +25,46 @@ files:
   checksum_algorithm: sha256
   credit: 'THEMIS quantitative thermal inertia mosaic: USGS Astrogeology Science Center;
     THEMIS: NASA/JPL-Caltech/Arizona State University'
+- name: MSL APXS concentrations, sols 4489 to 4612
+  path: gale/source/apxs/msl_apxs_concentrations_4489_4612.csv
+  size_bytes: 18155
+  source_url: https://pds-geosciences.wustl.edu/msl/msl-m-apxs-4_5-rdr-v1/mslapx_1xxx/extras/msl_apxs_concentrations_4489_4612.csv
+  checksum: 08b1260c6189b010356eb989c919da499053fc9c8e5cbf6cd2e9f6a902acc79f
+  checksum_algorithm: sha256
+  credit: MSL APXS RDR (MSL-M-APXS-4/5-RDR-V1.0), NASA/JPL-Caltech, PDS Geosciences
+    Node
+- name: MSL APXS concentrations, sols 4613 to 4709
+  path: gale/source/apxs/msl_apxs_concentrations_4613_4709.csv
+  size_bytes: 16007
+  source_url: https://pds-geosciences.wustl.edu/msl/msl-m-apxs-4_5-rdr-v1/mslapx_1xxx/extras/msl_apxs_concentrations_4613_4709.csv
+  checksum: c0ebd3c2a832162a8d661c3543d1107edd926fe02e584c1bcb3a874876eb9e1f
+  checksum_algorithm: sha256
+  credit: MSL APXS RDR (MSL-M-APXS-4/5-RDR-V1.0), NASA/JPL-Caltech, PDS Geosciences
+    Node
+- name: MSL APXS concentrations, sols 4710 to 4843
+  path: gale/source/apxs/msl_apxs_concentrations_4710_4843.csv
+  size_bytes: 12110
+  source_url: https://pds-geosciences.wustl.edu/msl/msl-m-apxs-4_5-rdr-v1/mslapx_1xxx/extras/msl_apxs_concentrations_4710_4843.csv
+  checksum: c0d42310c9599a174d79916742054f3b5c72a0622a0e9aaba5a21efb540a221e
+  checksum_algorithm: sha256
+  credit: MSL APXS RDR (MSL-M-APXS-4/5-RDR-V1.0), NASA/JPL-Caltech, PDS Geosciences
+    Node
+- name: CRISM MTRDR refined spectral summary parameters, FRT0000B6F1, 18 m (ENVI header)
+  path: gale/source/crism/frt0000b6f1_07_sr165j_mtr3.hdr
+  size_bytes: 1789
+  source_url: https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2008/2008_191/frt0000b6f1/frt0000b6f1_07_sr165j_mtr3.hdr
+  checksum: cda1b7d6a0be75800625fb97e4fec9772adda07facd61cde309b75a835a22ba8
+  checksum_algorithm: sha256
+  credit: 'CRISM Map-projected Targeted Reduced Data Records (MTRDR), MRO-M-CRISM-5-RDR-MPTARGETED-V1.0:
+    NASA/JPL-Caltech/JHU-APL, PDS Geosciences Node'
+- name: CRISM MTRDR refined spectral summary parameters, FRT0000B6F1, 18 m
+  path: gale/source/crism/frt0000b6f1_07_sr165j_mtr3.img
+  size_bytes: 132804000
+  source_url: https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2008/2008_191/frt0000b6f1/frt0000b6f1_07_sr165j_mtr3.img
+  checksum: 8c844a48e7f6257775830f4feb970e88330c569cf14c140fc368e52526cdd708
+  checksum_algorithm: sha256
+  credit: 'CRISM Map-projected Targeted Reduced Data Records (MTRDR), MRO-M-CRISM-5-RDR-MPTARGETED-V1.0:
+    NASA/JPL-Caltech/JHU-APL, PDS Geosciences Node'
 - name: Jezero HiRISE photo map, 25 cm
   path: jezero/source/JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first.tif
   size_bytes: 7358523457
@@ -622,6 +662,13 @@ files:
   checksum: 457b536b6851259d2dfd1ee75c076ca95f4ad7f5f1cbd49c880564c3cf5d787b
   checksum_algorithm: sha256
   credit: NASA/JPL-Caltech
+- name: MSL PLACES rover positions at every drive (localized_interp.csv)
+  path: places/localized_interp.csv
+  size_bytes: 11755643
+  source_url: https://planetarydata.jpl.nasa.gov/img/data/msl/msl_places/data_localizations/localized_interp.csv
+  checksum: 09d4474e64aec6e788efdb4ec24a906f487fe1a58e26dd4431847c94d385faec
+  checksum_algorithm: sha256
+  credit: MSL PLACES localization archive, NASA/JPL-Caltech, PDS Imaging Node.
 - name: MSL PLACES rover localizations (localized_pos.csv)
   path: places/localized_pos.csv
   size_bytes: 349568

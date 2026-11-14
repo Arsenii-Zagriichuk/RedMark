@@ -1,6 +1,7 @@
-"""The Gale walk-area pack's pure parts: walk area, site config and the frame check."""
+"""The Gale walk-area pack's pure parts: walk area, site config, frame check, chemistry."""
 
 import csv
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -101,6 +102,41 @@ def best_shift(
     return {"shift_px": shift, "r": scores[shift], "r_unshifted": scores[(0, 0)]}
 
 
+def best_move(
+    coarse: np.ndarray,
+    coarse_grid: PixelGrid,
+    fine: np.ndarray,
+    fine_grid: PixelGrid,
+    search_m: float,
+) -> dict:
+    """How far to move `coarse` (east, north, in metres) to line it up best with `fine`.
+
+    `coarse`'s pixels must be a whole number of `fine`'s. Moves are tried in
+    steps of one fine pixel up to `search_m` either way; the move counts from
+    where `coarse_grid` puts the layer, so it includes the part of a fine pixel
+    by which the two grids are off. Returns the move, its r and the r unmoved.
+    """
+    col, row = offset_in_pixels(
+        PixelGrid(coarse_grid.left, coarse_grid.top, fine_grid.res), on=fine_grid
+    )
+    found = best_shift(
+        coarse,
+        fine,
+        factor=round(coarse_grid.res / fine_grid.res),
+        origin_px=(round(col), round(row)),
+        search_px=round(search_m / fine_grid.res),
+    )
+    d_col, d_row = found["shift_px"]
+    return {
+        "move_m": [
+            round((round(col) + d_col - col) * fine_grid.res, 3),
+            round(-(round(row) + d_row - row) * fine_grid.res, 3),
+        ],
+        "r": found["r"],
+        "r_unmoved": found["r_unshifted"],
+    }
+
+
 def _block_correlation(coarse, fine, factor, col0, row0) -> float:
     # Skip coarse rows and columns whose block starts before the fine image.
     skip_rows, skip_cols = max(0, -(row0 // factor)), max(0, -(col0 // factor))
@@ -166,3 +202,59 @@ def rover_positions(places_csv: Path, bounds: Bounds) -> list[dict]:
                     }
                 )
     return positions
+
+
+def rover_poses(places_interp_csv: Path) -> dict[tuple[int, int], tuple[float, float]]:
+    """Curiosity's position at every (site, drive), from PLACES' interpolated table.
+
+    A drive with several poses keeps its first: they sit within 0.2 m.
+    """
+    poses: dict[tuple[int, int], tuple[float, float]] = {}
+    with places_interp_csv.open(newline="") as f:
+        for r in csv.DictReader(f):
+            if r["frame"] == "ROVER":
+                key = (int(r["site"]), int(r["drive"]))
+                poses.setdefault(key, (float(r["easting"]), float(r["northing"])))
+    return poses
+
+
+# An APXS source file name: ...ESC<sol, 4 digits><site, 3><drive, 4>...
+_APXS_POSE = re.compile(r"ESC\d{4}(\d{3})(\d{4})")
+
+
+def apxs_points(
+    apxs_csvs: list[Path], poses: dict[tuple[int, int], tuple[float, float]], bounds: Bounds
+) -> list[dict]:
+    """Every APXS measurement inside `bounds`, in sol order, at the rover's position.
+
+    The rover's site and drive come from the measurement's source file names.
+    APXS sits on the arm, so the target is within about 2 m of that position.
+    Concentrations are copied as published (oxides in wt%, Ni, Zn and Br in ppm).
+    """
+    min_x, min_y, max_x, max_y = bounds
+    points = []
+    for path in apxs_csvs:
+        with path.open(newline="") as f:
+            rows = csv.reader(f)
+            header = next(rows)
+            # Concentrations and their errors run from Na2O to Br_err; the last
+            # field, named in some tables and not others, lists the source files.
+            values = header[header.index("Na2O") : header.index("Br_err") + 1]
+            for row in rows:
+                record = dict(zip(header, row, strict=False))
+                found = {(int(s), int(d)) for s, d in _APXS_POSE.findall(row[-1])}
+                if len(found) != 1:
+                    raise ValueError(f"{record['target']}: source files name {found or 'no'} poses")
+                site, drive = found.pop()
+                if (site, drive) not in poses:
+                    raise ValueError(
+                        f"{record['target']}: PLACES has no position for {site}/{drive}"
+                    )
+                x, y = poses[(site, drive)]
+                if min_x <= x <= max_x and min_y <= y <= max_y:
+                    points.append(
+                        {"sol": int(record["sol"]), "target": record["target"]}
+                        | {"site": site, "drive": drive, "x": x, "y": y}
+                        | {k: float(record[k]) for k in values}
+                    )
+    return sorted(points, key=lambda p: p["sol"])
