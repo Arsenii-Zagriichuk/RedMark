@@ -136,13 +136,19 @@ def main() -> None:
     print(f"{len(chosen)} stops, {sum(len(r) for _, r in chosen)} frames, {total / 1e6:.0f} MB")
     if total > MAX_DOWNLOAD_BYTES:
         raise SystemExit(f"over the {MAX_DOWNLOAD_BYTES / 1e6:.0f} MB cap for the hidden pile")
+    images = [
+        (_url(stop, f"{p.photo_id}.IMG"), folder / f"{p.photo_id}.IMG")
+        for stop, ring in chosen
+        for p in ring
+        if not (folder / f"{p.photo_id}.IMG").exists()
+    ]
+    with ThreadPoolExecutor(8) as pool:  # one connection runs at about 0.5 MB/s
+        list(pool.map(lambda image: _fetch(*image), images))
     rows = []
     for stop, ring in chosen:
         for pointing in ring:
             for suffix in (".LBL", ".IMG"):
                 path = folder / (pointing.photo_id + suffix)
-                if not path.exists():
-                    _fetch(_url(stop, path.name), path)
                 rows.append(
                     {
                         "photo_id": pointing.photo_id,
