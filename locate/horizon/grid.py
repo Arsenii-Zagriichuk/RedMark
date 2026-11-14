@@ -13,7 +13,6 @@ sites/gale.yaml, so a new walk area is a rerun, not a code change.
 """
 
 import json
-import subprocess
 import sys
 import time
 
@@ -27,6 +26,7 @@ from locate.horizon.sources import (
     FAR_DEM,
     FAR_REACH_M,
     GALE_DEM,
+    git_commit,
     load_gale_terrain,
     sha256_file,
 )
@@ -112,7 +112,7 @@ def main() -> None:
         "compute_s": round(finished - loaded, 1),
         "provenance": {
             "script": "locate/horizon/grid.py",
-            "commit": _commit(),
+            "commit": git_commit(),
             "inputs": [
                 {"path": name, "sha256": sha256_file(root / name)} for name in (GALE_DEM, FAR_DEM)
             ]
@@ -121,12 +121,6 @@ def main() -> None:
     }
     (out_dir / "grid-meta.json").write_text(json.dumps(meta, indent=2) + "\n")
     print(json.dumps({k: v for k, v in meta.items() if k != "provenance"}, indent=2))
-
-
-def _commit() -> str:
-    return subprocess.run(
-        ["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=REPO_ROOT, check=True
-    ).stdout.strip()
 
 
 if __name__ == "__main__":

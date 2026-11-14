@@ -30,6 +30,7 @@ from locate.horizon.grid import (  # noqa: E402
     OBSERVER_HEIGHT_M,
     ray_distances,
 )
+from locate.horizon.navcam import label_number, label_vector  # noqa: E402
 from locate.horizon.render import skyline  # noqa: E402
 from locate.horizon.sources import FAR_REACH_M, load_gale_terrain  # noqa: E402
 
@@ -43,14 +44,15 @@ ZOOMS = [(30, 140, -1, 15), (250, 360, -2, 6)]
 def main() -> None:
     root = data_root()
     label = (root / f"{MOSAIC}.LBL").read_text()
-    lines, samples = int(_number(label, "LINES")), int(_number(label, "LINE_SAMPLES"))
-    record_bytes = int(_number(label, "RECORD_BYTES"))
+    lines, samples = int(label_number(label, "LINES")), int(label_number(label, "LINE_SAMPLES"))
+    record_bytes = int(label_number(label, "RECORD_BYTES"))
     image_record = int(re.search(r"\^IMAGE\s*=\s*\([^,]+,\s*(\d+)\)", label).group(1))
-    px_per_deg = _number(label, "MAP_RESOLUTION")
-    zero_line = _number(label, "ZERO_ELEVATION_LINE")
-    start_az = _number(label, "START_AZIMUTH")
-    site = int(_number(label, "COORDINATE_SYSTEM_INDEX"))
-    north, east, _ = _vector(label, "PROJECTION_ORIGIN_VECTOR")  # site frame: +X north, +Y east
+    px_per_deg = label_number(label, "MAP_RESOLUTION")
+    zero_line = label_number(label, "ZERO_ELEVATION_LINE")
+    start_az = label_number(label, "START_AZIMUTH")
+    site = int(label_number(label, "COORDINATE_SYSTEM_INDEX"))
+    # Site frame: +X north, +Y east.
+    north, east, _ = label_vector(label, "PROJECTION_ORIGIN_VECTOR")
 
     raw = np.fromfile(root / f"{MOSAIC}.IMG", dtype=">i2", offset=(image_record - 1) * record_bytes)
     image = raw[: lines * samples].reshape(lines, samples).astype(np.float32)
@@ -110,20 +112,6 @@ def main() -> None:
     fig.savefig(OUT, dpi=110, bbox_inches="tight")
     plt.close(fig)
     print(f"camera at ({cam_x:.1f}, {cam_y:.1f}); wrote {OUT.relative_to(REPO_ROOT)}")
-
-
-def _number(label: str, key: str) -> float:
-    """The first number given for key in the label."""
-    match = re.search(rf"^\s*{key}\s*=\s*\(?\s*(-?[\d.]+)", label, re.MULTILINE)
-    if match is None:
-        raise ValueError(f"{key} not in label")
-    return float(match.group(1))
-
-
-def _vector(label: str, key: str) -> tuple[float, float, float]:
-    match = re.search(rf"^\s*{key}\s*=\s*\(([^)]*)\)", label, re.MULTILINE)
-    x, y, z = (float(v) for v in match.group(1).split(","))
-    return x, y, z
 
 
 if __name__ == "__main__":

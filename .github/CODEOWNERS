@@ -1,0 +1,9 @@
+# A change to these paths needs a code owner's approval (P1-15). Everything else merges
+# on green CI. Person 1 owns the repo root; Arsenii, the repo admin, reviews Person 1's own
+# root changes, since nobody can approve their own pull request.
+/*          @s1lentOf @Arsenii-Zagriichuk
+/.github/   @s1lentOf @Arsenii-Zagriichuk
+/.claude/   @s1lentOf @Arsenii-Zagriichuk
+
+# Contracts are shared: a change is one pull request the other side approves.
+/contracts/ @s1lentOf @H0lmy @Arsenii-Zagriichuk @Maksym926

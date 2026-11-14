@@ -18,6 +18,7 @@ records the checksum of the file it came from and is rebuilt when that changes.
 """
 
 import hashlib
+import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import lru_cache
@@ -29,6 +30,7 @@ from rasterio.enums import Resampling
 from rasterio.windows import Window, from_bounds
 
 from contracts.models.common import Bounds
+from contracts.paths import REPO_ROOT
 from locate.horizon.render import MARS_RADIUS_M, Raster, Terrain, Tier
 
 GALE_DEM = "MSL_Gale_DEM_Mosaic_1m_v3.tif"
@@ -117,6 +119,13 @@ def _read_decimated(path: Path) -> Raster:
         heights = heights.astype(np.float32).filled(np.nan)
         res = src.width * src.res[0] / shape[1]
     return Raster(heights, left=src.bounds.left, top=src.bounds.top, res=res)
+
+
+def git_commit() -> str:
+    """The commit the repo is at, for a results file's provenance."""
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=REPO_ROOT, check=True
+    ).stdout.strip()
 
 
 def sha256_file(path: Path) -> str:
