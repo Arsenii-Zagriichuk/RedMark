@@ -4,7 +4,7 @@
 // value comes from POST /simulate, the route and the sol file; the walk is labelled simulated.
 // The break-it buttons (P1-07) re-run the walk with sources switched off; when no source
 // can be trusted, Lost mode shows the last known position, the walk back and layer 5's
-// landmark directions.
+// landmark directions. Take fix opens the Photo checkpoint (P1-08) over the walk.
 import type { Conditions } from "@contracts/conditions";
 import type { LayerMeta } from "@contracts/layer";
 import type { RouteRequest } from "@contracts/route_request";
@@ -13,6 +13,7 @@ import type { Point, ScienceTarget, SiteConfig } from "@contracts/site";
 import type { SimulateResponse } from "@contracts/simulate_response";
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../api/ApiContext";
+import { PhotoCheckpoint } from "../checkpoint/PhotoCheckpoint";
 import { distanceAndBearing, formatBearing, formatDistance, formatLatLon } from "../map/geo";
 import { WalkMap, type CrewPosition, type MapRoute } from "../map/WalkMap";
 import { formatDuration, limitRows, refusal } from "../plan/routes";
@@ -98,6 +99,7 @@ export function WalkScreen(props: Props) {
   const [error, setError] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [checkpointOpen, setCheckpointOpen] = useState(false);
   const simulation = run?.simulation ?? null;
 
   useEffect(() => {
@@ -340,7 +342,14 @@ export function WalkScreen(props: Props) {
             <span className="label">Walk-back margin · planned</span>
             <span className="walk__readout walk__readout--ok">{formatDuration(route.walk_back_margin_s)}</span>
           </div>
-          <button type="button" className="button button--secondary walk__fix" disabled title="The Photo checkpoint arrives in P1-08">
+          <button
+            type="button"
+            className="button button--secondary walk__fix"
+            onClick={() => {
+              setPlaying(false);
+              setCheckpointOpen(true);
+            }}
+          >
             Take fix
           </button>
         </div>
@@ -422,6 +431,10 @@ export function WalkScreen(props: Props) {
           </button>
         </div>
       </section>
+
+      {checkpointOpen && (
+        <PhotoCheckpoint projection={site.projection} onClose={() => setCheckpointOpen(false)} />
+      )}
     </div>
   );
 }
