@@ -576,7 +576,12 @@ def draw_final_overlay(
             if v["side"]
         )
         lines.append(f"  leg {leg['leg'] + 1}, heading {leg['heading_deg']:.0f}°:")
-        lines.append(f'    "{leg["text"]}"')
+        if leg["text"]:
+            lines.append(f'    "{leg["text"]}"')
+        else:
+            lines.append(
+                f"    no direction: {leg['share_in_walk_area']:.0%} of the leg is in the walk area"
+            )
         lines.append(f"    in view: {seen or 'none'}")
     lines.append("")
     shown = summary["checkpoint_candidates"][:OVERLAY_CANDIDATES]
