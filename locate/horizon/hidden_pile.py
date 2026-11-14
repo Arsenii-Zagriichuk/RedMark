@@ -29,7 +29,7 @@ from pathlib import Path
 from contracts.models.site import SiteConfig
 from contracts.paths import data_root
 from locate.horizon.fix import PLACES, read_site_config
-from locate.horizon.navcam import label_pointing
+from locate.horizon.navcam import label_number, label_pointing
 from locate.horizon.sources import sha256_file
 
 ARCHIVE = "https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA"
@@ -132,9 +132,7 @@ def main() -> None:
         chosen = [ring for ring in pool.map(lambda s: _first_ring(s, folder), stretches) if ring]
     if not chosen:
         raise SystemExit("no hidden stop has a horizon ring")
-    total = sum(
-        _remote_size(_url(stop, p.photo_id + ".IMG")) for stop, ring in chosen for p in ring
-    )
+    total = sum(_image_bytes(folder / f"{p.photo_id}.LBL") for _, ring in chosen for p in ring)
     print(f"{len(chosen)} stops, {sum(len(r) for _, r in chosen)} frames, {total / 1e6:.0f} MB")
     if total > MAX_DOWNLOAD_BYTES:
         raise SystemExit(f"over the {MAX_DOWNLOAD_BYTES / 1e6:.0f} MB cap for the hidden pile")
@@ -263,11 +261,10 @@ def _fetch(url: str, path: Path) -> None:
     partial.rename(path)
 
 
-def _remote_size(url: str) -> int:
-    head = subprocess.run(
-        ["curl", "-sfIL", "--max-time", "60", url], capture_output=True, text=True, check=True
-    ).stdout
-    return int(re.findall(r"content-length:\s*(\d+)", head, re.I)[-1])
+def _image_bytes(label: Path) -> int:
+    """The size of a frame's image file, as its label gives it."""
+    text = label.read_text(errors="ignore")
+    return int(label_number(text, "FILE_RECORDS") * label_number(text, "RECORD_BYTES"))
 
 
 if __name__ == "__main__":
