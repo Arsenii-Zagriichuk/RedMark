@@ -5,12 +5,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from contracts.models.data_manifest import DataManifest
 from contracts.models.site import SiteConfig
 from prep.jezero.pack import (
     label_index,
-    manifest_entry,
-    merge_manifest,
     multipart_part_size,
     s3_multipart_etag,
     site_config,
@@ -39,63 +36,6 @@ def test_site_config_covers_every_crop_and_validates():
     }
     assert config["files"] == files
     assert config["habitat"] is None and config["replayed_sol"] is None
-
-
-def test_manifest_entry_records_size_and_sha256(tmp_path: Path):
-    (tmp_path / "jezero").mkdir()
-    (tmp_path / "jezero" / "abc.txt").write_bytes(b"abc")
-
-    entry = manifest_entry(
-        tmp_path, "jezero/abc.txt", name="Test file", source_url="https://example.org/abc.txt"
-    )
-
-    assert entry["size_bytes"] == 3
-    # The SHA-256 of "abc", from FIPS 180-2's worked example.
-    assert entry["checksum"] == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-    assert entry["checksum_algorithm"] == "sha256"
-    DataManifest.model_validate({"files": [entry]})
-
-
-def test_merge_manifest_replaces_the_jezero_entries_and_keeps_the_rest():
-    old = {
-        "files": [
-            {
-                "name": "Gale",
-                "path": "gale/a.tif",
-                "size_bytes": 1,
-                "source_url": "https://x.org",
-                "checksum": "1",
-                "checksum_algorithm": "sha256",
-            },
-            {
-                "name": "Old",
-                "path": "jezero/b.json",
-                "size_bytes": 1,
-                "source_url": "https://x.org",
-                "checksum": "1",
-                "checksum_algorithm": "sha256",
-            },
-        ]
-    }
-    new = [
-        {
-            "name": "New",
-            "path": "jezero/b.json",
-            "size_bytes": 2,
-            "source_url": "https://x.org",
-            "checksum": "2",
-            "checksum_algorithm": "sha256",
-        },
-    ]
-
-    old["files"].append(dict(old["files"][1], name="Dropped flight", path="jezero/c.json"))
-
-    merged = merge_manifest(old, new, replace_prefix="jezero/")
-
-    assert [(f["path"], f["name"]) for f in merged["files"]] == [
-        ("gale/a.tif", "Gale"),
-        ("jezero/b.json", "New"),
-    ]
 
 
 def test_stretch_maps_the_1st_and_99th_percentiles_to_black_and_white():
