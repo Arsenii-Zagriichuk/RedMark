@@ -479,6 +479,33 @@ wheels = [
 ]
 
 [[package]]
+name = "kornia"
+version = "0.9.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "kornia-rs" },
+    { name = "numpy" },
+    { name = "torch" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1a/23/37ace757e1fd7effae93c312b82a11bc4d6ce67883286a9e0ee08bc97b31/kornia-0.9.1.tar.gz", hash = "sha256:eafd7171319c28a9adca242df0f7d77853ca989bde3ba77cda9e26e89c450936", size = 1703742, upload-time = "2026-11-13T22:26:29.447Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a2/61/71b62de0a966cfd26838159d72620557864e86dd3301176c929dfa357d7e/kornia-0.9.1-py3-none-any.whl", hash = "sha256:cfe42ef6f183e1da261051349a34852bbac1656cc74de8584be9783c547a98f0", size = 2209554, upload-time = "2026-11-13T22:26:27.387Z" },
+]
+
+[[package]]
+name = "kornia-rs"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d7/9c/027c96bcd86b6bc79075e4a8595db27b698877cb0b088342affd624c9bd1/kornia_rs-0.2.0-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:c9f2b6a358253ad36d6daeee752d09dcd6cf53a098bb09be442e97b3bbbbc132", size = 4475704, upload-time = "2026-09-26T20:07:21.64Z" },
+    { url = "https://files.pythonhosted.org/packages/1a/17/cd26cb632499b42edf3e117618672b92466e19d6de4ed80985db0245f472/kornia_rs-0.2.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:291abe5874d8b746cee439d93b94be6a95313b9301c4bd0a51de25124f17b5a4", size = 4022090, upload-time = "2026-09-26T20:07:03.944Z" },
+    { url = "https://files.pythonhosted.org/packages/3f/c2/dfdb5c27d7661475c8b442e649187a08128dafbc3af30bebd3a0decab5ef/kornia_rs-0.2.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b0cf5ba74439c4bacc2136cb6811dbd0fec6d951ae04df4936ca91af95c4f588", size = 4650769, upload-time = "2026-09-26T20:06:27.556Z" },
+    { url = "https://files.pythonhosted.org/packages/1c/23/bd7db62ed2cf35682ad1f0ca0c36d1e2f8a1106f2b0f4a2646888f34c50b/kornia_rs-0.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:82833277685b31e9ae1a2e9ecd00a28646463a05c0ea8b72e3ddb329699f8d16", size = 5334523, upload-time = "2026-09-26T20:06:46.141Z" },
+    { url = "https://files.pythonhosted.org/packages/81/a4/98232e22fc27360bd98aef6a56bc8ad7073734170ff564d3cef6f314e94d/kornia_rs-0.2.0-cp311-cp311-win_amd64.whl", hash = "sha256:f85141d602f4e27cb07e2adaa03827a6533a45ea70956e6688073544018887bb", size = 4345346, upload-time = "2026-09-26T20:07:48.656Z" },
+    { url = "https://files.pythonhosted.org/packages/24/e8/529d30fd06fd1bf1f6e9988eeff5eef35cbab86f4fa332439f6380d8bbad/kornia_rs-0.2.0-cp311-cp311-win_arm64.whl", hash = "sha256:2f3e8478f9c7a913974cf5096c9f2f89083165f5ba914cf9db71ba272ea30cb8", size = 3797016, upload-time = "2026-09-26T20:07:39.214Z" },
+]
+
+[[package]]
 name = "markupsafe"
 version = "3.0.4"
 source = { registry = "https://pypi.org/simple" }
@@ -1015,6 +1042,7 @@ dev = [
     { name = "ruff" },
 ]
 gpu = [
+    { name = "kornia" },
     { name = "torch" },
 ]
 prep = [
@@ -1042,7 +1070,10 @@ dev = [
     { name = "pytest", specifier = ">=8.3" },
     { name = "ruff", specifier = ">=0.8" },
 ]
-gpu = [{ name = "torch", specifier = ">=2.5" }]
+gpu = [
+    { name = "kornia", specifier = ">=0.9.1" },
+    { name = "torch", specifier = ">=2.5" },
+]
 prep = [
     { name = "pillow", specifier = ">=13.0.0" },
     { name = "pyproj", specifier = ">=3.7.2" },
