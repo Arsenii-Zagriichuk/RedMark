@@ -3,7 +3,7 @@
 Draws the base map tiles, the cells the route may not enter (steeper than the slope
 limit or beyond the distance from the habitat), the route, the habitat and its limit
 circle. Run with `uv run python -m route.plot_route`; the image goes to
-results/route/overlays/p4-03-fastest.png.
+route/overlays/p4-03-fastest.png.
 """
 
 import json
@@ -21,7 +21,7 @@ from contracts.paths import REPO_ROOT, data_root  # noqa: E402
 from route.api import load_site, plan  # noqa: E402
 from route.layers import load_grid  # noqa: E402
 
-OUT = REPO_ROOT / "results" / "route" / "overlays"
+OUT = REPO_ROOT / "route" / "overlays"
 REQUEST = REPO_ROOT / "contracts" / "stubs" / "route" / "request.json"
 
 
