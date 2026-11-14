@@ -11,14 +11,16 @@ import { formatBearing, formatDistance, formatLatLon } from "../map/geo";
 const CONFIDENT_PCT = 95;
 const STUB = "stub";
 
-export interface FixReadout {
+export type FixReadout = { status: "pending" } | ({ status: "ready" } & FixReading);
+
+interface FixReading {
   method: Method;
   photoId: string;
   simulated: boolean;
   circle: string;
   confidence: string;
   /** Confidence below the circle's 95%: the app asks for photos facing other directions. */
-  low: boolean;
+  lowConfidence: boolean;
   heading: string;
   /** Errors come from the answer key, so only a tested photo has them. */
   headingError: string | null;
@@ -27,14 +29,16 @@ export interface FixReadout {
 }
 
 export function fixReadout(fix: FixResult, projection: string): FixReadout {
+  if (fix.provenance.script === STUB) return { status: "pending" };
   const { truth } = fix;
   return {
+    status: "ready",
     method: fix.method,
     photoId: fix.photo_id,
     simulated: fix.simulated,
     circle: `±${formatDistance(fix.uncertainty_m)}`,
     confidence: `${Number(fix.confidence_pct.toFixed(1))}%`,
-    low: fix.confidence_pct < CONFIDENT_PCT,
+    lowConfidence: fix.confidence_pct < CONFIDENT_PCT,
     heading: formatBearing(fix.heading_deg),
     headingError: truth && `${Number(truth.heading_error_deg.toFixed(1))}°`,
     position:

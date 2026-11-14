@@ -28,15 +28,23 @@ const horizonFix: FixResult = {
   provenance: { script: "locate/horizon/hidden_test.py", commit: "abc123", inputs: [] },
 };
 
+/** The readout of a fix that isn't a stub, for tests that read its fields. */
+function ready(fix: FixResult, projection = GALE) {
+  const readout = fixReadout(fix, projection);
+  if (readout.status === "pending") throw new Error("expected a fix result, got a stub");
+  return readout;
+}
+
 describe("fixReadout", () => {
   it("reads a measured horizon fix: the circle in ±m, the confidence %, heading and position each with its error", () => {
     expect(fixReadout(horizonFix, GALE)).toEqual({
+      status: "ready",
       method: "horizon",
       photoId: "NLB_000000001ILT_S0000000NCAM00001M1",
       simulated: false,
       circle: "±100 m",
       confidence: "0%",
-      low: true,
+      lowConfidence: true,
       heading: "081°",
       headingError: "1.1°",
       position: "4.5000° S 137.4000° E",
@@ -45,9 +53,9 @@ describe("fixReadout", () => {
   });
 
   it("asks for photos facing other directions only while confidence is below the circle's 95%", () => {
-    const at = (confidence_pct: number) => fixReadout({ ...horizonFix, confidence_pct }, GALE);
+    const at = (confidence_pct: number) => ready({ ...horizonFix, confidence_pct });
 
-    expect([at(94.6), at(95), at(100)].map(({ confidence, low }) => [confidence, low])).toEqual([
+    expect([at(94.6), at(95), at(100)].map(({ confidence, lowConfidence }) => [confidence, lowConfidence])).toEqual([
       ["94.6%", true],
       ["95%", false],
       ["100%", false],
@@ -55,7 +63,7 @@ describe("fixReadout", () => {
   });
 
   it("shows no errors for a fix without an answer key", () => {
-    const { headingError, positionError } = fixReadout({ ...horizonFix, truth: null }, GALE);
+    const { headingError, positionError } = ready({ ...horizonFix, truth: null });
 
     expect([headingError, positionError]).toEqual([null, null]);
   });
@@ -63,7 +71,13 @@ describe("fixReadout", () => {
   it("gives the position in map metres when the site map has no latitudes", () => {
     const utm = "+proj=utm +zone=45 +ellps=WGS84 +units=m +no_defs";
 
-    expect(fixReadout(horizonFix, utm).position).toBe("8144343, -266736 m");
+    expect(ready(horizonFix, utm).position).toBe("8144343, -266736 m");
+  });
+
+  it("shows a stub horizon fix as pending, never as a result", () => {
+    const stub = { ...horizonFix, provenance: { script: "stub", commit: "stub", inputs: [] } };
+
+    expect(fixReadout(stub, GALE)).toEqual({ status: "pending" });
   });
 });
 

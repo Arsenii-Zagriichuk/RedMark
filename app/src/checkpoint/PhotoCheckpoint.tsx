@@ -7,16 +7,13 @@
 import { useEffect, useState } from "react";
 import { useApi } from "../api/ApiContext";
 import { FixCard } from "../ui/FixCard";
-import { captureStep, type Round } from "./capture";
+import { captureStep, roundName, type Round } from "./capture";
 import { loadCheckpoint, type Checkpoint } from "./load";
-import { fixReadout, stage2Readout } from "./readout";
+import { fixReadout, stage2Readout, type FixReadout, type Stage2Readout } from "./readout";
 
 type Phase = { kind: "capture"; round: Round; captured: number } | { kind: "result"; stage2: boolean };
+type Ready<T> = Extract<T, { status: "ready" }>;
 
-const ROUND_NAMES: Record<Round, string> = {
-  skyline: "Horizon fix · the skyline",
-  "other-directions": "Ground fix · photos facing other directions",
-};
 const RING_RADIUS = 52;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 
@@ -55,7 +52,7 @@ function CaptureView({ round, captured, onCapture }: { round: Round; captured: n
     <div className="checkpoint__capture">
       <Ring progress={step.progress} />
       <div className="checkpoint__prompt">
-        <span className="label">{ROUND_NAMES[round]}</span>
+        <span className="label">{roundName(round)}</span>
         <span className="checkpoint__instruction">{step.prompt}</span>
         <button type="button" className="button button--primary checkpoint__action" onClick={onCapture}>
           Capture
@@ -75,13 +72,12 @@ function Reading({ label, value, error }: { label: string; value: string; error:
   );
 }
 
-function HorizonResult({ checkpoint, projection }: { checkpoint: Checkpoint; projection: string }) {
-  const fix = fixReadout(checkpoint.fix, projection);
+function HorizonResult({ fix }: { fix: Ready<FixReadout> }) {
   return (
     <FixCard method={fix.method} simulated={fix.simulated} source={`Curiosity frame · ${fix.photoId}`}>
       <div className="checkpoint__headline">
         <span className="checkpoint__circle">{fix.circle}</span>
-        <span className={`checkpoint__confidence${fix.low ? " checkpoint__confidence--low" : ""}`}>
+        <span className={`checkpoint__confidence${fix.lowConfidence ? " checkpoint__confidence--low" : ""}`}>
           {fix.confidence} confidence
         </span>
       </div>
@@ -93,13 +89,12 @@ function HorizonResult({ checkpoint, projection }: { checkpoint: Checkpoint; pro
   );
 }
 
-function Stage2Result({ checkpoint }: { checkpoint: Checkpoint }) {
-  const stage2 = stage2Readout(checkpoint.stage2);
+function Stage2Result({ stage2, test }: { stage2: Stage2Readout; test: string }) {
   if (stage2.status === "pending") {
     return <p className="empty-note">Ground fix pending: stage 2's results file is still a stub.</p>;
   }
   return (
-    <FixCard method="ground" simulated={stage2.simulated} source={`Stage 2 results · ${checkpoint.stage2.test}`}>
+    <FixCard method="ground" simulated={stage2.simulated} source={`Stage 2 results · ${test}`}>
       <div className="checkpoint__headline">
         <span className="checkpoint__circle">{stage2.medianError}</span>
         <span className="checkpoint__confidence">median error over {stage2.stops} stops</span>
@@ -135,7 +130,7 @@ export function PhotoCheckpoint({ projection, onClose }: Props) {
     );
   };
 
-  const low = checkpoint !== null && fixReadout(checkpoint.fix, projection).low;
+  const horizon = checkpoint && fixReadout(checkpoint.fix, projection);
 
   return (
     <div className="checkpoint" role="dialog" aria-label="Photo checkpoint">
@@ -147,17 +142,18 @@ export function PhotoCheckpoint({ projection, onClose }: Props) {
           </button>
         </div>
 
+        {error && <p className="route-refused">Can't load the checkpoint's fix: {error}</p>}
         {phase.kind === "capture" ? (
           <CaptureView round={phase.round} captured={phase.captured} onCapture={capture} />
-        ) : error ? (
-          <p className="route-refused">Can't load the checkpoint's fix: {error}</p>
-        ) : !checkpoint ? (
+        ) : error ? null : !checkpoint || !horizon ? (
           <p className="empty-note">Matching the skyline…</p>
+        ) : horizon.status === "pending" ? (
+          <p className="empty-note">Horizon fix pending: the checkpoint's fix is still a stub.</p>
         ) : (
           <>
-            <HorizonResult checkpoint={checkpoint} projection={projection} />
-            {phase.stage2 && <Stage2Result checkpoint={checkpoint} />}
-            {low && !phase.stage2 ? (
+            <HorizonResult fix={horizon} />
+            {phase.stage2 && <Stage2Result stage2={stage2Readout(checkpoint.stage2)} test={checkpoint.stage2.test} />}
+            {horizon.lowConfidence && !phase.stage2 ? (
               <div className="checkpoint__ask">
                 <span className="checkpoint__ask-text">Confidence is low. Take photos facing other directions.</span>
                 <button

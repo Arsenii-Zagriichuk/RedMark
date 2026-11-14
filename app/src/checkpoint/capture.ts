@@ -13,12 +13,18 @@ export interface CaptureStep {
 }
 
 const QUARTER = "Turn left 90°";
-const PROMPTS: Record<Round, string[]> = {
-  skyline: ["Face the skyline", QUARTER, QUARTER, QUARTER],
-  "other-directions": ["Turn left 45°", QUARTER, QUARTER, QUARTER],
+const ROUNDS: Record<Round, { name: string; prompts: string[] }> = {
+  skyline: { name: "Horizon fix · the skyline", prompts: ["Face the skyline", QUARTER, QUARTER, QUARTER] },
+  "other-directions": {
+    name: "Ground fix · photos facing other directions",
+    prompts: ["Turn left 45°", QUARTER, QUARTER, QUARTER],
+  },
 };
 
+/** What the round's photos are for, as the capture screen titles it. */
+export const roundName = (round: Round) => ROUNDS[round].name;
+
 export function captureStep(round: Round, captured: number): CaptureStep {
-  const prompts = PROMPTS[round];
+  const { prompts } = ROUNDS[round];
   return { prompt: prompts[captured] ?? null, progress: captured / prompts.length };
 }
