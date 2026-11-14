@@ -4,9 +4,10 @@
         [--matcher lightglue]
 
 Places the crew on the demo walk: Person 4's fastest route from base camp to
-the first science target at the app's default limits, at two thirds of its
-walking time, where the app's walk schedule puts the drone fix
-(app/src/walk/schedule.ts). Cuts the drone's photo from the Gale photo map
+the first science target at the app's default limits, where the walk is
+when the app's walk schedule fires the drone fix: two thirds of the route's
+length walked at the 2 km/h planning speed (app/src/walk/schedule.ts), as the
+walk simulation moves the crew (sim/engine.py). Cuts the drone's photo from the Gale photo map
 with the crew's suit markers drawn in (locate.drone.gale_view), then runs it
 through the real pipeline: straighten by the drone's onboard heading, search
 the map around its onboard position, match with LoFTR and JPL's weights, fit,
@@ -30,10 +31,10 @@ Writes, for photo id gale-sim-drone-0001:
 
 import argparse
 import json
+import math
 import os
 import shutil
 import sys
-import tempfile
 import time
 from pathlib import Path
 from uuid import uuid4
@@ -58,6 +59,7 @@ from locate.drone.ground import HALF_SIZE_M, read_map_window
 from locate.drone.matchers import load_matcher
 from locate.drone.pipeline import RESOLUTION, SEARCH_RADIUS_M
 from locate.drone.records import provenance, recorded
+from prep.common import written_atomically
 
 PHOTO_ID = "gale-sim-drone-0001"
 DEMO_STEP = "drone.fix.gale"
@@ -82,7 +84,11 @@ WALK_LIMITS = {
     "planning_speed_kmh": 2,
     "max_walk_h": 6,
 }
-DRONE_FIX_AT = 2 / 3
+# The walk view's clock: the route walked at the 2 km/h planning speed,
+# whatever the legs' own slope-aware times say. The app times the drone fix
+# with it (schedule.ts) and the walk simulation moves the crew with it
+# (sim/engine.py), so the scene goes where the crew is at that moment.
+PLANNING_SPEED_M_PER_S = 2000 / 3600
 # The fix must sit on the demo walk, inside the site: the crew is drawn on the
 # route, so a fix further off it than this means the scene or the fit broke.
 ON_ROUTE_M = 5.0
@@ -173,21 +179,18 @@ def _along(path: np.ndarray, distance: float) -> np.ndarray:
     )
 
 
-def walk_point(route: dict, fraction: float) -> tuple[np.ndarray, float]:
-    """Where the crew is `fraction` of the way through the route's walking
-    time, and the heading of the route there. Within a leg, at even speed."""
+def drone_fix_point(route: dict) -> tuple[np.ndarray, float]:
+    """Where the crew is when the app's walk schedule fires the drone fix, and
+    the heading of the route there.
+
+    The time is schedule.ts's: two thirds of the route's length at the
+    planning speed, rounded to a whole second as JavaScript's Math.round does.
+    The place is sim/engine.py's: that time at the same speed along the path.
+    """
     path = np.array([[p["x"], p["y"]] for p in route["path"]])
-    steps = np.hypot(*np.diff(path, axis=0).T)
-    reach = np.concatenate([[0.0], np.cumsum(steps)])
-    target = fraction * sum(leg["time_s"] for leg in route["legs"])
-    elapsed = 0.0
-    for leg in route["legs"]:
-        if elapsed + leg["time_s"] >= target or leg is route["legs"][-1]:
-            share = (target - elapsed) / leg["time_s"] if leg["time_s"] else 0.0
-            start, end = reach[leg["start_index"]], reach[leg["end_index"]]
-            distance = start + min(share, 1.0) * (end - start)
-            break
-        elapsed += leg["time_s"]
+    walk_s = route["total_distance_m"] / PLANNING_SPEED_M_PER_S
+    fix_s = math.floor(walk_s * 2 / 3 + 0.5)  # Math.round((walk_s * 2) / 3)
+    distance = fix_s * PLANNING_SPEED_M_PER_S
     here = _along(path, distance)
     behind, ahead = _along(path, distance - TRAVEL_SPAN_M), _along(path, distance + TRAVEL_SPAN_M)
     east, north = ahead - behind
@@ -249,14 +252,11 @@ def _photo_with_detections(photo: DronePhoto) -> Image.Image:
 
 
 def _save_png(image: Image.Image, out: Path, text: dict[str, str]) -> None:
-    out.parent.mkdir(parents=True, exist_ok=True)
     metadata = PngImagePlugin.PngInfo()
     for key, value in text.items():
         metadata.add_itxt(key, value)
-    with tempfile.TemporaryDirectory(dir=out.parent) as temporary:
-        staged = Path(temporary) / out.name
-        image.save(staged, pnginfo=metadata)
-        staged.replace(out)
+    with written_atomically(out) as partial:
+        image.save(partial, format="PNG", pnginfo=metadata)
 
 
 def _map_panel(
@@ -317,7 +317,7 @@ def run(matcher_name: str) -> None:
             "limits": WALK_LIMITS,
         }
     )
-    crew_centre, travel = walk_point(route, DRONE_FIX_AT)
+    crew_centre, travel = drone_fix_point(route)
     crew = [
         Astronaut(position=tuple(_offset(crew_centre, travel, 0.0, side)), heading_deg=travel)
         for side in (-CREW_SPACING_M / 2, CREW_SPACING_M / 2)
@@ -392,11 +392,8 @@ def run(matcher_name: str) -> None:
     _save_png(framed, photo_png, metadata)
 
     path = results / "fixes" / f"{PHOTO_ID}.json"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(dir=path.parent) as temporary:
-        staged = Path(temporary) / path.name
-        staged.write_text(fix.model_dump_json(indent=2) + "\n", encoding="utf-8")
-        staged.replace(path)
+    with written_atomically(path) as partial:
+        partial.write_text(fix.model_dump_json(indent=2) + "\n", encoding="utf-8")
     cache = write_demo_cache(PHOTO_ID, [recorded(overlay), recorded(photo_png)], REPO_ROOT)
     for written in (path, overlay, photo_png, cache):
         print(f"wrote {recorded(written)}")

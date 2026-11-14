@@ -8,7 +8,12 @@ import pytest
 from contracts.models.common import Method, Provenance, SiteId, TerrainType
 from contracts.models.demo_cache import DemoCacheEntry
 from contracts.models.fix_result import FixResult
-from locate.drone.gale_fix import DEMO_STEP, build_simulated_fix_result, write_demo_cache
+from locate.drone.gale_fix import (
+    DEMO_STEP,
+    build_simulated_fix_result,
+    drone_fix_point,
+    write_demo_cache,
+)
 from locate.drone.gale_view import Astronaut
 
 PHOTO_ID = "gale-sim-drone-0001"
@@ -76,3 +81,23 @@ def test_demo_cache_refuses_a_fix_whose_images_are_missing(tmp_path):
 
     with pytest.raises(FileNotFoundError, match="photo-run.png"):
         write_demo_cache(fix.photo_id, [OVERLAY, PHOTO], tmp_path)
+
+
+def test_the_scene_is_where_the_walk_is_when_the_app_schedules_the_drone_fix():
+    # 300 m east up a slow climb, then 300 m north on fast ground. The app and the
+    # walk simulation walk at 2 km/h: 600 m take 1080 s, the drone fix is at
+    # 720 s, by then the crew has walked 400 m: 100 m up the north leg. The legs'
+    # own times (900 s and 100 s) would put two thirds at 222 m, on the east leg.
+    route = {
+        "path": [{"x": 0.0, "y": 0.0}, {"x": 300.0, "y": 0.0}, {"x": 300.0, "y": 300.0}],
+        "total_distance_m": 600.0,
+        "legs": [
+            {"start_index": 0, "end_index": 1, "time_s": 900.0},
+            {"start_index": 1, "end_index": 2, "time_s": 100.0},
+        ],
+    }
+
+    here, heading = drone_fix_point(route)
+
+    assert tuple(here) == pytest.approx((300.0, 100.0))
+    assert heading == pytest.approx(0.0)
