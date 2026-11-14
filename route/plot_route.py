@@ -14,13 +14,11 @@ matplotlib.use("Agg")
 import matplotlib.image as mpimg  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
-import yaml  # noqa: E402
 
 from contracts.models.layer import LayerMeta  # noqa: E402
 from contracts.models.route_request import RouteRequest  # noqa: E402
-from contracts.models.site import SiteConfig  # noqa: E402
 from contracts.paths import REPO_ROOT, data_root  # noqa: E402
-from route.api import plan  # noqa: E402
+from route.api import load_site, plan  # noqa: E402
 from route.layers import load_grid  # noqa: E402
 
 OUT = REPO_ROOT / "results" / "route" / "overlays"
@@ -29,9 +27,7 @@ REQUEST = REPO_ROOT / "contracts" / "stubs" / "route" / "request.json"
 
 def main() -> None:
     request = RouteRequest.model_validate(json.loads(REQUEST.read_text()))
-    site = SiteConfig.model_validate(
-        yaml.safe_load((REPO_ROOT / "sites" / f"{request.site}.yaml").read_text())
-    )
+    site = load_site(request.site)
     route = plan(request)
     grid = load_grid(site, data_root())
     limits = request.limits

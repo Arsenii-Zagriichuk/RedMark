@@ -226,3 +226,22 @@ def test_start_and_goal_in_the_same_planning_cell_is_refused():
 
     with pytest.raises(ValueError, match="same planning cell"):
         plan_on_grid(g, start, start, start, DEFAULT_LIMITS)
+
+
+def test_a_diagonal_wall_of_steep_cells_cannot_be_slipped_through_at_a_corner():
+    slope = np.zeros((7, 7))
+    for row in range(7):
+        slope[row, 6 - row] = 30
+    g = grid(slope)
+
+    with pytest.raises(NoSafeRoute):
+        plan_on_grid(g, centre(g, 0, 0), centre(g, 6, 6), centre(g, 0, 0), DEFAULT_LIMITS)
+
+
+def test_no_route_when_the_crew_could_not_walk_home_in_time():
+    g, start, goal = flat_kilometre()
+    # 0.5 h out keeps the 0.75 h walk-time limit, but 0.5 h more to walk home does not.
+    limits = DEFAULT_LIMITS.model_copy(update={"max_walk_h": 0.75})
+
+    with pytest.raises(NoSafeRoute):
+        plan_on_grid(g, start, goal, start, limits)

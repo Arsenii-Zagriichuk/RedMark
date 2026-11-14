@@ -54,23 +54,31 @@ class CostGrid:
             x=self.min_x + (col + 0.5) * self.cell_m, y=self.max_y - (row + 0.5) * self.cell_m
         )
 
+    def distance_from(self, p: Point) -> np.ndarray:
+        """Ground metres from p to every cell centre."""
+        rows, cols = self.slope_deg.shape
+        y = self.max_y - (np.arange(rows) + 0.5) * self.cell_m
+        x = self.min_x + (np.arange(cols) + 0.5) * self.cell_m
+        return np.hypot(x[None, :] - p.x, y[:, None] - p.y)
+
 
 def plan_on_grid(
     grid: CostGrid, start: Point, goal: Point, habitat: Point, limits: Limits
 ) -> RouteResponse:
-    cost = _walk_seconds_per_cell(grid, limits.planning_speed_kmh)
-    cost[~(grid.slope_deg <= limits.max_slope_deg)] = np.inf
-    from_habitat = _distance_from(grid, habitat)
-    cost[from_habitat > limits.max_distance_from_habitat_m] = np.inf
+    from_habitat = grid.distance_from(habitat)
+    blocked = ~(grid.slope_deg <= limits.max_slope_deg)
+    blocked |= from_habitat > limits.max_distance_from_habitat_m
+    walk_s = _walk_seconds_per_cell(grid, limits.planning_speed_kmh)
+    cost = np.where(_seal_diagonal_gaps(blocked), np.inf, walk_s)
 
-    a, b = grid.cell(start), grid.cell(goal)
-    if a == b:
+    start_cell, goal_cell = grid.cell(start), grid.cell(goal)
+    if start_cell == goal_cell:
         raise ValueError("start and goal are in the same planning cell")
     mcp = MCP_Geometric(cost)
-    cumulative, _ = mcp.find_costs([a], [b])
-    if not np.isfinite(cumulative[b]):
+    cumulative, _ = mcp.find_costs([start_cell], [goal_cell])
+    if not np.isfinite(cumulative[goal_cell]):
         raise NoSafeRoute("every path from start to goal breaks a hard limit")
-    cells = [tuple(c) for c in mcp.traceback(b)]
+    cells = [tuple(c) for c in mcp.traceback(goal_cell)]
 
     path = [grid.centre(r, c) for r, c in cells]
     steps = [
@@ -78,7 +86,7 @@ def plan_on_grid(
         for (r0, c0), (r1, c1) in zip(cells, cells[1:], strict=False)
     ]
     total_m = sum(steps)
-    total_s = float(cumulative[b])
+    total_s = float(cumulative[goal_cell])
     max_walk_s = limits.max_walk_h * 3600
     if total_s > max_walk_s:
         raise NoSafeRoute(f"the fastest safe path takes {total_s / 3600:.1f} h")
@@ -86,6 +94,8 @@ def plan_on_grid(
     if not all(np.isfinite(home[c]) for c in cells):
         raise NoSafeRoute("part of the route has no safe path back to the habitat")
     walk_back_margin_s = float(min(max_walk_s - cumulative[c] - home[c] for c in cells))
+    if walk_back_margin_s < 0:
+        raise NoSafeRoute("part of the route is too far to walk home within the walk-time limit")
     return RouteResponse(
         site=grid.site,
         mode="fastest",
@@ -122,12 +132,12 @@ def _legs(cells, steps: list[float], elapsed: np.ndarray) -> list[Leg]:
     ends = [0, *turns, len(cells) - 1]
     return [
         Leg(
-            start_index=a,
-            end_index=b,
-            distance_m=sum(steps[a:b]),
-            time_s=float(elapsed[cells[b]] - elapsed[cells[a]]),
+            start_index=first,
+            end_index=last,
+            distance_m=sum(steps[first:last]),
+            time_s=float(elapsed[cells[last]] - elapsed[cells[first]]),
         )
-        for a, b in zip(ends, ends[1:], strict=False)
+        for first, last in zip(ends, ends[1:], strict=False)
     ]
 
 
@@ -138,11 +148,21 @@ def _walk_seconds_per_cell(grid: CostGrid, planning_speed_kmh: float) -> np.ndar
     return np.where(grid.ridge, seconds * RIDGE_TIME_FACTOR, seconds)
 
 
-def _distance_from(grid: CostGrid, p: Point) -> np.ndarray:
-    rows, cols = grid.slope_deg.shape
-    y = grid.max_y - (np.arange(rows) + 0.5) * grid.cell_m
-    x = grid.min_x + (np.arange(cols) + 0.5) * grid.cell_m
-    return np.hypot(x[None, :] - p.x, y[:, None] - p.y)
+def _seal_diagonal_gaps(blocked: np.ndarray) -> np.ndarray:
+    """Close every gap where two blocked cells touch only at a corner.
+
+    A path may step diagonally, so it could slip between two such cells and cross a
+    diagonal wall. Blocking one more cell at each such corner makes every wall solid.
+    """
+    sealed = blocked.copy()
+    while True:
+        nw, ne, sw, se = sealed[:-1, :-1], sealed[:-1, 1:], sealed[1:, :-1], sealed[1:, 1:]
+        falling = nw & se & ~ne & ~sw
+        rising = ne & sw & ~nw & ~se
+        if not (falling.any() or rising.any()):
+            return sealed
+        sealed[:-1, 1:] |= falling
+        sealed[:-1, :-1] |= rising
 
 
 def _check(limit: str, value: float, threshold: float, units: str) -> LimitCheck:
