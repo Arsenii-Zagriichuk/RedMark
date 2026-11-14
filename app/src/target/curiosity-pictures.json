@@ -1,7 +1,7 @@
 {
   "provenance": {
     "script": "tools/target_pictures.py",
-    "commit": "85e605a25526f8f3f32596978ff1c31483296cef"
+    "commit": "dc2268b1536fa60906dc54e3b4911dfc818616fe"
   },
   "note": "Curiosity never reached this target. These are its pictures of the same kind of ground in the boxwork it drove through.",
   "pictures": [
@@ -58,7 +58,7 @@
     "image_id": "NLB_806305401EDR_F1172538NCAM00263M_",
     "sol": 4605,
     "camera": "Navcam left",
-    "caption": "Curiosity's view of the boxwork it drove through. No picture of this target yet.",
+    "caption": "Curiosity's view of the boxwork it drove through.",
     "credit": "NASA/JPL-Caltech",
     "source_url": "https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04605/opgs/edr/ncam/NLB_806305401EDR_F1172538NCAM00263M_.JPG",
     "file": "/fallback/target-preview.jpg",
