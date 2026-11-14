@@ -177,6 +177,8 @@ class Landmark:
     points: tuple[tuple[float, float], ...]
     body_radius_m: float
     """Ground within this distance of a point is the landmark itself and never hides it."""
+    in_sentence: str | None = None
+    """How a direction names it mid-sentence ("the upper Mount Sharp peak"); the title if None."""
 
 
 def landmark_masks(

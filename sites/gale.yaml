@@ -25,4 +25,5 @@ files:
   chemistry: gale/crops/chemistry-apxs.csv
   rover_positions: gale/crops/rover-positions.csv
   base_map: gale/layers/base
+  slope: gale/rasters/slope.tif
 replayed_sol: 4600

@@ -1,10 +1,10 @@
 {
   "site": "gale",
   "walk_area": {
-    "min_x": 8141700.0,
-    "min_y": -284140.0,
-    "max_x": 8145700.0,
-    "max_y": -280140.0
+    "min_x": 8140700.0,
+    "min_y": -287150.0,
+    "max_x": 8144700.0,
+    "max_y": -283150.0
   },
   "resolution_m": 1.0,
   "observer_height_m": 1.9,
@@ -20,20 +20,20 @@
         }
       ],
       "body_radius_m": 2000,
-      "share_in_view": 0.6233
+      "share_in_view": 0.4325
     },
     {
       "id": "texoli",
       "title": "Texoli",
       "points": [
         {
-          "x": 8144948.5,
-          "y": -285165.5,
-          "height_m": -3358.5
+          "x": 8144959.5,
+          "y": -285162.5,
+          "height_m": -3359.0
         }
       ],
       "body_radius_m": 1500,
-      "share_in_view": 0.29
+      "share_in_view": 0.3551
     },
     {
       "id": "mishe_mokwa",
@@ -46,146 +46,2012 @@
         }
       ],
       "body_radius_m": 300,
-      "share_in_view": 0.0142
+      "share_in_view": 0.1471
     },
     {
       "id": "crater_rim",
       "title": "Gale crater rim",
       "points": [
         {
-          "x": 8088658.7,
-          "y": -313918.1,
-          "height_m": -777.6
+          "x": 8088892.4,
+          "y": -316215.8,
+          "height_m": -687.7
         },
         {
-          "x": 8094914.2,
-          "y": -299896.6,
-          "height_m": -1840.2
+          "x": 8085424.6,
+          "y": -305996.5,
+          "height_m": -1257.8
         },
         {
-          "x": 8089448.9,
-          "y": -291705.9,
-          "height_m": -1896.7
+          "x": 8085634.8,
+          "y": -295212.1,
+          "height_m": -1644.7
         },
         {
-          "x": 8100242.9,
-          "y": -282140.0,
-          "height_m": -2046.6
+          "x": 8101673.1,
+          "y": -285150.0,
+          "height_m": -2107.3
         },
         {
-          "x": 8103647.1,
-          "y": -275077.6,
-          "height_m": -1903.5
+          "x": 8102225.9,
+          "y": -278013.3,
+          "height_m": -2028.6
         },
         {
-          "x": 8109098.1,
-          "y": -269545.9,
-          "height_m": -2033.8
+          "x": 8107427.9,
+          "y": -272312.0,
+          "height_m": -2065.0
         },
         {
-          "x": 8115425.8,
-          "y": -265815.9,
-          "height_m": -2163.3
+          "x": 8112277.3,
+          "y": -267585.5,
+          "height_m": -2049.4
         },
         {
-          "x": 8119250.6,
-          "y": -261624.5,
-          "height_m": -2311.7
+          "x": 8116621.1,
+          "y": -263267.2,
+          "height_m": -2093.4
         },
         {
-          "x": 8121931.4,
-          "y": -256197.2,
-          "height_m": -2340.4
+          "x": 8120393.4,
+          "y": -258566.1,
+          "height_m": -2113.1
         },
         {
-          "x": 8124468.3,
-          "y": -248829.7,
-          "height_m": -2434.4
+          "x": 8124638.5,
+          "y": -253866.5,
+          "height_m": -2402.9
         },
         {
-          "x": 8128862.7,
-          "y": -241374.8,
-          "height_m": -2290.2
+          "x": 8127496.0,
+          "y": -243377.4,
+          "height_m": -2239.4
         },
         {
-          "x": 8134033.5,
-          "y": -227318.3,
-          "height_m": -2047.0
+          "x": 8132620.3,
+          "y": -227985.2,
+          "height_m": -1892.1
         },
         {
-          "x": 8143700.0,
-          "y": -244010.5,
-          "height_m": -2594.8
+          "x": 8142700.0,
+          "y": -231577.7,
+          "height_m": -2288.1
         },
         {
-          "x": 8150640.3,
-          "y": -242779.5,
-          "height_m": -2451.0
+          "x": 8150167.7,
+          "y": -242798.6,
+          "height_m": -2358.7
         },
         {
-          "x": 8158537.3,
-          "y": -241374.8,
-          "height_m": -2369.4
+          "x": 8159002.4,
+          "y": -240359.6,
+          "height_m": -2333.8
         },
         {
-          "x": 8167615.7,
-          "y": -240716.7,
-          "height_m": -1919.0
+          "x": 8168076.6,
+          "y": -241196.5,
+          "height_m": -2099.9
         },
         {
-          "x": 8176839.5,
-          "y": -242645.9,
-          "height_m": -1837.4
+          "x": 8179559.0,
+          "y": -241223.2,
+          "height_m": -1935.7
         },
         {
-          "x": 8190554.4,
-          "y": -242824.5,
-          "height_m": -1429.7
+          "x": 8191217.4,
+          "y": -244439.1,
+          "height_m": -1753.2
         },
         {
-          "x": 8201495.5,
-          "y": -248771.8,
-          "height_m": -1783.6
+          "x": 8204995.8,
+          "y": -249183.5,
+          "height_m": -1549.8
         }
       ],
       "body_radius_m": 1000,
-      "share_in_view": 0.9955
+      "share_in_view": 0.9993
     }
   ],
-  "score_shares": {
-    "No landmark in view": 0.0014,
-    "1 of 4 landmarks": 0.2779,
-    "2 of 4 landmarks": 0.5293,
-    "3 of 4 landmarks": 0.179,
-    "All 4 landmarks": 0.0124
+  "landmark_shares": {
+    "No landmark in view": 0.0003,
+    "1 of 4 landmarks": 0.4395,
+    "2 of 4 landmarks": 0.2838,
+    "3 of 4 landmarks": 0.1786,
+    "All 4 landmarks": 0.0978
   },
   "spot_check": {
     "ridge_top": {
-      "share_of_walk_area": 0.187,
-      "mean_score": 0.5216
+      "share_of_walk_area": 0.2127,
+      "mean_score": 0.5333
     },
     "open_ground": {
-      "share_of_walk_area": 0.5604,
-      "mean_score": 0.5021
+      "share_of_walk_area": 0.4946,
+      "mean_score": 0.5018
     },
     "hollow": {
-      "share_of_walk_area": 0.2526,
-      "mean_score": 0.403
+      "share_of_walk_area": 0.2927,
+      "mean_score": 0.4163
     }
+  },
+  "error_map": {
+    "test_summary": "results/horizon/horizon-gale.json",
+    "median_error_m": {
+      "textured": 50.65,
+      "plain": 151.372,
+      "hollow": 261.587
+    },
+    "share_of_walk_area": {
+      "textured": 0.5275,
+      "plain": 0.1841,
+      "hollow": 0.2884,
+      "unknown": 0.0
+    }
+  },
+  "score": "share of the landmarks in view x the lowest class median error / the cell's median error",
+  "spot_check_score": {
+    "ridge_top": {
+      "share_of_walk_area": 0.2127,
+      "mean_score": 0.5072
+    },
+    "open_ground": {
+      "share_of_walk_area": 0.4946,
+      "mean_score": 0.3834
+    },
+    "hollow": {
+      "share_of_walk_area": 0.2927,
+      "mean_score": 0.0911
+    }
+  },
+  "checkpoint_candidates": [
+    {
+      "id": "candidate-1",
+      "position": {
+        "x": 8143138.5,
+        "y": -283552.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 101.9
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 131.5
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 160.2
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.6
+        }
+      ]
+    },
+    {
+      "id": "candidate-2",
+      "position": {
+        "x": 8143175.5,
+        "y": -284149.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 100.1
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 119.6
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 158.4
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.9
+        }
+      ]
+    },
+    {
+      "id": "candidate-3",
+      "position": {
+        "x": 8143228.5,
+        "y": -284149.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 100.1
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 120.3
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 158.9
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.9
+        }
+      ]
+    },
+    {
+      "id": "candidate-4",
+      "position": {
+        "x": 8143176.5,
+        "y": -284156.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 100.0
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 119.4
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 158.4
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.9
+        }
+      ]
+    },
+    {
+      "id": "candidate-5",
+      "position": {
+        "x": 8143238.5,
+        "y": -284158.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 100.1
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 120.3
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 159.0
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.9
+        }
+      ]
+    },
+    {
+      "id": "candidate-6",
+      "position": {
+        "x": 8144103.5,
+        "y": -284308.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 100.1
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 134.9
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 167.6
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.2
+        }
+      ]
+    },
+    {
+      "id": "candidate-7",
+      "position": {
+        "x": 8144218.5,
+        "y": -284386.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 99.9
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 136.3
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 168.7
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.2
+        }
+      ]
+    },
+    {
+      "id": "candidate-8",
+      "position": {
+        "x": 8142992.5,
+        "y": -284650.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 98.4
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 104.6
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 154.4
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.4
+        }
+      ]
+    },
+    {
+      "id": "candidate-9",
+      "position": {
+        "x": 8143214.5,
+        "y": -284650.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 98.5
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 106.4
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 156.7
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.2
+        }
+      ]
+    },
+    {
+      "id": "candidate-10",
+      "position": {
+        "x": 8144076.5,
+        "y": -284650.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 98.9
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 120.1
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 166.4
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.5
+        }
+      ]
+    },
+    {
+      "id": "candidate-11",
+      "position": {
+        "x": 8144508.5,
+        "y": -284650.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 99.2
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 138.6
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 171.6
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.1
+        }
+      ]
+    },
+    {
+      "id": "candidate-12",
+      "position": {
+        "x": 8143061.5,
+        "y": -285150.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 96.9
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 90.4
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 152.5
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.7
+        }
+      ]
+    },
+    {
+      "id": "candidate-13",
+      "position": {
+        "x": 8143212.5,
+        "y": -285336.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 96.3
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 84.3
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 153.2
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.7
+        }
+      ]
+    },
+    {
+      "id": "candidate-14",
+      "position": {
+        "x": 8143884.5,
+        "y": -285208.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 97.0
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 87.6
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 162.1
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.0
+        }
+      ]
+    },
+    {
+      "id": "candidate-15",
+      "position": {
+        "x": 8144340.5,
+        "y": -285150.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 97.4
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 91.1
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 168.3
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.5
+        }
+      ]
+    },
+    {
+      "id": "candidate-16",
+      "position": {
+        "x": 8143015.5,
+        "y": -285908.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 94.5
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 69.0
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 146.9
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.2
+        }
+      ]
+    },
+    {
+      "id": "candidate-17",
+      "position": {
+        "x": 8143213.5,
+        "y": -286118.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 93.9
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 61.3
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 147.7
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.1
+        }
+      ]
+    },
+    {
+      "id": "candidate-18",
+      "position": {
+        "x": 8143976.5,
+        "y": -285757.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 95.2
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 58.8
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 160.8
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.2
+        }
+      ]
+    },
+    {
+      "id": "candidate-19",
+      "position": {
+        "x": 8144256.5,
+        "y": -285650.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 95.7
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 55.2
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 165.4
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.9
+        }
+      ]
+    },
+    {
+      "id": "candidate-20",
+      "position": {
+        "x": 8143149.5,
+        "y": -286150.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 93.7
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 61.4
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 146.6
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.2
+        }
+      ]
+    },
+    {
+      "id": "candidate-21",
+      "position": {
+        "x": 8143231.5,
+        "y": -286150.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 93.8
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 60.2
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 147.7
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.1
+        }
+      ]
+    },
+    {
+      "id": "candidate-22",
+      "position": {
+        "x": 8144024.5,
+        "y": -286319.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 93.4
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 38.9
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 158.3
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.5
+        }
+      ]
+    },
+    {
+      "id": "candidate-23",
+      "position": {
+        "x": 8144410.5,
+        "y": -286150.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 94.0
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 29.1
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 165.9
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.1
+        }
+      ]
+    },
+    {
+      "id": "candidate-24",
+      "position": {
+        "x": 8143118.5,
+        "y": -286650.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 92.1
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 51.1
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 141.4
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.5
+        }
+      ]
+    },
+    {
+      "id": "candidate-25",
+      "position": {
+        "x": 8143202.5,
+        "y": -286690.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 92.0
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 49.0
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 142.1
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.5
+        }
+      ]
+    },
+    {
+      "id": "candidate-26",
+      "position": {
+        "x": 8143788.5,
+        "y": -286650.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 92.2
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 38.2
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 151.6
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.9
+        }
+      ]
+    },
+    {
+      "id": "candidate-27",
+      "position": {
+        "x": 8144452.5,
+        "y": -286729.5
+      },
+      "score": 1.0,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 92.0
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 17.9
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 163.7
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.4
+        }
+      ]
+    },
+    {
+      "id": "candidate-28",
+      "position": {
+        "x": 8142531.5,
+        "y": -283470.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 101.7
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 124.9
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.1
+        }
+      ]
+    },
+    {
+      "id": "candidate-29",
+      "position": {
+        "x": 8143357.5,
+        "y": -283160.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 103.2
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 141.3
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.1
+        }
+      ]
+    },
+    {
+      "id": "candidate-30",
+      "position": {
+        "x": 8143752.5,
+        "y": -283160.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 103.5
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 148.9
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 327.8
+        }
+      ]
+    },
+    {
+      "id": "candidate-31",
+      "position": {
+        "x": 8144404.5,
+        "y": -283222.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 103.8
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 164.0
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 327.2
+        }
+      ]
+    },
+    {
+      "id": "candidate-32",
+      "position": {
+        "x": 8141639.5,
+        "y": -283900.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 100.0
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 110.8
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.2
+        }
+      ]
+    },
+    {
+      "id": "candidate-33",
+      "position": {
+        "x": 8141809.5,
+        "y": -283995.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 99.8
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 110.3
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.1
+        }
+      ]
+    },
+    {
+      "id": "candidate-34",
+      "position": {
+        "x": 8143700.5,
+        "y": -283859.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 101.3
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 136.0
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 328.3
+        }
+      ]
+    },
+    {
+      "id": "candidate-35",
+      "position": {
+        "x": 8144292.5,
+        "y": -283755.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 102.0
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 154.6
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 327.7
+        }
+      ]
+    },
+    {
+      "id": "candidate-36",
+      "position": {
+        "x": 8141431.5,
+        "y": -284319.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 98.7
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 103.4
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.7
+        }
+      ]
+    },
+    {
+      "id": "candidate-37",
+      "position": {
+        "x": 8141994.5,
+        "y": -284421.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 98.6
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 104.0
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.2
+        }
+      ]
+    },
+    {
+      "id": "candidate-38",
+      "position": {
+        "x": 8142301.5,
+        "y": -284576.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 98.3
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 102.4
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.0
+        }
+      ]
+    },
+    {
+      "id": "candidate-39",
+      "position": {
+        "x": 8142487.5,
+        "y": -285084.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 96.9
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 91.8
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.2
+        }
+      ]
+    },
+    {
+      "id": "candidate-40",
+      "position": {
+        "x": 8142139.5,
+        "y": -285278.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 96.2
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 87.6
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.6
+        }
+      ]
+    },
+    {
+      "id": "candidate-41",
+      "position": {
+        "x": 8142485.5,
+        "y": -285150.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 96.7
+        },
+        {
+          "id": "texoli",
+          "title": "Texoli",
+          "heading_deg": 90.3
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.2
+        }
+      ]
+    },
+    {
+      "id": "candidate-42",
+      "position": {
+        "x": 8142636.5,
+        "y": -286847.5
+      },
+      "score": 0.75,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 91.5
+        },
+        {
+          "id": "mishe_mokwa",
+          "title": "Mishe Mokwa",
+          "heading_deg": 133.2
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.1
+        }
+      ]
+    },
+    {
+      "id": "candidate-43",
+      "position": {
+        "x": 8140882.5,
+        "y": -283226.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 101.5
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.5
+        }
+      ]
+    },
+    {
+      "id": "candidate-44",
+      "position": {
+        "x": 8141462.5,
+        "y": -283197.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 101.9
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.9
+        }
+      ]
+    },
+    {
+      "id": "candidate-45",
+      "position": {
+        "x": 8141946.5,
+        "y": -283585.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 101.1
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.7
+        }
+      ]
+    },
+    {
+      "id": "candidate-46",
+      "position": {
+        "x": 8140710.5,
+        "y": -283652.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 100.2
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.9
+        }
+      ]
+    },
+    {
+      "id": "candidate-47",
+      "position": {
+        "x": 8142621.5,
+        "y": -283651.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 101.3
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 329.1
+        }
+      ]
+    },
+    {
+      "id": "candidate-48",
+      "position": {
+        "x": 8140854.5,
+        "y": -284592.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 97.7
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.4
+        }
+      ]
+    },
+    {
+      "id": "candidate-49",
+      "position": {
+        "x": 8140828.5,
+        "y": -284650.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 97.5
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.4
+        }
+      ]
+    },
+    {
+      "id": "candidate-50",
+      "position": {
+        "x": 8141200.5,
+        "y": -285097.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 96.4
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.4
+        }
+      ]
+    },
+    {
+      "id": "candidate-51",
+      "position": {
+        "x": 8141827.5,
+        "y": -284650.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 97.9
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.5
+        }
+      ]
+    },
+    {
+      "id": "candidate-52",
+      "position": {
+        "x": 8140865.5,
+        "y": -285150.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 96.1
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.7
+        }
+      ]
+    },
+    {
+      "id": "candidate-53",
+      "position": {
+        "x": 8141507.5,
+        "y": -285195.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 96.2
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.1
+        }
+      ]
+    },
+    {
+      "id": "candidate-54",
+      "position": {
+        "x": 8141054.5,
+        "y": -285650.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 94.8
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.8
+        }
+      ]
+    },
+    {
+      "id": "candidate-55",
+      "position": {
+        "x": 8141524.5,
+        "y": -285650.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 94.9
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.4
+        }
+      ]
+    },
+    {
+      "id": "candidate-56",
+      "position": {
+        "x": 8142073.5,
+        "y": -285650.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 95.0
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 330.9
+        }
+      ]
+    },
+    {
+      "id": "candidate-57",
+      "position": {
+        "x": 8142279.5,
+        "y": -286149.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 93.6
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.0
+        }
+      ]
+    },
+    {
+      "id": "candidate-58",
+      "position": {
+        "x": 8140923.5,
+        "y": -286150.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 93.3
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 332.2
+        }
+      ]
+    },
+    {
+      "id": "candidate-59",
+      "position": {
+        "x": 8141357.5,
+        "y": -286150.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 93.4
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.8
+        }
+      ]
+    },
+    {
+      "id": "candidate-60",
+      "position": {
+        "x": 8141861.5,
+        "y": -286150.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 93.5
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.4
+        }
+      ]
+    },
+    {
+      "id": "candidate-61",
+      "position": {
+        "x": 8142279.5,
+        "y": -286150.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 93.6
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.0
+        }
+      ]
+    },
+    {
+      "id": "candidate-62",
+      "position": {
+        "x": 8140910.5,
+        "y": -286650.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 91.9
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 332.5
+        }
+      ]
+    },
+    {
+      "id": "candidate-63",
+      "position": {
+        "x": 8141220.5,
+        "y": -287038.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 90.8
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 332.5
+        }
+      ]
+    },
+    {
+      "id": "candidate-64",
+      "position": {
+        "x": 8142122.5,
+        "y": -286650.5
+      },
+      "score": 0.5,
+      "expected_error_m": 50.650001525878906,
+      "terrain_type": "textured",
+      "landmarks_in_view": [
+        {
+          "id": "mount_sharp_peak",
+          "title": "Upper Mount Sharp peak",
+          "heading_deg": 92.0
+        },
+        {
+          "id": "crater_rim",
+          "title": "Gale crater rim",
+          "heading_deg": 331.4
+        }
+      ]
+    }
+  ],
+  "checkpoint_square_m": 500.0,
+  "landmark_directions": {
+    "route": "cache/demo/route/planning-route-fastest.json",
+    "mode": "fastest",
+    "step_m": 10.0,
+    "legs": [
+      {
+        "leg": 0,
+        "start_index": 0,
+        "end_index": 1,
+        "heading_deg": 50.2,
+        "share_in_walk_area": 0.0,
+        "landmark": null,
+        "side": null,
+        "text": null,
+        "landmarks": [
+          {
+            "id": "mount_sharp_peak",
+            "share_of_leg_in_view": 0.0,
+            "relative_deg": null,
+            "side": null
+          },
+          {
+            "id": "texoli",
+            "share_of_leg_in_view": 0.0,
+            "relative_deg": null,
+            "side": null
+          },
+          {
+            "id": "mishe_mokwa",
+            "share_of_leg_in_view": 0.0,
+            "relative_deg": null,
+            "side": null
+          },
+          {
+            "id": "crater_rim",
+            "share_of_leg_in_view": 0.0,
+            "relative_deg": null,
+            "side": null
+          }
+        ]
+      },
+      {
+        "leg": 1,
+        "start_index": 1,
+        "end_index": 2,
+        "heading_deg": 56.3,
+        "share_in_walk_area": 0.0,
+        "landmark": null,
+        "side": null,
+        "text": null,
+        "landmarks": [
+          {
+            "id": "mount_sharp_peak",
+            "share_of_leg_in_view": 0.0,
+            "relative_deg": null,
+            "side": null
+          },
+          {
+            "id": "texoli",
+            "share_of_leg_in_view": 0.0,
+            "relative_deg": null,
+            "side": null
+          },
+          {
+            "id": "mishe_mokwa",
+            "share_of_leg_in_view": 0.0,
+            "relative_deg": null,
+            "side": null
+          },
+          {
+            "id": "crater_rim",
+            "share_of_leg_in_view": 0.0,
+            "relative_deg": null,
+            "side": null
+          }
+        ]
+      }
+    ]
   },
   "layers": [
     "landmark_mount_sharp_peak",
     "landmark_texoli",
     "landmark_mishe_mokwa",
     "landmark_crater_rim",
+    "error_map",
     "location_quality"
   ],
   "score_raster": "gale/rasters/location_quality.tif",
-  "terrain_load_s": 3.8,
-  "compute_s": 81.7,
+  "error_raster": "gale/rasters/error_map.tif",
+  "terrain_load_s": 3.7,
+  "compute_s": 86.5,
   "provenance": {
     "script": "layers/location_quality/build.py",
-    "commit": "ed71e5bdf8012455ae77bb6c604baa0f31b30b65",
+    "commit": "603eef2e259b92ca1d49a0c3caf0944032b5b55c",
     "inputs": [
       {
         "path": "MSL_Gale_DEM_Mosaic_1m_v3.tif",
@@ -209,11 +2075,19 @@
       },
       {
         "path": "sites/gale.yaml",
-        "sha256": "4301cb1364ab0e81394e9cdeec6cc241c105c43995cbecbb66e1188ead412a04"
+        "sha256": "da81c83010a955cfcd5161a131a3d7644f2ac21ebd047764df8956d3bb54fd50"
       },
       {
         "path": "layers/location_quality/landmarks.yaml",
-        "sha256": "c83c799e1323e9d78520cf5a04688624365571d8acfd37b69050458442e8b1c2"
+        "sha256": "9e455f7a3f90b52405c4acff23632aace067f2ffb44bb828e5c20dd11e1a257c"
+      },
+      {
+        "path": "results/horizon/horizon-gale.json",
+        "sha256": "73b1a6a49fefa256ffb759ac2d2c140dd8b4cf1412c5fdeaf1b6b0c16faf800e"
+      },
+      {
+        "path": "cache/demo/route/planning-route-fastest.json",
+        "sha256": "22981b471abc04d7fb05570a7cc1c4bc966b1649756f592ce365d0d1b0914ef2"
       }
     ]
   }
