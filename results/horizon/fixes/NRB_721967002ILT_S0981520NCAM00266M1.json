@@ -9,7 +9,7 @@
   "heading_deg": 64.75,
   "uncertainty_m": 3041.38126514911,
   "confidence_pct": 0.0,
-  "time_per_fix_s": 6.3,
+  "time_per_fix_s": 6.28,
   "terrain_type": "textured",
   "simulated": false,
   "overlay": "results/horizon/overlays/p3-02-NRB_721967002ILT_S0981520NCAM00266M1.png",
@@ -24,7 +24,7 @@
   },
   "provenance": {
     "script": "locate/horizon/fix.py",
-    "commit": "10f1eeebbc04d7eb2e5616879efea93f563606c3",
+    "commit": "dc0ff61452cd87ee82e5ef3692703a6e5513523a",
     "inputs": [
       {
         "path": "gale/horizon/grid.npz",
@@ -129,6 +129,18 @@
       {
         "path": "navcam/NRB_721967353ILT_S0981520NCAM00266M1.IMG",
         "sha256": "94fcdacc10ba9b451fb929a785954c327ff95dd6c165b6ef226d651ad7de676b"
+      },
+      {
+        "path": "sites/gale.yaml",
+        "sha256": "4301cb1364ab0e81394e9cdeec6cc241c105c43995cbecbb66e1188ead412a04"
+      },
+      {
+        "path": "gale/layers/base/layer.json",
+        "sha256": "1b10e14184c5f13321f1d7dceb3a5f3a2249bd99a3206f07b7c69198f51448c2"
+      },
+      {
+        "path": "gale/layers/base/tiles/0/0/0.png",
+        "sha256": "2f81971ce0db225743b7cc1640059913e7b3267738fc93670344c69df3f166e4"
       }
     ]
   }
