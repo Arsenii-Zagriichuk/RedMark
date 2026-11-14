@@ -190,20 +190,26 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
     waypoints = jezero / "source" / "nasa" / "m20_heli_waypoints.json"
     inputs = [label, label.with_suffix(".IMG"), crop, waypoints, frames_csv]
 
+    started = time.perf_counter()
+    frame = read_drone_frame(label.read_text())
     previous = None
     if previous_stem:
+        previous_row = _frame_row(frames_csv, previous_stem)
+        previous_label = _label(jezero, previous_row)
+        previous_frame = read_drone_frame(previous_label.read_text())
+        if previous_frame.flight != frame.flight:
+            raise SystemExit(f"--previous {previous_stem} must be from the same flight as {stem}")
+        if not previous_frame.sclk < frame.sclk:
+            raise SystemExit(f"--previous {previous_stem} must precede the current photo {stem}")
+
         previous_fix = RESULTS / "fixes" / f"{previous_stem}.json"
-        previous_label = _label(jezero, _frame_row(frames_csv, previous_stem))
         position = json.loads(previous_fix.read_text())["position"]
         previous = PreviousPhoto(
             fix=(position["x"], position["y"]),
-            onboard=_onboard(
-                read_drone_frame(previous_label.read_text()),
-                _frame_row(frames_csv, previous_stem),
-                waypoints,
-            ),
+            onboard=_onboard(previous_frame, previous_row, waypoints),
         )
         inputs += [previous_fix, previous_label]
+    preparation_s = time.perf_counter() - started
 
     device = pick_device()
     if matcher_name == "loftr":
@@ -214,13 +220,12 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
         weights = sorted(p for p in (root / TORCH_HUB / "checkpoints").iterdir() if p.is_file())
 
     started = time.perf_counter()
-    frame = read_drone_frame(label.read_text())
     with rasterio.open(label) as src:
         raw = src.read(1)
     onboard = _onboard(frame, row, waypoints)
     centre = search_centre(onboard, previous)
     ground, window, drone_fix = fix_frame(raw, frame, crop, centre, matcher)
-    seconds = time.perf_counter() - started
+    seconds = preparation_s + (time.perf_counter() - started)
     # Before anything is written: refuse uncommitted fix code, checksum the inputs.
     provenance = _provenance(inputs + weights)
 

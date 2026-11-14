@@ -35,6 +35,10 @@ MAP_PX = 900  # 225 m square
 # view's pixels line up with the map's and the stand-in matcher's whole-pixel
 # shifts are exact.
 TRUE_X, TRUE_Y = 4354112.5, 1092287.5
+# Worked from the label's raw quaternions. HELI_G_FRAME rotates 113.2496°
+# clockwise from north. The HELI_M_FRAME forward axis projects to about
+# (0.89821, -0.39104) in that frame, a bearing of -23.5262° from its x-axis.
+TRUE_HEADING_DEG = 89.7234
 
 
 def test_first_fix_searches_around_the_onboard_position():
@@ -162,8 +166,6 @@ def test_fixture_frame_is_fixed_where_it_was_rendered(photo_map):
     crop, values = photo_map
     frame = read_drone_frame(LABEL.read_text())
     raw = _render_raw(frame, values)
-    forward = frame.body_to_ned[:, 0]
-    true_heading = float(np.degrees(np.arctan2(forward[1], forward[0])) % 360)
 
     # The search starts 7.9 m off, as from a drifted onboard position.
     _, _, drone_fix = fix_frame(raw, frame, crop, (TRUE_X + 6.3, TRUE_Y - 4.7), ncc_matcher)
@@ -177,7 +179,7 @@ def test_fixture_frame_is_fixed_where_it_was_rendered(photo_map):
             script="locate/drone/tests/test_drone_pipeline.py", commit="", inputs=[]
         ),
     )
-    scored = score_fix(result, Point(x=TRUE_X, y=TRUE_Y), true_heading)
+    scored = score_fix(result, Point(x=TRUE_X, y=TRUE_Y), TRUE_HEADING_DEG)
 
     assert scored.truth.position_error_m < 0.1
     assert scored.truth.heading_error_deg < 0.5
