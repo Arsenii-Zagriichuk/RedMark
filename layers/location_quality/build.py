@@ -92,8 +92,10 @@ HORIZON_TEST = REPO_ROOT / "results" / "horizon" / "horizon-gale.json"
 """The horizon test summary the error map takes its medians from (P3-03)."""
 DEMO_ROUTE = REPO_ROOT / "cache" / "demo" / "route" / "planning-route-fastest.json"
 """The demo route the landmark directions follow: its saved POST /route response."""
-CHECKPOINT_COUNT = 10
-CHECKPOINT_SPACING_M = 200.0
+CHECKPOINT_SQUARE_M = 500.0
+"""Each square of the walk area this size gives one checkpoint candidate."""
+CHECKPOINT_NEIGHBOURHOOD_M = 10.0
+"""A tie between candidates goes to the better mean score within this distance."""
 DIRECTION_STEP_M = 10.0
 SOURCES = [
     (
@@ -166,8 +168,8 @@ def main() -> None:
         score,
         terrain_cells.hollow,
         cells,
-        count=CHECKPOINT_COUNT,
-        spacing_m=CHECKPOINT_SPACING_M,
+        square_m=CHECKPOINT_SQUARE_M,
+        neighbourhood_m=CHECKPOINT_NEIGHBOURHOOD_M,
     )
     route = RouteResponse.model_validate(json.loads(DEMO_ROUTE.read_text())["response"])
     directions = leg_directions(
@@ -276,7 +278,7 @@ def main() -> None:
             _candidate(i, at, landmarks, masks, cells, score, errors, terrain_cells)
             for i, at in enumerate(candidates)
         ],
-        "checkpoint_spacing_m": CHECKPOINT_SPACING_M,
+        "checkpoint_square_m": CHECKPOINT_SQUARE_M,
         "landmark_directions": {
             "route": DEMO_ROUTE.relative_to(REPO_ROOT).as_posix(),
             "mode": route.mode.value,

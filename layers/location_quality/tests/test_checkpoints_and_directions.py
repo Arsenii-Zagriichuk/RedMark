@@ -11,29 +11,31 @@ from layers.location_quality.visibility import Cells, Landmark
 CELLS = Cells(left=0.0, top=100.0, res=10.0, shape=(10, 10))
 
 
-def test_candidates_are_the_best_cells_off_hollows_and_a_spacing_apart():
+def test_each_square_gives_its_best_cell_off_hollows_best_first():
+    # 50 m squares: four of them, 5 x 5 cells each.
     score = np.full(CELLS.shape, 0.1, np.float32)
     hollow = np.zeros(CELLS.shape, bool)
-    score[0, 0] = 1.0  # best, but in a hollow: never a checkpoint
+    score[0, 0] = 1.0  # north-west square's best cell, but a hollow: never a checkpoint
     hollow[0, 0] = True
-    score[5, 5] = 0.9  # centre (55, 45): first
-    score[5, 7] = 0.8  # (75, 45): 20 m from the first, inside the 30 m spacing
-    score[9, 9] = 0.7  # (95, 5): 56.6 m from the first, second
-    score[2, 2] = np.nan  # no terrain: never a checkpoint
-    picked = checkpoint_candidates(score, hollow, CELLS, count=2, spacing_m=30.0)
-    assert picked == [(55.0, 45.0), (95.0, 5.0)]
+    score[2, 2] = 0.9  # so the north-west square gives (25, 75)
+    score[3, 3] = np.nan  # no terrain: never a checkpoint
+    score[1, 8] = 0.6  # north-east square: (85, 85)
+    hollow[5:, :5] = True  # the south-west square is all hollow: no candidate
+    score[9, 9] = 0.7  # south-east square: (95, 5)
+    picked = checkpoint_candidates(score, hollow, CELLS, square_m=50.0, neighbourhood_m=10.0)
+    assert picked == [(25.0, 75.0), (95.0, 5.0), (85.0, 85.0)]
 
 
-def test_fewer_candidates_come_back_when_the_area_runs_out():
-    score = np.full(CELLS.shape, 0.5, np.float32)
+def test_a_tie_goes_to_the_cell_with_the_better_ground_round_it():
+    # One 100 m square; two cells share the best score, one of them amid good ground.
+    score = np.full(CELLS.shape, 0.1, np.float32)
+    score[2, 2] = 1.0
+    score[6:9, 6:9] = 0.8
+    score[7, 7] = 1.0  # (75, 25), its 8 neighbours at 0.8
     picked = checkpoint_candidates(
-        score, np.zeros(CELLS.shape, bool), CELLS, count=50, spacing_m=60.0
+        score, np.zeros(CELLS.shape, bool), CELLS, square_m=100.0, neighbourhood_m=10.0
     )
-    # Every pick clears a 60 m circle of a 100 m square: only a handful fit.
-    assert 2 <= len(picked) < 9
-    for i, a in enumerate(picked):
-        for b in picked[i + 1 :]:
-            assert np.hypot(a[0] - b[0], a[1] - b[1]) >= 60.0
+    assert picked == [(75.0, 25.0)]
 
 
 # Directions. Texoli stands 10 km due north of the cells; the rim is two far points,
