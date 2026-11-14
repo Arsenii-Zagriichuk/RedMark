@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import yaml
+from fastapi import HTTPException
 
 from contracts.models.route_request import RouteRequest
 from contracts.models.site import SiteConfig
@@ -25,7 +26,7 @@ def plan(request: dict) -> dict:
     """
     route_request = RouteRequest.model_validate(request)
     if route_request.mode != "fastest":
-        raise NotImplementedError(f"the {route_request.mode} route comes with P4-04")
+        raise HTTPException(501, f"the {route_request.mode} route comes with P4-04")
     site = load_site(route_request.site)
     if site.habitat is None:
         raise NoSafeRoute(f"the {route_request.site} site has no habitat to walk from")

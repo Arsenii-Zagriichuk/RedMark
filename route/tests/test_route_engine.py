@@ -36,3 +36,25 @@ def test_a_goal_beyond_the_distance_limit_is_refused_with_the_reason():
 
     assert reply.status_code == 422
     assert "no safe route" in reply.json()["detail"]
+
+
+def test_the_science_and_cart_routes_say_they_are_not_built_yet():
+    for mode in ("science", "cart"):
+        reply = post_route(STUB_REQUEST | {"mode": mode})
+
+        assert reply.status_code == 501
+        assert "P4-04" in reply.json()["detail"]
+
+
+def test_start_and_goal_in_the_same_spot_is_refused_with_the_reason():
+    reply = post_route(STUB_REQUEST | {"goal": STUB_REQUEST["start"]})
+
+    assert reply.status_code == 422
+    assert "same planning cell" in reply.json()["detail"]
+
+
+def test_a_site_without_a_habitat_is_refused_with_the_reason():
+    reply = post_route(STUB_REQUEST | {"site": "jezero"})
+
+    assert reply.status_code == 422
+    assert "no habitat" in reply.json()["detail"]

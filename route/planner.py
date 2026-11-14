@@ -78,7 +78,7 @@ def plan_on_grid(
 
     start_cell, goal_cell, habitat_cell = grid.cell(start), grid.cell(goal), grid.cell(habitat)
     if start_cell == goal_cell:
-        raise ValueError("start and goal are in the same planning cell")
+        raise HTTPException(422, "start and goal are in the same planning cell")
     shape = blocked.shape
     seconds, previous = dijkstra(
         _walking_graph(walk_s, blocked),
@@ -201,46 +201,6 @@ def _trace(previous: np.ndarray, goal_cell: tuple[int, int], shape) -> list[tupl
         nodes.append(node)
         node = int(previous[node])
     return [tuple(int(i) for i in np.unravel_index(n, shape)) for n in reversed(nodes)]
-
-
-def _legs(cells, steps: list[float], elapsed: np.ndarray) -> list[Leg]:
-    """One leg per straight run of the path."""
-    moves = [(r1 - r0, c1 - c0) for (r0, c0), (r1, c1) in zip(cells, cells[1:], strict=False)]
-    turns = [i for i in range(1, len(moves)) if moves[i] != moves[i - 1]]
-    ends = [0, *turns, len(cells) - 1]
-    return [
-        Leg(
-            start_index=first,
-            end_index=last,
-            distance_m=sum(steps[first:last]),
-            time_s=float(elapsed[cells[last]] - elapsed[cells[first]]),
-        )
-        for first, last in zip(ends, ends[1:], strict=False)
-    ]
-
-
-def _walk_seconds_per_cell(grid: CostGrid, planning_speed_kmh: float) -> np.ndarray:
-    seconds = (3.6 / planning_speed_kmh) * grid.cell_m
-    seconds = seconds * np.exp(TOBLER_RATE * np.tan(np.radians(np.minimum(grid.slope_deg, 89))))
-    seconds = np.where(grid.sand, seconds * SAND_TIME_FACTOR, seconds)
-    return np.where(grid.ridge, seconds * RIDGE_TIME_FACTOR, seconds)
-
-
-def _seal_diagonal_gaps(blocked: np.ndarray) -> np.ndarray:
-    """Close every gap where two blocked cells touch only at a corner.
-
-    A path may step diagonally, so it could slip between two such cells and cross a
-    diagonal wall. Blocking one more cell at each such corner makes every wall solid.
-    """
-    sealed = blocked.copy()
-    while True:
-        nw, ne, sw, se = sealed[:-1, :-1], sealed[:-1, 1:], sealed[1:, :-1], sealed[1:, 1:]
-        falling = nw & se & ~ne & ~sw
-        rising = ne & sw & ~nw & ~se
-        if not (falling.any() or rising.any()):
-            return sealed
-        sealed[:-1, 1:] |= falling
-        sealed[:-1, :-1] |= rising
 
 
 def _check(limit: str, value: float, threshold: float, units: str) -> LimitCheck:

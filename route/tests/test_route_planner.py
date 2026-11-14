@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+from fastapi import HTTPException
 
 from contracts.models.common import Point
 from contracts.models.route_request import Limits
@@ -224,7 +225,7 @@ def test_ground_with_no_slope_data_is_never_walked():
 def test_start_and_goal_in_the_same_planning_cell_is_refused():
     g, start, _ = flat_kilometre()
 
-    with pytest.raises(ValueError, match="same planning cell"):
+    with pytest.raises(HTTPException, match="same planning cell"):
         plan_on_grid(g, start, start, start, DEFAULT_LIMITS)
 
 
