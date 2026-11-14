@@ -23,6 +23,7 @@ dev = [
 ]
 # Only Person 2's machine installs this: `uv sync --group gpu`.
 gpu = [
+    "kornia>=0.9.1",
     "torch>=2.5",
 ]
 prep = [
