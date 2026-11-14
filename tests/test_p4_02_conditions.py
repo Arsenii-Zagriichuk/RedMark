@@ -1,18 +1,21 @@
 """P4-02: Tests for the Mars24 sun-position module and conditions generator.
 
-Independent reference values come from:
-  - Analytical limits: δ_s = 0° at Ls = 0° (equinox), δ_s ≈ 25.44° at Ls = 90°.
-  - Geometric noon elevation: 90° − |δ_s − φ| (different formula from the
-    code's full spherical trig, so it cross-checks the computation).
-  - Sunset hour angle: cos H = −tan δ_s · tan φ  (textbook formula).
+Independent reference values:
+  - Landing JD: 2012-08-06 05:17:57 UTC = JD 2456145.72079, computed from
+    the known JD 2455927.5 = 2012-01-01 00:00 UTC and a day count.
+  - Analytical limits: δ_s = 0° at Ls = 0°; δ_s = 25.44° at Ls = 90°.
+  - Geometric noon elevation: 90° − |δ − φ|  (cross-checks the spherical trig).
+  - Equinox equator sunset: LTST 18:00 exactly.
 """
 
 import json
 from pathlib import Path
 
 import jsonschema
+import pytest
 
 from conditions.mars24 import (
+    _LANDING_JD_UTC,
     GALE_LAT_DEG,
     equation_of_center_deg,
     equation_of_time_deg,
@@ -27,25 +30,57 @@ from conditions.mars24 import (
 
 _SOL = 4600
 
-# Mars obliquity = 25.19°.  At Ls = 90° the exact declination is
-#   arcsin(sin 25.19°) + 0.25·sin 90° = 25.19° + 0.25° = 25.44°.
-# At Ls = 0° the exact declination is 0°.
-_OBLIQUITY = 25.19
-_DECL_AT_LS90 = _OBLIQUITY + 0.25  # 25.44°
+# Mars obliquity = 25.19°.  Exact declination at Ls = 90° is 25.19 + 0.25 = 25.44°.
+_DECL_AT_LS90 = 25.19 + 0.25
 
 
 # ---------------------------------------------------------------------------
-# Solar declination at analytical limits (independent of the code's formula)
+# Shared fixture: orbital state for sol 4600
+# ---------------------------------------------------------------------------
+
+
+class _Sol4600:
+    """Precomputed orbital state — avoids repeating the setup in each test."""
+
+    def __init__(self) -> None:
+        self.msd = msd_for_sol(_SOL)
+        self.jde = jde_from_msd(self.msd)
+        self.ls = solar_longitude_deg(self.jde)
+        m_deg = mars_mean_anomaly_deg(self.jde)
+        eoc = equation_of_center_deg(m_deg)
+        self.eot = equation_of_time_deg(self.ls, eoc)
+
+
+@pytest.fixture()
+def sol4600() -> _Sol4600:
+    return _Sol4600()
+
+
+# ---------------------------------------------------------------------------
+# Independent anchor: landing JD from calendar arithmetic
+# ---------------------------------------------------------------------------
+
+
+def test_landing_jd_matches_calendar():
+    """2012-08-06 05:17:57 UTC = JD 2456145.72079, from JD 2455927.5 + 218 d + time."""
+    # JD 2455927.5 = 2012-01-01 00:00 UTC (well-known reference).
+    # Aug 6 is day-of-year 219 in a leap year, so 218 full days after Jan 1.
+    expected = 2455927.5 + 218 + (5 * 3600 + 17 * 60 + 57) / 86400.0
+    assert abs(_LANDING_JD_UTC - expected) < 1e-5, (
+        f"landing JD {_LANDING_JD_UTC} vs calendar {expected}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Declination at analytical limits (independent of the code's formula)
 # ---------------------------------------------------------------------------
 
 
 def test_declination_zero_at_equinox():
-    """At Ls = 0° (equinox), declination must be 0°."""
     assert abs(solar_declination_deg(0.0)) < 0.01
 
 
 def test_declination_at_solstice():
-    """At Ls = 90° (summer solstice), δ_s must equal obliquity + 0.25°."""
     delta = solar_declination_deg(90.0)
     assert abs(delta - _DECL_AT_LS90) < 0.05, f"{delta:.3f}° vs expected {_DECL_AT_LS90}°"
 
@@ -67,65 +102,44 @@ def test_msd_jde_round_trip():
 # ---------------------------------------------------------------------------
 
 
-def test_solar_longitude_range():
-    jde = jde_from_msd(msd_for_sol(_SOL))
-    ls = solar_longitude_deg(jde)
-    assert 90.0 <= ls <= 150.0, f"Ls = {ls:.1f}°"
+def test_solar_longitude_range(sol4600: _Sol4600):
+    assert 90.0 <= sol4600.ls <= 150.0, f"Ls = {sol4600.ls:.1f}°"
 
 
 # ---------------------------------------------------------------------------
 # Noon elevation vs geometric formula 90° − |δ − φ|
-# (this formula never appears in mars24.py; it cross-checks the spherical trig)
 # ---------------------------------------------------------------------------
 
 
-def _geometric_noon_elevation(ls_deg: float, lat_deg: float) -> float:
-    delta = solar_declination_deg(ls_deg)
-    return 90.0 - abs(delta - lat_deg)
-
-
-def test_noon_elevation():
-    jde = jde_from_msd(msd_for_sol(_SOL))
-    ls = solar_longitude_deg(jde)
-    m_deg = mars_mean_anomaly_deg(jde)
-    eoc = equation_of_center_deg(m_deg)
-    eot = equation_of_time_deg(ls, eoc)
-    lmst_noon = 12.0 - eot * (24.0 / 360.0)
-    _az, el = sun_position(lmst_noon, ls, eot, GALE_LAT_DEG)
-    ref = _geometric_noon_elevation(ls, GALE_LAT_DEG)
+def test_noon_elevation(sol4600: _Sol4600):
+    lmst_noon = 12.0 - sol4600.eot * (24.0 / 360.0)
+    _az, el = sun_position(lmst_noon, sol4600.ls, sol4600.eot, GALE_LAT_DEG)
+    # Geometric reference (different formula from the spherical trig in sun_position)
+    delta = solar_declination_deg(sol4600.ls)
+    ref = 90.0 - abs(delta - GALE_LAT_DEG)
     assert abs(el - ref) < 0.5, f"{el:.2f}° vs geometric {ref:.2f}°"
     assert 55.0 <= el <= 67.0
 
 
 # ---------------------------------------------------------------------------
-# At solar noon, sun is near north for Gale's southern latitude
+# At solar noon, sun is near north
 # ---------------------------------------------------------------------------
 
 
-def test_noon_azimuth_near_north():
-    jde = jde_from_msd(msd_for_sol(_SOL))
-    ls = solar_longitude_deg(jde)
-    m_deg = mars_mean_anomaly_deg(jde)
-    eoc = equation_of_center_deg(m_deg)
-    eot = equation_of_time_deg(ls, eoc)
-    lmst_noon = 12.0 - eot * (24.0 / 360.0)
-    az, _el = sun_position(lmst_noon, ls, eot, GALE_LAT_DEG)
+def test_noon_azimuth_near_north(sol4600: _Sol4600):
+    lmst_noon = 12.0 - sol4600.eot * (24.0 / 360.0)
+    az, _el = sun_position(lmst_noon, sol4600.ls, sol4600.eot, GALE_LAT_DEG)
     from_north = min(az, 360.0 - az)
     assert from_north < 5.0, f"azimuth {az:.2f}° not near north"
 
 
 # ---------------------------------------------------------------------------
-# Sunset time in expected window
+# Sunset time
 # ---------------------------------------------------------------------------
 
 
-def test_sunset_time():
-    jde = jde_from_msd(msd_for_sol(_SOL))
-    ls = solar_longitude_deg(jde)
-    m_deg = mars_mean_anomaly_deg(jde)
-    eoc = equation_of_center_deg(m_deg)
-    eot = equation_of_time_deg(ls, eoc)
-    ss = sunset_lmst(ls, eot, GALE_LAT_DEG)
+def test_sunset_time(sol4600: _Sol4600):
+    ss = sunset_lmst(sol4600.ls, sol4600.eot, GALE_LAT_DEG)
     h, m = map(int, ss.split(":"))
     total = h * 60 + m
     assert 17 * 60 <= total <= 18 * 60 + 10, f"sunset {ss}"
@@ -136,32 +150,25 @@ def test_sunset_time():
 # ---------------------------------------------------------------------------
 
 
-def test_sun_below_horizon_at_midnight():
-    jde = jde_from_msd(msd_for_sol(_SOL))
-    ls = solar_longitude_deg(jde)
-    m_deg = mars_mean_anomaly_deg(jde)
-    eoc = equation_of_center_deg(m_deg)
-    eot = equation_of_time_deg(ls, eoc)
-    _az, el = sun_position(0.0, ls, eot, GALE_LAT_DEG)
+def test_sun_below_horizon_at_midnight(sol4600: _Sol4600):
+    _az, el = sun_position(0.0, sol4600.ls, sol4600.eot, GALE_LAT_DEG)
     assert el < 0.0
 
 
 # ---------------------------------------------------------------------------
-# Equinox sunset at equator is exactly 18:00 LTST (independent analytical)
+# Equinox equator sunset = 18:00 LTST (analytical, fully independent)
 # ---------------------------------------------------------------------------
 
 
 def test_equinox_sunset_at_equator():
-    """At Ls = 0° and lat = 0°, sunset hour angle = 90° → LTST 18:00."""
-    eot_at_equinox = equation_of_time_deg(0.0, 0.0)
-    ss = sunset_lmst(0.0, eot_at_equinox, 0.0)
+    eot_eq = equation_of_time_deg(0.0, 0.0)
+    ss = sunset_lmst(0.0, eot_eq, 0.0)
     h, m = map(int, ss.split(":"))
-    total = h * 60 + m
-    assert abs(total - 18 * 60) <= 2, f"equinox equator sunset {ss}, expected ~18:00"
+    assert abs(h * 60 + m - 18 * 60) <= 2, f"equinox equator sunset {ss}"
 
 
 # ---------------------------------------------------------------------------
-# Generated conditions file validates against the schema
+# Generated conditions validates against schema, reads PDS stubs
 # ---------------------------------------------------------------------------
 
 
@@ -181,22 +188,12 @@ def test_conditions_schema():
     jsonschema.validate(result, schema, resolver=resolver)
 
 
-# ---------------------------------------------------------------------------
-# Provenance is not stub
-# ---------------------------------------------------------------------------
-
-
-def test_provenance_not_stub():
+def test_provenance_records_pds_inputs():
     from conditions.gen_conditions import gen_conditions
 
     result = gen_conditions(sol=_SOL)
     assert result["provenance"]["script"] != "stub"
-    assert result["provenance"]["script"] != ""
-
-
-# ---------------------------------------------------------------------------
-# Dust is labelled estimated
-# ---------------------------------------------------------------------------
+    assert len(result["provenance"]["inputs"]) >= 1, "expected at least one PDS input"
 
 
 def test_dust_estimated():

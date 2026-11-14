@@ -1,8 +1,9 @@
 # Data sources for conditions/4600.json
 #
 # Sun position is computed via the Mars24 algorithm (Allison & McEwen 2000).
-# RAD, REMS and dust values are seasonal estimates; PDS files would go here
-# once downloaded to REDMARK_DATA.
+# RAD and REMS values come from CSV files under REDMARK_DATA (or the stubs
+# in contracts/stubs/stub-data/ when REDMARK_DATA is unset).
+# Dust is estimated (PDS opacity bundle ends at sol 3902).
 #
 # References:
 #   Sun:  https://www.giss.nasa.gov/tools/mars24/help/algorithm.html
@@ -11,6 +12,19 @@
 #   REMS: Martínez et al. (2017), Space Sci. Rev. 212(1-2)
 #         https://pdsatmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/curiosity/rems.html
 #   Dust: https://atmos.nmsu.edu/data_and_services/atmospheres_data/MARS/curiosity/atmospheric_opacity.html
-#         Labelled 'estimated' (PDS bundle ends at sol 3902, before sol 4600).
 
-files: []
+files:
+  - name: "RAD daily dose for sols 4599-4601"
+    path: "rad/sol4600.csv"
+    size_bytes: 63
+    source_url: "https://pds-ppi.igpp.ucla.edu/data/MSL-M-RAD-3-RDR-V1.0/AAREADME.TXT"
+    checksum: "621ee9bbd70bf50d54de442766fca40b049320560754ac4acd5594f7dbd98fa5"
+    checksum_algorithm: "sha256"
+    credit: "Hassler et al. (2014), Science 343(6169)"
+  - name: "REMS hourly temperature and pressure for sol 4600"
+    path: "rems/sol4600.csv"
+    size_bytes: 345
+    source_url: "https://pdsatmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/curiosity/rems.html"
+    checksum: "b5a7362096f5759f5776fe47c5a0961b2252eb50ef31228cc91df8cd08cc6cf3"
+    checksum_algorithm: "sha256"
+    credit: "Martínez et al. (2017), Space Sci. Rev. 212(1-2)"

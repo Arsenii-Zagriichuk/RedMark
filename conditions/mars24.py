@@ -18,8 +18,9 @@ GALE_LON_DEG = 137.84  # east positive
 # Curiosity landing epoch
 # ---------------------------------------------------------------------------
 # Landing: 2012-08-06 05:17:57 UTC
-# JD 2456146.5 = 2012-08-06 00:00:00 UTC (JD noon-epoch: .5 = midnight)
-_LANDING_JD_UTC = 2456146.5 + (5 * 3600 + 17 * 60 + 57) / 86400.0  # 2456146.72079
+# JD 2455927.5 = 2012-01-01 00:00 UTC; Aug 6 = day 219, so +218 full days.
+# JD 2456145.5 = 2012-08-06 00:00:00 UTC.
+_LANDING_JD_UTC = 2456145.5 + (5 * 3600 + 17 * 60 + 57) / 86400.0  # 2456145.72079
 # ΔTT = TT − UTC ≈ 32.184 + 34 (leap seconds in mid-2012) = 66.184 s
 _DELTA_TT_2012 = 66.184
 _LANDING_JDE = _LANDING_JD_UTC + _DELTA_TT_2012 / 86400.0

@@ -6,117 +6,126 @@
     "optical_depth": 0.5,
     "source": "estimated"
   },
-  "sunset_lmst": "17:29",
+  "sunset_lmst": "17:30",
   "steps": [
     {
       "lmst": "06:00",
-      "temperature_c": -53.7,
-      "pressure_pa": 847.3,
-      "sun_azimuth_deg": 66.01,
-      "sun_elevation_deg": 2.66
+      "temperature_c": -54.0,
+      "pressure_pa": 847.0,
+      "sun_azimuth_deg": 65.94,
+      "sun_elevation_deg": 2.62
     },
     {
       "lmst": "07:00",
-      "temperature_c": -45.9,
-      "pressure_pa": 844.1,
-      "sun_azimuth_deg": 63.53,
-      "sun_elevation_deg": 16.18
+      "temperature_c": -46.0,
+      "pressure_pa": 844.0,
+      "sun_azimuth_deg": 63.46,
+      "sun_elevation_deg": 16.13
     },
     {
       "lmst": "08:00",
-      "temperature_c": -37.5,
+      "temperature_c": -38.0,
       "pressure_pa": 840.0,
-      "sun_azimuth_deg": 59.08,
-      "sun_elevation_deg": 29.3
+      "sun_azimuth_deg": 59.01,
+      "sun_elevation_deg": 29.24
     },
     {
       "lmst": "09:00",
-      "temperature_c": -29.1,
-      "pressure_pa": 835.2,
-      "sun_azimuth_deg": 51.58,
-      "sun_elevation_deg": 41.62
+      "temperature_c": -29.0,
+      "pressure_pa": 835.0,
+      "sun_azimuth_deg": 51.51,
+      "sun_elevation_deg": 41.56
     },
     {
       "lmst": "10:00",
-      "temperature_c": -21.2,
+      "temperature_c": -21.0,
       "pressure_pa": 830.0,
-      "sun_azimuth_deg": 38.81,
-      "sun_elevation_deg": 52.3
+      "sun_azimuth_deg": 38.75,
+      "sun_elevation_deg": 52.22
     },
     {
       "lmst": "11:00",
-      "temperature_c": -14.5,
-      "pressure_pa": 824.8,
-      "sun_azimuth_deg": 17.75,
-      "sun_elevation_deg": 59.51
+      "temperature_c": -14.0,
+      "pressure_pa": 825.0,
+      "sun_azimuth_deg": 17.76,
+      "sun_elevation_deg": 59.43
     },
     {
       "lmst": "12:00",
-      "temperature_c": -9.4,
+      "temperature_c": -9.0,
       "pressure_pa": 820.0,
-      "sun_azimuth_deg": 350.11,
-      "sun_elevation_deg": 60.57
+      "sun_azimuth_deg": 350.2,
+      "sun_elevation_deg": 60.5
     },
     {
       "lmst": "13:00",
-      "temperature_c": -6.1,
-      "pressure_pa": 815.9,
-      "sun_azimuth_deg": 326.45,
-      "sun_elevation_deg": 54.91
+      "temperature_c": -6.0,
+      "pressure_pa": 816.0,
+      "sun_azimuth_deg": 326.58,
+      "sun_elevation_deg": 54.86
     },
     {
       "lmst": "14:00",
       "temperature_c": -5.0,
-      "pressure_pa": 812.7,
-      "sun_azimuth_deg": 311.52,
-      "sun_elevation_deg": 45.01
+      "pressure_pa": 813.0,
+      "sun_azimuth_deg": 311.63,
+      "sun_elevation_deg": 44.99
     },
     {
       "lmst": "15:00",
-      "temperature_c": -6.1,
-      "pressure_pa": 810.7,
-      "sun_azimuth_deg": 302.74,
+      "temperature_c": -6.0,
+      "pressure_pa": 811.0,
+      "sun_azimuth_deg": 302.84,
       "sun_elevation_deg": 33.05
     },
     {
       "lmst": "16:00",
-      "temperature_c": -9.4,
+      "temperature_c": -9.0,
       "pressure_pa": 810.0,
-      "sun_azimuth_deg": 297.55,
+      "sun_azimuth_deg": 297.64,
       "sun_elevation_deg": 20.12
     },
     {
       "lmst": "17:00",
-      "temperature_c": -14.5,
-      "pressure_pa": 810.7,
-      "sun_azimuth_deg": 294.56,
-      "sun_elevation_deg": 6.68
+      "temperature_c": -15.0,
+      "pressure_pa": 811.0,
+      "sun_azimuth_deg": 294.64,
+      "sun_elevation_deg": 6.7
     },
     {
       "lmst": "18:00",
-      "temperature_c": -21.2,
-      "pressure_pa": 812.7,
-      "sun_azimuth_deg": 293.15,
-      "sun_elevation_deg": -6.99
+      "temperature_c": -21.0,
+      "pressure_pa": 813.0,
+      "sun_azimuth_deg": 293.23,
+      "sun_elevation_deg": -6.96
     },
     {
       "lmst": "19:00",
-      "temperature_c": -29.1,
-      "pressure_pa": 815.9,
-      "sun_azimuth_deg": 293.19,
-      "sun_elevation_deg": -20.73
+      "temperature_c": -29.0,
+      "pressure_pa": 816.0,
+      "sun_azimuth_deg": 293.27,
+      "sun_elevation_deg": -20.69
     },
     {
       "lmst": "20:00",
-      "temperature_c": -37.5,
+      "temperature_c": -38.0,
       "pressure_pa": 820.0,
-      "sun_azimuth_deg": 294.97,
-      "sun_elevation_deg": -34.38
+      "sun_azimuth_deg": 295.06,
+      "sun_elevation_deg": -34.34
     }
   ],
   "provenance": {
     "script": "conditions/gen_conditions.py",
-    "commit": "0abccc94a50eaaa715ffd014c273e8b825998949",
-    "inputs": []
+    "commit": "db15bfab639626be18bb3fff3ad38162bee1acad",
+    "inputs": [
+      {
+        "path": "G:\\Development\\NasaHackathon\\redmark-p4-02\\contracts\\stubs\\stub-data\\rad\\sol4600.csv",
+        "sha256": "621ee9bbd70bf50d54de442766fca40b049320560754ac4acd5594f7dbd98fa5"
+      },
+      {
+        "path": "G:\\Development\\NasaHackathon\\redmark-p4-02\\contracts\\stubs\\stub-data\\rems\\sol4600.csv",
+        "sha256": "b5a7362096f5759f5776fe47c5a0961b2252eb50ef31228cc91df8cd08cc6cf3"
+      }
+    ]
   }
 }
