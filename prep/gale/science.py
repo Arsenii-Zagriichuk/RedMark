@@ -5,6 +5,11 @@ import math
 
 import numpy as np
 import rasterio
+from fastapi import HTTPException
+
+from contracts.models.common import Point
+from contracts.models.route_request import Limits
+from route.planner import CostGrid, plan_on_grid
 
 # CRISM summary parameters (Viviano-Beck et al. 2014, JGR Planets 119) that pick out
 # the minerals of Mount Sharp's sulfate unit, lowest code first; where a pixel stands
@@ -39,6 +44,7 @@ def mineral_classes(bands: dict[str, np.ndarray]) -> np.ndarray:
 # Science targets: a spot Curiosity never reached, so clear of its track and drill holes.
 TARGET_CLEAR_OF_TRACK_M = 25.0
 TARGET_CLEAR_OF_DRILL_M = 50.0
+TARGET_KINDS = ("ridge", "hollow")
 # A ridge target sits on the ridge map; a hollow target has no ridge this close.
 RIDGE_TARGET_WITHIN_M = 1.0
 HOLLOW_CLEAR_OF_RIDGE_M = 3.0
@@ -78,6 +84,8 @@ def check_targets(
         ridge_map, transform = src.read(1), src.transform
     for t in targets:
         at = (t["x"], t["y"])
+        if t["kind"] not in TARGET_KINDS:
+            problems.append(f"{t['id']}: kind must be ridge or hollow, got {t['kind']!r}")
         if math.dist(at, habitat) > walk_radius_m:
             problems.append(
                 f"{t['id']}: {math.dist(at, habitat):.0f} m from the habitat, past the walk radius"
@@ -103,6 +111,29 @@ def check_targets(
             )
     if problems:
         raise ValueError("science targets refused:\n" + "\n".join(problems))
+
+
+def check_reachable(
+    targets: list[dict],
+    grid: CostGrid,
+    *,
+    start: Point,
+    habitat: Point,
+    limits: Limits,
+    daylight_s: float | None = None,
+) -> None:
+    """Refuse targets the route engine cannot reach from `start` within `limits`: its
+    fastest route to each must keep every hard limit. Raises ValueError, one line per
+    target, giving the route engine's reason."""
+    problems = []
+    for t in targets:
+        try:
+            goal = Point(x=t["x"], y=t["y"])
+            plan_on_grid(grid, start, goal, habitat, limits, daylight_s=daylight_s)
+        except HTTPException as refused:
+            problems.append(f"{t['id']}: no safe route from base camp ({refused.detail})")
+    if problems:
+        raise ValueError("science targets not reachable:\n" + "\n".join(problems))
 
 
 def _ridge_within(ridge_map: np.ndarray, transform, at: tuple[float, float], radius: float) -> bool:

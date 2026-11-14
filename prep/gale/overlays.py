@@ -442,10 +442,13 @@ def ridge_samples(photo, layer, samples, targets, folder) -> Path:
 
 def science(photo, layers, walk, habitat, targets, drilled, track, folder) -> Path:
     """Layer 3 placed by its own layer.json on the photo map: CRISM mineral highlights
-    over the walk area, then Curiosity's chemistry and drill sites at full detail round
-    the drill sites inside the walk area."""
+    over the walk area; Curiosity's chemistry and drill sites over the whole chemistry
+    layer; then a close-up of the chemistry tiles at full detail round the drill sites
+    inside the walk area."""
     image, extent = _read_small(photo)
-    fig, (minerals, chemistry) = plt.subplots(1, 2, figsize=(22, 11), gridspec_kw={"wspace": 0.08})
+    fig, (minerals, overview, zoom) = plt.subplots(
+        1, 3, figsize=(33, 11), gridspec_kw={"wspace": 0.08}
+    )
     meta = json.loads((layers / "minerals" / "layer.json").read_text())
     _show_gray(minerals, image, extent)
     colours, c_extent = _mosaic(layers / "minerals", meta["tiles"]["max_zoom"])
@@ -460,28 +463,47 @@ def science(photo, layers, walk, habitat, targets, drilled, track, folder) -> Pa
     minerals.set_title("CRISM highlights on its own 18 m pixels, 60% on the base map")
 
     meta = json.loads((layers / "chemistry" / "layer.json").read_text())
-    inside = [d for d in drilled if walk[0] <= d["x"] <= walk[2] and walk[1] <= d["y"] <= walk[3]]
+    b = meta["bounds"]
+    whole = (b["min_x"], b["min_y"], b["max_x"], b["max_y"])
+    inside = [
+        d for d in drilled if whole[0] <= d["x"] <= whole[2] and whole[1] <= d["y"] <= whole[3]
+    ]
+    _show_gray(overview, image, extent)
+    colours, c_extent = _mosaic(layers / "chemistry", meta["tiles"]["max_zoom"])
+    overview.imshow(_masked(colours), extent=c_extent)
+    _drill_labels(overview, inside)
+    overview.plot(*habitat, "*", c="cyan", ms=16, mec="black")
+    overview.set_xlim(whole[0], whole[2])
+    overview.set_ylim(whole[1], whole[3])
+    overview.legend(handles=_legend(meta), loc="lower left", fontsize=8)
+    overview.set_title(
+        f"Whole chemistry layer, 1 m tiles: APXS points by SO3 and {len(inside)} drill sites"
+    )
+
     cx = sum(d["x"] for d in inside) / len(inside)
     cy = sum(d["y"] for d in inside) / len(inside)
     box = (cx - 300, cy - 300, cx + 300, cy + 300)
     detail, p_extent = read_window(photo, box)
-    _show_gray(chemistry, detail[::2, ::2], p_extent)
+    _show_gray(zoom, detail[::2, ::2], p_extent)
     colours, c_extent = _mosaic(layers / "chemistry", meta["tiles"]["max_zoom"], box)
-    chemistry.imshow(_masked(colours), extent=c_extent)
-    for d in inside:
-        chemistry.annotate(
-            f"{d['name']} (sol {d['sol']})", (d["x"], d["y"]), color="cyan", fontsize=8,
-            xytext=(8, -4), textcoords="offset points",
-        )  # fmt: skip
-    chemistry.set_xlim(box[0], box[2])
-    chemistry.set_ylim(box[1], box[3])
-    chemistry.legend(handles=_legend(meta), loc="lower left", fontsize=8)
-    chemistry.set_title(
-        f"Curiosity's APXS points by SO3 and its {len(inside)} drill sites in the walk area"
+    zoom.imshow(_masked(colours), extent=c_extent)
+    _drill_labels(
+        zoom, [d for d in inside if box[0] <= d["x"] <= box[2] and box[1] <= d["y"] <= box[3]]
     )
+    zoom.set_xlim(box[0], box[2])
+    zoom.set_ylim(box[1], box[3])
+    zoom.set_title("Close-up, 600 m round the drill sites' centre, at full detail")
     out = folder / "science.png"
     _save(fig, out)
     return out
+
+
+def _drill_labels(ax, drilled) -> None:
+    for d in drilled:
+        ax.annotate(
+            f"{d['name']} (sol {d['sol']})", (d["x"], d["y"]), color="cyan", fontsize=8,
+            xytext=(8, -4), textcoords="offset points",
+        )  # fmt: skip
 
 
 def _targets(ax, targets, ms) -> None:

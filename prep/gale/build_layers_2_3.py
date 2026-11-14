@@ -16,9 +16,11 @@ $REDMARK_DATA/gale/:
 and, in the repo, `files.sand`, `files.ridges` and `science_targets` in sites/gale.yaml
 and copies of the overlays in prep/gale/evidence/.
 
-The science targets are checked before anything is published: each must sit inside
-the walk radius and a boxwork zone, clear of Curiosity's track and drill sites, a
-ridge target on the ridge map and a hollow target off it.
+The science targets are checked before anything is published, the sand and ridge
+rasters included: each must sit inside the walk radius and a boxwork zone, clear of
+Curiosity's track and drill sites, a ridge target on the ridge map and a hollow target
+off it, and the route engine must find a safe route to it from base camp within the
+app's default limits on the new rasters.
 """
 
 import csv
@@ -32,6 +34,7 @@ from pathlib import Path
 
 import yaml
 
+from contracts.models.route_request import Limits
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
 from prep.common import publish_stage, sha256
@@ -51,8 +54,10 @@ from prep.gale.layers import (
     build_ridges_layer,
     build_sand_layer,
 )
-from prep.gale.science import check_targets, drill_sites, inside_polygon
+from prep.gale.science import check_reachable, check_targets, drill_sites, inside_polygon
 from prep.gale.walkability import ridge_raster, sand_raster
+from route.engine import daylight_s
+from route.layers import load_grid
 
 SITE = REPO_ROOT / "sites" / "gale.yaml"
 WALK_AREA = REPO_ROOT / "prep" / "gale" / "walk_area.yaml"
@@ -60,6 +65,11 @@ SAND_RASTER = "gale/rasters/sand.tif"
 RIDGE_RASTER = "gale/rasters/ridges.tif"
 LAYERS = "gale/layers"
 STAGE = "gale/layers-2-3.next"
+# The app's default walk limits (app/src/plan/routes.ts): a science target must be
+# reachable under these, or the app's first route request to it fails.
+APP_LIMITS = Limits(
+    max_slope_deg=20, max_distance_from_habitat_m=2000, planning_speed_kmh=2, max_walk_h=6
+)
 
 
 def main() -> None:
@@ -81,10 +91,15 @@ def build(root: Path) -> None:
     files = site.files
     commit = _git_commit()
 
+    stage = root / STAGE
+    shutil.rmtree(stage, ignore_errors=True)
+    staged = {
+        key: f"{STAGE}/{path}" for key, path in (("sand", SAND_RASTER), ("ridges", RIDGE_RASTER))
+    }
     print("sand from thermal inertia")
-    sand = sand_raster(root / files["thermal_inertia"], root / SAND_RASTER)
+    sand = sand_raster(root / files["thermal_inertia"], root / staged["sand"])
     print("ridge map from the photo map")
-    ridges = ridge_raster(root / files["photo_map"], walk, zones, root / RIDGE_RASTER)
+    ridges = ridge_raster(root / files["photo_map"], walk, zones, root / staged["ridges"])
 
     with (root / files["chemistry"]).open() as f:
         chemistry = list(csv.DictReader(f))
@@ -100,10 +115,22 @@ def build(root: Path) -> None:
         zones=zones,
         ridges=ridges,
     )
+    conditions = REPO_ROOT / "conditions" / f"{site.replayed_sol}.json"
+    check_reachable(
+        targets,
+        load_grid(site.model_copy(update={"files": {**files, **staged}}), root),
+        start=site.base_camp or site.habitat,
+        habitat=site.habitat,
+        limits=APP_LIMITS,
+        daylight_s=daylight_s(json.loads(conditions.read_text())),
+    )
     print(f"{len(targets)} science targets pass; {len(drilled)} drill sites in the crop")
+    # Only now do the route engine's rasters change.
+    for key, path in (("sand", SAND_RASTER), ("ridges", RIDGE_RASTER)):
+        (root / path).parent.mkdir(parents=True, exist_ok=True)
+        os.replace(root / staged[key], root / path)
+    sand, ridges = root / SAND_RASTER, root / RIDGE_RASTER
 
-    stage = root / STAGE
-    shutil.rmtree(stage, ignore_errors=True)
     points = [
         {"x": float(r["x"]), "y": float(r["y"]), "so3": float(r["SO3"]), "drill": False}
         for r in chemistry

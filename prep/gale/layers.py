@@ -240,7 +240,7 @@ def _write_meta(
             "max_zoom": zooms[1],
         },
         "legend": legend,
-        "source": source if isinstance(source, list) else [source],
+        "source": [source],
     }
     LayerMeta.model_validate(meta)
     with written_atomically(folder / "layer.json") as part:
@@ -262,6 +262,7 @@ def _rgb(colour: str) -> tuple[int, int, int]:
 # out to whole source pixels, so nothing is resampled.
 
 SAND_COLOUR = "#e0a43a"
+FIRM_COLOUR = "#7a8c99"
 RIDGE_COLOUR = "#e8341c"
 # Highest code first wins where a pixel is in two classes.
 MINERAL_COLOURS = {
@@ -284,10 +285,15 @@ DRILL_COLOUR = "#00d8ff"
 
 
 def build_sand_layer(sand: Path, walk: Bounds, folder: Path, source: dict) -> dict:
-    """Loose sand from the sand raster, on its own 100 m pixels."""
+    """Loose sand and firm ground from the sand raster, on its own 100 m pixels;
+    transparent only where thermal inertia is unknown. Sand has the higher code, so it
+    wins a coarser pixel it shares with firm ground."""
     values, bounds, res = _on_own_grid(sand, walk)
-    classes = (values == 1).astype(np.uint8)
-    legend = [(1, f"Loose sand (THEMIS thermal inertia below {SAND_MAX_TI})", SAND_COLOUR)]
+    classes = np.select([values == 1, values == 0], [2, 1], 0).astype(np.uint8)
+    legend = [
+        (2, f"Loose sand (THEMIS thermal inertia below {SAND_MAX_TI})", SAND_COLOUR),
+        (1, f"Firm ground (thermal inertia {SAND_MAX_TI} and over)", FIRM_COLOUR),
+    ]
     return build_class_layer(
         classes, bounds, res, folder, name="sand", title="Loose sand", group=2,
         units="", legend=legend, source=source,

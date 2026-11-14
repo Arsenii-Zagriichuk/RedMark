@@ -6,7 +6,9 @@ not the hollows between them nor a lone bright speck; the route's own reader rea
 both files as masks. Layer writer: each layer.json validates with its group,
 resolution and source. Science targets: a target on a drill site, on Curiosity's
 track or past the walk radius is refused; a ridge target must sit on a ridge and a
-hollow target off one.
+hollow target off one, and a target with any other kind is refused; a target walled off
+from base camp by ground over the slope limit is refused. The sand layer's tiles show
+firm ground in its own legend colour and leave only unknown ground transparent.
 
 Expected values are worked by hand from the fixtures, not from the code.
 """
@@ -20,17 +22,22 @@ from PIL import Image
 from rasterio.crs import CRS
 from rasterio.transform import from_origin
 
+from contracts.models.common import Point
 from contracts.models.layer import LayerMeta
+from contracts.models.route_request import Limits
 from contracts.models.site import SiteConfig
 from prep.gale.layers import (
+    FIRM_COLOUR,
+    SAND_COLOUR,
     build_chemistry_layer,
     build_minerals_layer,
     build_ridges_layer,
     build_sand_layer,
 )
-from prep.gale.science import check_targets, drill_sites
+from prep.gale.science import check_reachable, check_targets, drill_sites
 from prep.gale.walkability import SAND_MAX_TI, find_ridges, ridge_raster, sand_raster
 from route.layers import load_grid
+from route.planner import CostGrid
 
 SITE_PROJ = "+proj=eqc +lat_ts=0 +lon_0=0 +R=3396190 +units=m +no_defs"
 SOURCE = {"name": "test source", "url": "https://example.org/source"}
@@ -69,6 +76,30 @@ def test_thermal_inertia_below_the_cutoff_is_loose_sand_and_a_hole_stays_unknown
         assert src.res == (100.0, 100.0)
         assert src.transform.c == 1000.0 and src.transform.f == 2000.0
         assert src.read(1).tolist() == [[1, 1, 0], [0, 255, 1]]
+
+
+def test_the_sand_tiles_colour_sand_and_firm_ground_and_leave_unknown_transparent(tmp_path):
+    # 2 x 2 pixels at 100 m covering the walk area exactly: sand, firm, unknown, firm.
+    nodata = -1.0
+    ti = np.array([[300.0, 400.0], [nodata, 380.0]], dtype=np.float32)
+    sand = sand_raster(
+        _geotiff(tmp_path / "ti.tif", ti, 1000.0, 2200.0, 100.0, nodata), tmp_path / "sand.tif"
+    )
+
+    build_sand_layer(sand, (1000.0, 2000.0, 1200.0, 2200.0), tmp_path / "sand", SOURCE)
+
+    tile = np.asarray(Image.open(tmp_path / "sand" / "tiles" / "0" / "0" / "0.png").convert("RGBA"))
+    colour = {
+        (r, c): "#{:02x}{:02x}{:02x}".format(*tile[r, c, :3]) if tile[r, c, 3] else None
+        for r in range(2)
+        for c in range(2)
+    }
+    assert colour == {
+        (0, 0): SAND_COLOUR,
+        (0, 1): FIRM_COLOUR,
+        (1, 0): None,
+        (1, 1): FIRM_COLOUR,
+    }
 
 
 # ---- ridges -------------------------------------------------------------------------
@@ -292,6 +323,7 @@ def test_a_ridge_centre_and_a_hollow_clear_of_curiosity_pass(ridges):
             "past the walk radius",
         ),
         (HOLLOW_TARGET | {"x": 1075.5}, {}, "outside every boxwork zone"),
+        (HOLLOW_TARGET | {"kind": "crater"}, {}, "kind must be ridge or hollow"),
     ],
 )
 def test_a_target_that_breaks_a_rule_is_refused(ridges, target, changes, reason):
@@ -299,3 +331,36 @@ def test_a_target_that_breaks_a_rule_is_refused(ridges, target, changes, reason)
     with pytest.raises(ValueError, match=f"{target['id']}: .*{reason}") as refused:
         _check([other, target], ridges, **changes)
     assert other["id"] not in str(refused.value)
+
+
+# A 20 x 20 grid of flat 4 m cells from (0, 80) with a ring of 30 degree cells round
+# the 3 x 3 cells of rows and columns 12 to 14; base camp is at cell (2, 2).
+LIMITS = Limits(
+    max_slope_deg=20, max_distance_from_habitat_m=2000, planning_speed_kmh=2, max_walk_h=6
+)
+
+
+def _walled_grid() -> CostGrid:
+    slope = np.zeros((20, 20))
+    slope[11:16, 11:16] = 30.0
+    slope[12:15, 12:15] = 0.0
+    no = np.zeros((20, 20), dtype=bool)
+    return CostGrid(
+        site="gale", min_x=0.0, max_y=80.0, cell_m=4.0, slope_deg=slope, sand=no, ridge=no
+    )
+
+
+def test_a_target_walled_off_from_base_camp_is_refused_and_an_open_one_passes():
+    base_camp = Point(x=10.0, y=70.0)
+    open_ground = {"id": "open", "x": 42.0, "y": 70.0}
+    walled = {"id": "walled", "x": 54.0, "y": 26.0}  # cell (13, 13), inside the ring
+
+    check_reachable(
+        [open_ground], _walled_grid(), start=base_camp, habitat=base_camp, limits=LIMITS
+    )
+    with pytest.raises(ValueError, match="walled: no safe route from base camp") as refused:
+        check_reachable(
+            [open_ground, walled], _walled_grid(), start=base_camp, habitat=base_camp, limits=LIMITS
+        )
+    refused_ids = [line.split(":")[0] for line in str(refused.value).splitlines()[1:]]
+    assert refused_ids == ["walled"]

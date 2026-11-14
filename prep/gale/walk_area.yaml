@@ -34,14 +34,17 @@ boxwork_zones:
     - [8142530, -285330]
     - [8142530, -285650]
     - [8142250, -285650]
+# Each target is a spot the route engine reaches from base camp under the app's default
+# limits (the build refuses one it cannot): most of the field's hollows are walled off
+# by ground steeper than 20 degrees at the route's 4 m cells.
 science_targets:
   - id: sw-ridge
     name: Boxwork ridge, south-west field
-    kind: ridge  # on the long north-south ridge through the field
-    x: 8142398.75
-    y: -285469.75
+    kind: ridge  # a lit ridge between two dark pits
+    x: 8142410.0
+    y: -285456.0
   - id: sw-hollow
     name: Boxwork hollow, south-west field
-    kind: hollow  # a dark cell closed in by ridges, 30 m south-west of that ridge
-    x: 8142378.75
-    y: -285492.75
+    kind: hollow  # the floor of a 20 m cell closed in by ridges, 50 m south of that ridge
+    x: 8142402.0
+    y: -285504.0

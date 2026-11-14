@@ -18,13 +18,13 @@ base_camp:
 science_targets:
 - id: sw-ridge
   position:
-    x: 8142398.75
-    y: -285469.75
+    x: 8142410.0
+    y: -285456.0
   name: Boxwork ridge, south-west field
 - id: sw-hollow
   position:
-    x: 8142378.75
-    y: -285492.75
+    x: 8142402.0
+    y: -285504.0
   name: Boxwork hollow, south-west field
 checkpoints: []
 files:
