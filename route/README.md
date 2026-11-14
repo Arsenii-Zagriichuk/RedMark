@@ -47,3 +47,56 @@ files:
 - The rasters should cover the walk area (`bounds`). Cells with no slope data are never walked; cells with no sand or ridge data count as firm, ridge-free ground.
 - No `slope` key: the engine plans on flat stub ground. A key whose file is missing is an error, so a typo can't quietly plan on flat ground.
 - Adding the keys needs no code change here.
+
+## Drone answer-key tool (P4-01)
+
+Set `REDMARK_DATA` to Person 2's shared data folder, then run:
+
+```bash
+uv run python -m route.key_frames
+```
+
+It reads `sites/jezero.yaml`, `jezero/pack/frames.csv`, the pack's frame PNGs and
+reprojected flight crops, and each frame's PDS label at
+`jezero/source/helicam/sol-<sol padded to 5 digits>/<photo_id>.xml`.
+The labels must travel with the pack. No downloads or GPU are needed.
+`--photo-id <id>` selects one frame; `--simulated` labels synthetic inputs.
+Without `REDMARK_DATA`, the command refuses to write keys into stub data.
+
+1. The left panel rectifies the Navcam's fisheye image using its calibration,
+   height and attitude. The right panel is the crop in Jezero ground metres;
+   crops in the published, equator-scale projection are refused.
+2. Turn off the toolbar's zoom/pan mode, then alternate a photo feature and the
+   same map feature. Select at least four pairs spread around the photo.
+   **Undo** removes the pending point or last pair.
+3. **Preview** draws the photo footprint and a translucent photo over the map.
+   Check alignment, choose `textured` or `plain`, confirm the hard-mode tag,
+   and tick **overlay checked** before **Save key**. A fit residual measures
+   agreement between the clicked pairs, not position error against an answer key.
+4. Saving advances to the next unkeyed frame. **Skip** advances without a key;
+   closing the main window ends the session. Existing keys are never overwritten.
+
+Outputs stay separate from the pack and tuning inputs, under
+`$REDMARK_DATA/jezero/answer-key/`:
+
+- `keys/<photo_id>.json`: `true_position`, `true_heading_deg`, terrain type,
+  hard-mode and simulated tags, the clicked pairs, transform and source
+  checksums with the script's commit. Position is the camera's nadir; heading
+  is the drone body's forward heading from map north, matching the drone fix.
+  Clicks are in the rectified image, with pixel centres at integer coordinates,
+  not the original PNG. No matcher predictions or onboard absolute positions
+  become answer-key values.
+- `overlays/<photo_id>.png`: the reviewed alignment on the map.
+- `flights.json`: `excluded_flights` lists whole flights Person 2 must keep out
+  of tuning, not just the keyed frames. It is updated before publishing a key.
+
+Person 4 still keys and visually checks at least 20 real frames; the tool does
+not invent their answer key. Pack sources are listed in `prep/data-manifest.yaml`.
+
+```bash
+uv run pytest route/tests/test_tie_points.py route/tests/test_answer_key.py
+uv run python -m route.plot_tie_points
+```
+
+The latter redraws `overlays/p4-01-tie-points.png` from generated images,
+explicitly labelled simulated; it is not a measured Jezero result.
