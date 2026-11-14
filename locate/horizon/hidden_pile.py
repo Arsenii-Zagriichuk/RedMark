@@ -143,7 +143,10 @@ def main() -> None:
         if not (folder / f"{p.photo_id}.IMG").exists()
     ]
     with ThreadPoolExecutor(8) as pool:  # one connection runs at about 0.5 MB/s
-        list(pool.map(lambda image: _fetch(*image), images))
+        done = 0
+        for _ in pool.map(lambda image: _fetch(*image), images):
+            done += 1
+            _progress(done, len(images))
     rows = []
     for stop, ring in chosen:
         for pointing in ring:
@@ -265,6 +268,12 @@ def _fetch(url: str, path: Path) -> None:
     elif status != "200":
         raise RuntimeError(f"{url}: HTTP {status}")
     partial.rename(path)
+
+
+def _progress(done: int, total: int, width: int = 40) -> None:
+    filled = width * done // total
+    end = "\n" if done == total else ""
+    print(f"\rimages [{'#' * filled}{'.' * (width - filled)}] {done}/{total}", end=end, flush=True)
 
 
 def _image_bytes(label: Path) -> int:
