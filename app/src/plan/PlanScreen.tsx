@@ -3,7 +3,7 @@
 import type { Conditions } from "@contracts/conditions";
 import type { LayerMeta } from "@contracts/layer";
 import type { SiteConfig } from "@contracts/site";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../api/ApiContext";
 import { LayersPanel } from "../map/LayersPanel";
 import { WalkMap, type PointsShown } from "../map/WalkMap";
@@ -57,12 +57,17 @@ export function PlanScreen() {
   const baseLayer = loaded?.layers.find((layer) => layer.name === baseName);
   const colourLayers = loaded?.layers.filter((layer) => layer.name !== baseName) ?? [];
   const selected = site?.science_targets.find((target) => target.id === selectedId);
-  const origin = site
-    ? (site.habitat ?? {
-        x: (site.bounds.min_x + site.bounds.max_x) / 2,
-        y: (site.bounds.min_y + site.bounds.max_y) / 2,
-      })
-    : null;
+  // One object per site, so the map doesn't re-fly or rebuild its tiles on every render.
+  const origin = useMemo(
+    () =>
+      site
+        ? (site.habitat ?? {
+            x: (site.bounds.min_x + site.bounds.max_x) / 2,
+            y: (site.bounds.min_y + site.bounds.max_y) / 2,
+          })
+        : null,
+    [site],
+  );
 
   return (
     <div className="plan">

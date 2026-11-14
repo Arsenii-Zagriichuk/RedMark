@@ -320,7 +320,7 @@ export function WalkMap(props: Props) {
       </div>
 
       {baseLayer && (
-        <span className="map__caption label" style={{ color: "#f2f5fa" }}>
+        <span className="map__caption label" style={{ color: "var(--ink)" }}>
           {baseLayer.title} · {baseLayer.source[0].name} ·{" "}
           {formatResolution(baseLayer.resolution_m)} · {WALK_LIMIT_M / 1000} km walk limit dashed
         </span>

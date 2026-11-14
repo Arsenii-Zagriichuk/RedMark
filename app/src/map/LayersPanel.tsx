@@ -95,7 +95,7 @@ export function LayersPanel(props: Props) {
           {shown.legend.map((entry) => (
             <span key={entry.label} className="legend-swatch">
               <span className="legend-swatch__colour" style={{ background: entry.color }} />
-              <span className="data" style={{ color: "#f2f5fa" }}>
+              <span className="data" style={{ color: "var(--ink)" }}>
                 {entry.label}
               </span>
             </span>
