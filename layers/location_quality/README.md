@@ -43,4 +43,4 @@ The same run (`uv run python -m layers.location_quality.build`) then adds the er
   - otherwise "Keep the upper Mount Sharp peak on your left" (or right).
 
   With no such landmark the leg has no `text`. Lost mode walks the route back home, so each leg also has `text_back`, the same landmark for walking the leg towards its start: left and right swap, and ahead and behind. The crater rim lies at the mean bearing of its points. A re-recorded demo walk only needs a rerun.
-- **Check by eye:** `overlays/p3-06-layer5-final.png` shows the error map, the score with the candidates and the demo walk, and each leg's direction, out and back.
+- **Check by eye:** `overlays/p3-06-layer5-final.png` shows the error map, the score with the candidates and the demo walk, the walk close up with each leg coloured by its direction, and each direction out and back with the legs that get it.
