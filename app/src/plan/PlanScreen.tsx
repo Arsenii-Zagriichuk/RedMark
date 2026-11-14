@@ -25,7 +25,12 @@ const ALL_PLANNING: Record<RouteMode, RouteState> = {
 function refusal(reason: unknown): string {
   if (reason instanceof ApiError && reason.body && typeof reason.body === "object") {
     const detail = (reason.body as { detail?: unknown }).detail;
-    if (typeof detail === "string") return detail;
+    // The screen already says "No safe route:", so drop the engine's own prefix.
+    if (typeof detail === "string") return detail.replace(/^no safe route:\s*/i, "");
+    // A request that breaks the route_request contract: FastAPI lists what is wrong.
+    if (Array.isArray(detail)) {
+      return detail.map((item: { msg?: string }) => item.msg ?? JSON.stringify(item)).join("; ");
+    }
   }
   return reason instanceof Error ? reason.message : String(reason);
 }

@@ -3,6 +3,7 @@
 import type { RouteMode, RouteRequest } from "@contracts/route_request";
 import type { LimitCheck, RouteResponse } from "@contracts/route_response";
 import type { ScienceTarget, SiteConfig } from "@contracts/site";
+import { formatDistance } from "../map/geo";
 
 /** The slope limit options: 20° by default (Artemis planning), 15° as the cautious one. */
 export const SLOPE_LIMITS = [20, 15] as const;
@@ -42,16 +43,12 @@ export function routeRequests(
 }
 
 export function formatDuration(seconds: number): string {
+  if (seconds < 0) return `-${formatDuration(-seconds)}`;
   const minutes = Math.round(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
   if (!hours) return `${rest} min`;
   return rest ? `${hours} h ${rest} min` : `${hours} h`;
-}
-
-/** Ground distance, trimmed: "985 m", "1.21 km", "2 km". */
-export function formatMetres(metres: number): string {
-  return metres < 1000 ? `${Math.round(metres)} m` : `${Number((metres / 1000).toFixed(2))} km`;
 }
 
 type Limit = LimitCheck["limit"];
@@ -80,14 +77,16 @@ function describe(check: LimitCheck, kind: string): string {
     case "deg":
       return `${Math.round(check.value)}° / ${Math.round(check.threshold)}°${suffix}`;
     case "m":
-      return `${formatMetres(check.value)} / ${formatMetres(check.threshold)}${suffix}`;
+      return `${formatDistance(check.value)} / ${formatDistance(check.threshold)}${suffix}`;
     case "km/h":
       return `${round(check.value)} km/h / ${round(check.threshold)} km/h${suffix}`;
     case "h":
       return `${formatDuration(check.value * 3600)} / ${round(check.threshold)} h${suffix}`;
     case "s":
       // walk-back and daylight: spare time, which must stay at or above zero
-      return `${formatDuration(check.value)} spare`;
+      return check.value < 0
+        ? `${formatDuration(-check.value)} short`
+        : `${formatDuration(check.value)} spare`;
     default:
       return `${round(check.value)} ${check.units} / ${round(check.threshold)} ${check.units}`;
   }

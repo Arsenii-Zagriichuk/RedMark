@@ -4,9 +4,9 @@
 import type { RouteMode } from "@contracts/route_request";
 import type { RouteResponse } from "@contracts/route_response";
 import type { ScienceTarget, SiteConfig } from "@contracts/site";
+import { formatDistance } from "../map/geo";
 import {
   formatDuration,
-  formatMetres,
   limitRows,
   ROUTE_MODES,
   SLOPE_LIMITS,
@@ -45,10 +45,10 @@ function optionSummary(mode: RouteMode, state: RouteState): { main: string; note
   if (mode === "science" && route.extra_time_vs_fastest_s !== null) {
     return {
       main: `+${formatDuration(route.extra_time_vs_fastest_s)}`,
-      note: formatMetres(route.total_distance_m),
+      note: formatDistance(route.total_distance_m),
     };
   }
-  return { main: formatDuration(route.total_time_s), note: formatMetres(route.total_distance_m) };
+  return { main: formatDuration(route.total_time_s), note: formatDistance(route.total_distance_m) };
 }
 
 export function Directions(props: Props) {
@@ -142,7 +142,7 @@ function RouteSummary({ mode, route }: { mode: RouteMode; route: RouteResponse }
   const checked = rows.filter((row) => row.status !== "not-checked");
   const passed = checked.filter((row) => row.status === "pass").length;
   const allPass = passed === checked.length;
-  const details = [formatMetres(route.total_distance_m)];
+  const details = [formatDistance(route.total_distance_m)];
   if (mode !== "cart") details.push(`walk-back margin ${formatDuration(route.walk_back_margin_s)}`);
 
   return (

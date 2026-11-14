@@ -114,6 +114,19 @@ describe("limitRows", () => {
     ]);
   });
 
+  it("says how far short a broken walk-back rule falls", () => {
+    const rows = limitRows(
+      response([{ limit: "walk_back", passed: false, value: -300, threshold: 0, units: "s" }]),
+    );
+
+    expect(rows.find((row) => row.limit === "walk_back")).toEqual({
+      limit: "walk_back",
+      label: "Walk-back margin",
+      text: "5 min short",
+      status: "fail",
+    });
+  });
+
   it("marks a limit the route didn't check as not checked", () => {
     const rows = limitRows(
       response([{ limit: "slope", passed: true, value: 0, threshold: 15, units: "deg" }]),
