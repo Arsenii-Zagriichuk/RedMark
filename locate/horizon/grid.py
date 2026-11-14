@@ -59,6 +59,8 @@ def main() -> None:
     missing = [name for name in (GALE_DEM, FAR_DEM) if not (root / name).exists()]
     if missing:
         sys.exit(f"{', '.join(missing)} not in {root}: set REDMARK_DATA to the data folder")
+    # Before anything is written, so a refused run leaves the old grid and its meta together.
+    commit = git_commit("locate/horizon/*.py", "sites/gale.yaml")
     out_dir = root / "gale" / "horizon"
     started = time.perf_counter()
     gale = load_gale_terrain(root, site.bounds, out_dir / "cache")
@@ -112,7 +114,7 @@ def main() -> None:
         "compute_s": round(finished - loaded, 1),
         "provenance": {
             "script": "locate/horizon/grid.py",
-            "commit": git_commit(),
+            "commit": commit,
             "inputs": [
                 {"path": name, "sha256": sha256_file(root / name)} for name in (GALE_DEM, FAR_DEM)
             ]

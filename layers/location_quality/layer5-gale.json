@@ -1,0 +1,220 @@
+{
+  "site": "gale",
+  "walk_area": {
+    "min_x": 8141700.0,
+    "min_y": -284140.0,
+    "max_x": 8145700.0,
+    "max_y": -280140.0
+  },
+  "resolution_m": 1.0,
+  "observer_height_m": 1.9,
+  "landmarks": [
+    {
+      "id": "mount_sharp_peak",
+      "title": "Upper Mount Sharp peak",
+      "points": [
+        {
+          "x": 8161040.8,
+          "y": -287318.5,
+          "height_m": 7.7
+        }
+      ],
+      "body_radius_m": 2000,
+      "share_in_view": 0.6233
+    },
+    {
+      "id": "texoli",
+      "title": "Texoli",
+      "points": [
+        {
+          "x": 8144948.5,
+          "y": -285165.5,
+          "height_m": -3358.5
+        }
+      ],
+      "body_radius_m": 1500,
+      "share_in_view": 0.29
+    },
+    {
+      "id": "mishe_mokwa",
+      "title": "Mishe Mokwa",
+      "points": [
+        {
+          "x": 8145189.6,
+          "y": -289242.8,
+          "height_m": -2870.5
+        }
+      ],
+      "body_radius_m": 300,
+      "share_in_view": 0.0142
+    },
+    {
+      "id": "crater_rim",
+      "title": "Gale crater rim",
+      "points": [
+        {
+          "x": 8088658.7,
+          "y": -313918.1,
+          "height_m": -777.6
+        },
+        {
+          "x": 8094914.2,
+          "y": -299896.6,
+          "height_m": -1840.2
+        },
+        {
+          "x": 8089448.9,
+          "y": -291705.9,
+          "height_m": -1896.7
+        },
+        {
+          "x": 8100242.9,
+          "y": -282140.0,
+          "height_m": -2046.6
+        },
+        {
+          "x": 8103647.1,
+          "y": -275077.6,
+          "height_m": -1903.5
+        },
+        {
+          "x": 8109098.1,
+          "y": -269545.9,
+          "height_m": -2033.8
+        },
+        {
+          "x": 8115425.8,
+          "y": -265815.9,
+          "height_m": -2163.3
+        },
+        {
+          "x": 8119250.6,
+          "y": -261624.5,
+          "height_m": -2311.7
+        },
+        {
+          "x": 8121931.4,
+          "y": -256197.2,
+          "height_m": -2340.4
+        },
+        {
+          "x": 8124468.3,
+          "y": -248829.7,
+          "height_m": -2434.4
+        },
+        {
+          "x": 8128862.7,
+          "y": -241374.8,
+          "height_m": -2290.2
+        },
+        {
+          "x": 8134033.5,
+          "y": -227318.3,
+          "height_m": -2047.0
+        },
+        {
+          "x": 8143700.0,
+          "y": -244010.5,
+          "height_m": -2594.8
+        },
+        {
+          "x": 8150640.3,
+          "y": -242779.5,
+          "height_m": -2451.0
+        },
+        {
+          "x": 8158537.3,
+          "y": -241374.8,
+          "height_m": -2369.4
+        },
+        {
+          "x": 8167615.7,
+          "y": -240716.7,
+          "height_m": -1919.0
+        },
+        {
+          "x": 8176839.5,
+          "y": -242645.9,
+          "height_m": -1837.4
+        },
+        {
+          "x": 8190554.4,
+          "y": -242824.5,
+          "height_m": -1429.7
+        },
+        {
+          "x": 8201495.5,
+          "y": -248771.8,
+          "height_m": -1783.6
+        }
+      ],
+      "body_radius_m": 1000,
+      "share_in_view": 0.9955
+    }
+  ],
+  "score_shares": {
+    "No landmark in view": 0.0014,
+    "1 of 4 landmarks": 0.2779,
+    "2 of 4 landmarks": 0.5293,
+    "3 of 4 landmarks": 0.179,
+    "All 4 landmarks": 0.0124
+  },
+  "spot_check": {
+    "ridge_top": {
+      "share_of_walk_area": 0.187,
+      "mean_score": 0.5216
+    },
+    "open_ground": {
+      "share_of_walk_area": 0.5604,
+      "mean_score": 0.5021
+    },
+    "hollow": {
+      "share_of_walk_area": 0.2526,
+      "mean_score": 0.403
+    }
+  },
+  "layers": [
+    "landmark_mount_sharp_peak",
+    "landmark_texoli",
+    "landmark_mishe_mokwa",
+    "landmark_crater_rim",
+    "location_quality"
+  ],
+  "score_raster": "gale/rasters/location_quality.tif",
+  "terrain_load_s": 3.8,
+  "compute_s": 81.7,
+  "provenance": {
+    "script": "layers/location_quality/build.py",
+    "commit": "ed71e5bdf8012455ae77bb6c604baa0f31b30b65",
+    "inputs": [
+      {
+        "path": "MSL_Gale_DEM_Mosaic_1m_v3.tif",
+        "sha256": "c481ae885b4827af68fbdb428e9fac8a824d6828aebfba492577ba39bf55e42e"
+      },
+      {
+        "path": "terrain/Gale_HRSC_MOLA_BlendDEM_200mp_v2_crop.tif",
+        "sha256": "9e1d9a84dac565794a5cacf1122ca530a3caf5b80df7a4875b06e30060632caf"
+      },
+      {
+        "path": "places/localized_pos.csv",
+        "sha256": "d456ce9025ca71673af8b9f72a78dc508f5d963cbac74fa68eeac88a4c7c3a3b"
+      },
+      {
+        "path": "gale/layers/base/layer.json",
+        "sha256": "1b10e14184c5f13321f1d7dceb3a5f3a2249bd99a3206f07b7c69198f51448c2"
+      },
+      {
+        "path": "gale/layers/base/tiles/0/0/0.png",
+        "sha256": "2f81971ce0db225743b7cc1640059913e7b3267738fc93670344c69df3f166e4"
+      },
+      {
+        "path": "sites/gale.yaml",
+        "sha256": "4301cb1364ab0e81394e9cdeec6cc241c105c43995cbecbb66e1188ead412a04"
+      },
+      {
+        "path": "layers/location_quality/landmarks.yaml",
+        "sha256": "c83c799e1323e9d78520cf5a04688624365571d8acfd37b69050458442e8b1c2"
+      }
+    ]
+  }
+}

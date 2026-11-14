@@ -121,11 +121,33 @@ def _read_decimated(path: Path) -> Raster:
     return Raster(heights, left=src.bounds.left, top=src.bounds.top, res=res)
 
 
-def git_commit() -> str:
-    """The commit the repo is at, for a results file's provenance."""
+class UncommittedCode(RuntimeError):
+    """A results file would record a commit that doesn't hold the code or config that wrote it."""
+
+
+def git_commit(*paths: str | Path, repo: Path = REPO_ROOT) -> str:
+    """The commit the repo is at, for a results file's provenance.
+
+    paths are git pathspecs for the code and config the results depend on (the
+    script, the modules it uses, its repo inputs). If any of them is edited or
+    not yet committed, the commit would not reproduce the results, so this
+    refuses instead of recording it: commit first, then run.
+    """
+    if not paths:
+        raise ValueError("name the code and config the results depend on")
+    changed = _git(repo, "status", "--porcelain", "--untracked-files=all", "--", *map(str, paths))
+    if changed:
+        raise UncommittedCode(
+            "commit these before writing results, so the recorded commit can reproduce them:\n"
+            + changed
+        )
+    return _git(repo, "rev-parse", "HEAD")
+
+
+def _git(repo: Path, *args: str) -> str:
     return subprocess.run(
-        ["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=REPO_ROOT, check=True
-    ).stdout.strip()
+        ["git", *args], capture_output=True, text=True, cwd=repo, check=True
+    ).stdout.rstrip("\n")
 
 
 def sha256_file(path: Path) -> str:

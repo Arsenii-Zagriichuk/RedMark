@@ -97,6 +97,16 @@ def read_frame(label_path: Path) -> NavcamFrame:
     )
 
 
+def label_pointing(label: str) -> tuple[float, float]:
+    """The camera's (azimuth from north, elevation) in degrees, from a label's
+    site-frame geometry, without reading the image."""
+    site_geometry = _group(label, "SITE_DERIVED_GEOMETRY_PARMS")
+    return (
+        label_number(site_geometry, "INSTRUMENT_AZIMUTH"),
+        label_number(site_geometry, "INSTRUMENT_ELEVATION"),
+    )
+
+
 def _rotation(quaternion) -> np.ndarray:
     s, x, y, z = np.asarray(quaternion, np.float64) / np.linalg.norm(quaternion)
     return np.array(

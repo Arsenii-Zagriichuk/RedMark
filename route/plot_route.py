@@ -1,9 +1,10 @@
-"""Overlay image of the fastest safe route on the base map (P4-03), for checking by eye.
+"""Overlay image of the three routes on the base map (P4-03, P4-04), for checking by eye.
 
-Draws the base map tiles, the cells the route may not enter (steeper than the slope
-limit or beyond the distance from the habitat), the route, the habitat and its limit
-circle. Run with `uv run python -m route.plot_route`; the image goes to
-route/overlays/p4-03-fastest.png.
+Draws the base map tiles, the cells the crew may not enter (steeper than the slope limit,
+no slope data, or beyond the distance from the habitat), the ridges the cart may not cross,
+the fastest route and the science alternative from the base camp, the cart's route from
+the habitat to the base camp, the science targets and the habitat's limit circle. Run with
+`uv run python -m route.plot_route`; the image goes to route/overlays/p4-04-routes.png.
 """
 
 import json
@@ -26,16 +27,25 @@ from route.planner import blocked_cells  # noqa: E402
 
 OUT = REPO_ROOT / "route" / "overlays"
 REQUEST = REPO_ROOT / "contracts" / "stubs" / "route" / "request.json"
+VIEW_MARGIN_M = 300
+COLOURS = {"fastest": "cyan", "science": "lime", "cart": "orange"}
 
 
 def main() -> None:
     request = RouteRequest.model_validate(json.loads(REQUEST.read_text()))
     site = load_site(request.site)
-    route = RouteResponse.model_validate(plan(request.model_dump(mode="json")))
+    walk = request.model_dump(mode="json")
+    habitat = site.habitat.model_dump()
+    requests = {
+        "fastest": walk,
+        "science": walk | {"mode": "science"},
+        "cart": walk | {"mode": "cart", "start": habitat, "goal": site.base_camp.model_dump()},
+    }
+    routes = {mode: RouteResponse.model_validate(plan(body)) for mode, body in requests.items()}
     grid = load_grid(site, data_root())
     limits = request.limits
 
-    fig, ax = plt.subplots(figsize=(8, 8))
+    fig, ax = plt.subplots(figsize=(9, 9))
     base, extent = _base_map(data_root() / site.files["base_map"])
     ax.imshow(base, extent=extent)
     rows, cols = grid.slope_deg.shape
@@ -47,6 +57,7 @@ def main() -> None:
     )
     blocked = blocked_cells(grid, site.habitat, limits)
     ax.imshow(np.ma.masked_where(~blocked, blocked), extent=grid_extent, cmap="autumn", alpha=0.6)
+    ax.imshow(np.ma.masked_where(~grid.ridge, grid.ridge), extent=grid_extent, cmap="Greys_r")
     ax.add_patch(
         plt.Circle(
             (site.habitat.x, site.habitat.y),
@@ -57,25 +68,43 @@ def main() -> None:
             label=f"{limits.max_distance_from_habitat_m:g} m from the habitat",
         )
     )
-    ax.plot([p.x for p in route.path], [p.y for p in route.path], c="cyan", lw=2, label="route")
+    for mode, route in routes.items():
+        label = f"{mode}: {route.total_distance_m:.0f} m, {route.total_time_s / 60:.0f} min"
+        if route.extra_time_vs_fastest_s is not None:
+            label += f" (+{route.extra_time_vs_fastest_s / 60:.0f} min)"
+        xs, ys = [p.x for p in route.path], [p.y for p in route.path]
+        ax.plot(xs, ys, c=COLOURS[mode], lw=2, label=label)
+    for target in site.science_targets:
+        ax.plot(target.position.x, target.position.y, "y^", ms=11)
+        ax.annotate(
+            target.id,
+            (target.position.x, target.position.y),
+            color="yellow",
+            xytext=(6, 6),
+            textcoords="offset points",
+        )
+    ax.plot([], [], "y^", ms=11, label="science target")
     ax.plot(site.habitat.x, site.habitat.y, "w*", ms=14, label="habitat")
-    ax.plot(request.start.x, request.start.y, "go", ms=8, label="start")
-    ax.plot(request.goal.x, request.goal.y, "ms", ms=8, label="goal")
-    ax.set_xlim(grid_extent[0], grid_extent[1])
-    ax.set_ylim(grid_extent[2], grid_extent[3])
+    ax.plot(site.base_camp.x, site.base_camp.y, "ms", ms=9, label="base camp")
+    points = [p for route in routes.values() for p in route.path]
+    ax.set_xlim(min(p.x for p in points) - VIEW_MARGIN_M, max(p.x for p in points) + VIEW_MARGIN_M)
+    ax.set_ylim(min(p.y for p in points) - VIEW_MARGIN_M, max(p.y for p in points) + VIEW_MARGIN_M)
     ax.set_title(
-        f"P4-03 fastest safe route: {route.total_distance_m:.0f} m, "
-        f"{route.total_time_s / 3600:.2f} h, "
-        f"walk-back margin {route.walk_back_margin_s / 3600:.1f} h"
-        + ("" if "slope" in site.files else "\n(stub layers: flat ground, no slope file yet)")
+        "P4-04 fastest, science and cart routes"
+        + (
+            ""
+            if "slope" in site.files
+            else "\n(stub layers: flat ground, no slope or ridge file yet)"
+        )
     )
     ax.set_xlabel("easting, map metres")
     ax.set_ylabel("northing, map metres")
     handles, _ = ax.get_legend_handles_labels()
-    shaded = Patch(color=plt.get_cmap("autumn")(0.0), alpha=0.6, label="no route may enter")
-    ax.legend(handles=[*handles, shaded], loc="upper right")
+    shaded = Patch(color=plt.get_cmap("autumn")(0.0), alpha=0.6, label="crew may not enter")
+    ridge = Patch(color="white", label="ridge (cart may not cross)")
+    ax.legend(handles=[*handles, shaded, ridge], loc="upper left", fontsize=8)
     OUT.mkdir(parents=True, exist_ok=True)
-    fig.savefig(OUT / "p4-03-fastest.png", dpi=120, bbox_inches="tight")
+    fig.savefig(OUT / "p4-04-routes.png", dpi=120, bbox_inches="tight")
     plt.close(fig)
 
 
