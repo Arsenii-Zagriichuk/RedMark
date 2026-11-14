@@ -81,6 +81,15 @@ describe("live mode", () => {
       new ApiError(404, "lab.photo", { detail: "no such file" }),
     );
   });
+
+  it("keeps a non-JSON error body as text", async () => {
+    const fetchFn = vi.fn(async () => new Response("Bad gateway", { status: 502 }));
+    const client = createClient({ mode: "live", baseUrl: "http://svc", cache: [], fetchFn });
+
+    await expect(client.summaries("lab.chart")).rejects.toEqual(
+      new ApiError(502, "lab.chart", "Bad gateway"),
+    );
+  });
 });
 
 describe("demo mode", () => {

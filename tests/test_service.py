@@ -134,6 +134,7 @@ def engines(tmp_path, monkeypatch):
     write(package / "route_engine.py", f"def plan(request):\n    return {route_answer!r}\n")
     write(package / "sim_engine.py", f"def simulate(request):\n    return {simulate_answer!r}\n")
     write(package / "broken_engine.py", "def plan(request):\n    return {'site': 'gale'}\n")
+    write(package / "unnamed_engine.py", "def route(request):\n    return {}\n")
     monkeypatch.syspath_prepend(str(package.parent))
     yield route_answer, simulate_answer
     for name in [m for m in sys.modules if m.startswith("redmark_test_engines")]:
@@ -159,6 +160,17 @@ def test_an_engine_answer_that_breaks_its_contract_is_an_error(repo, engines):
 
     assert response.status_code == 502
     assert "route_response" in response.json()["detail"]
+
+
+def test_an_engine_module_without_its_function_says_so(repo, engines):
+    client = client_for(repo, route_engine="redmark_test_engines.unnamed_engine")
+
+    response = client.post("/route", json=ROUTE_REQUEST)
+
+    assert response.status_code == 502
+    assert response.json()["detail"] == (
+        "redmark_test_engines.unnamed_engine exists but has no plan(request) function"
+    )
 
 
 def test_a_request_that_breaks_its_contract_is_rejected(repo):

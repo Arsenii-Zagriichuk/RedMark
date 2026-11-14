@@ -71,9 +71,17 @@ export function createClient({ mode, baseUrl, cache, fetchFn = fetch }: ClientOp
       headers: { "Content-Type": "application/json", "X-Demo-Step": step },
       ...(body === null ? {} : { body: JSON.stringify(body) }),
     });
-    const answer: unknown = await response.json();
-    if (!response.ok) throw new ApiError(response.status, step, answer);
-    return answer;
+    if (!response.ok) {
+      const text = await response.text();
+      let detail: unknown = text;
+      try {
+        detail = JSON.parse(text);
+      } catch {
+        // Not JSON, such as a proxy's error page: keep the text.
+      }
+      throw new ApiError(response.status, step, detail);
+    }
+    return (await response.json()) as unknown;
   }
 
   /** One call to the service, by demo step id; typed helpers below wrap it. */

@@ -23,6 +23,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, ValidationError
+from starlette.concurrency import run_in_threadpool
 
 from contracts.models.route_request import RouteRequest
 from contracts.models.route_response import RouteResponse
@@ -70,6 +71,10 @@ def _load(path: Path) -> Any:
     return json.loads(path.read_text())
 
 
+def _list(folder: Path, pattern: str) -> list[Any]:
+    return [json.loads(path.read_text()) for path in sorted(folder.glob(pattern))]
+
+
 def _engine(module_name: str, function: str) -> Callable[[dict], dict] | None:
     """Person 4's engine function, or None while its module doesn't exist yet."""
     try:
@@ -79,6 +84,8 @@ def _engine(module_name: str, function: str) -> Callable[[dict], dict] | None:
         if module_name == missing or module_name.startswith(f"{missing}."):
             return None
         raise
+    if not callable(getattr(module, function, None)):
+        raise HTTPException(502, f"{module_name} exists but has no {function}(request) function")
     return getattr(module, function)
 
 
@@ -125,7 +132,7 @@ def create_app(settings: Settings) -> FastAPI:
         except ValidationError as error:
             raise HTTPException(422, json.loads(error.json())) from error
         run = _engine(*engine)
-        answer = run(body) if run else _load(STUBS / stub)
+        answer = await run_in_threadpool(run, body) if run else _load(STUBS / stub)
         try:
             response_model.model_validate(answer)
         except ValidationError as error:
@@ -140,7 +147,7 @@ def create_app(settings: Settings) -> FastAPI:
     @app.get("/layers/{site}")
     def layers(request: Request, site: str) -> JSONResponse:
         folder = settings.data_root / _name(site) / "layers"
-        found = [json.loads(p.read_text()) for p in sorted(folder.glob("*/layer.json"))]
+        found = _list(folder, "*/layer.json")
         if not found:
             raise HTTPException(404, f"no layers for {site}")
         return respond(request, None, found, None)
@@ -160,7 +167,7 @@ def create_app(settings: Settings) -> FastAPI:
         folder = results / _name(method) / "fixes"
         if not folder.is_dir():
             raise HTTPException(404, f"no fix results for {method}")
-        found = [json.loads(p.read_text()) for p in sorted(folder.glob("*.json"))]
+        found = _list(folder, "*.json")
         return respond(request, None, found, None)
 
     @app.get("/fixes/{method}/{photo_id}")
@@ -170,7 +177,7 @@ def create_app(settings: Settings) -> FastAPI:
 
     @app.get("/summaries")
     def summaries(request: Request) -> JSONResponse:
-        found = [json.loads(p.read_text()) for p in sorted(results.glob("*/*.json"))]
+        found = _list(results, "*/*.json")
         return respond(request, None, found, None)
 
     @app.get("/summaries/{method}/{test}")
