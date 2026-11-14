@@ -9,14 +9,14 @@
   "heading_deg": 33.80780649511334,
   "uncertainty_m": 10.0,
   "confidence_pct": 0.0,
-  "time_per_fix_s": 10.67,
+  "time_per_fix_s": 10.4,
   "terrain_type": "textured",
   "simulated": true,
-  "overlay": "results/drone/overlays/gale-sim-drone-0001-loftr-17fd1b3d90894ce0a1932e1e1da1609c.png",
+  "overlay": "results/drone/overlays/gale-sim-drone-0001-loftr-ee89dc72250f4d909e8d202026fbba7d.png",
   "truth": null,
   "provenance": {
     "script": "locate/drone/gale_fix.py",
-    "commit": "357c489abf17ccd1e7fb2fbb7db8d58191ac5970",
+    "commit": "426b5222d5ef25987ed5cf9d0078c2adbd315460",
     "inputs": [
       {
         "path": "gale/crops/photo-map-25cm.tif",
@@ -41,6 +41,10 @@
       {
         "path": "gale/rasters/ridges.tif",
         "sha256": "a8d9e08524f331f48f45f1de19c5fa37b962fadadd8519e89a1cdc5a198811c9"
+      },
+      {
+        "path": "layers/location_quality/layer5-gale.json",
+        "sha256": "c8f3453cf71de827574a5232f919210ce5d9df96a8499c0ac97f7a0f99c652f9"
       },
       {
         "path": "weights/mbl-mars/loftr/V1/finetuned/2024_08_23-05_52_53.pt",
