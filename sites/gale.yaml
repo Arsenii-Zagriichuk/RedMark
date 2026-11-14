@@ -15,7 +15,17 @@ habitat:
 base_camp:
   x: 8142600
   y: -285250
-science_targets: []
+science_targets:
+- id: sw-ridge
+  position:
+    x: 8142398.75
+    y: -285469.75
+  name: Boxwork ridge, south-west field
+- id: sw-hollow
+  position:
+    x: 8142378.75
+    y: -285492.75
+  name: Boxwork hollow, south-west field
 checkpoints: []
 files:
   photo_map: gale/crops/photo-map-25cm.tif
@@ -26,4 +36,6 @@ files:
   rover_positions: gale/crops/rover-positions.csv
   base_map: gale/layers/base
   slope: gale/rasters/slope.tif
+  sand: gale/rasters/sand.tif
+  ridges: gale/rasters/ridges.tif
 replayed_sol: 4600
