@@ -11,6 +11,7 @@ dependencies = [
     "pydantic>=2.9",
     "pyyaml>=6.0",
     "rasterio>=1.4.4",
+    "scikit-image>=0.26,<0.27",
     "uvicorn>=0.32",
 ]
 
@@ -36,7 +37,7 @@ package = false
 default-groups = ["dev", "prep"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "prep", "locate", "contracts/scoring"]
+testpaths = ["tests", "prep", "locate", "contracts/scoring", "route"]
 pythonpath = ["."]
 addopts = "-ra"
 
