@@ -80,10 +80,14 @@ class Grid:
         return float(self.xs[1] - self.xs[0])
 
 
+def load_grid(root: Path) -> Grid:
+    with np.load(root / GRID) as f:
+        return Grid(f["xs"], f["ys"], f["azimuths_deg"], f["elevation_deg"])
+
+
 def main() -> None:
     root = data_root()
-    with np.load(root / GRID) as f:
-        grid = Grid(f["xs"], f["ys"], f["azimuths_deg"], f["elevation_deg"])
+    grid = load_grid(root)
     ring_labels = sorted(root.glob(RING_GLOB))
     if len(ring_labels) != 12:
         raise SystemExit(f"expected the 12 ring frames in {root / 'navcam'}")
@@ -99,8 +103,17 @@ def main() -> None:
         )
 
 
-def horizon_fix(labels: list[Path], grid: Grid, root: Path, base_map: LayerImage) -> FixResult:
-    """One fix from the frames of one stop, scored and written with its overlay."""
+def horizon_fix(
+    labels: list[Path],
+    grid: Grid,
+    root: Path,
+    base_map: LayerImage,
+    *,
+    terrain: TerrainType = TERRAIN,
+    overlay_prefix: str = "p3-02",
+) -> FixResult:
+    """One fix from the frames of one stop, scored and written with its overlay
+    in results/horizon/overlays/<overlay_prefix>-<photo id>.png."""
     started = time.perf_counter()
     frames = [read_frame(path) for path in labels]
     photo_id = frames[0].photo_id
@@ -112,7 +125,7 @@ def horizon_fix(labels: list[Path], grid: Grid, root: Path, base_map: LayerImage
     uncertainty = circle_radius_m(match, grid)
     elapsed = time.perf_counter() - started
 
-    overlay = OVERLAYS / f"p3-02-{photo_id}.png"
+    overlay = OVERLAYS / f"{overlay_prefix}-{photo_id}.png"
     fix = FixResult(
         photo_id=photo_id,
         site=SiteId.gale,
@@ -122,7 +135,7 @@ def horizon_fix(labels: list[Path], grid: Grid, root: Path, base_map: LayerImage
         uncertainty_m=uncertainty,
         confidence_pct=0.0,  # not measured until the hidden-pile test (P3-03)
         time_per_fix_s=round(elapsed, 2),
-        terrain_type=TERRAIN,
+        terrain_type=terrain,
         simulated=False,
         overlay=overlay.relative_to(REPO_ROOT).as_posix(),
         truth=None,
