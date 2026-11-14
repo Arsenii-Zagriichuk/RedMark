@@ -32,6 +32,7 @@ moved landmark is a rerun, not a code change.
 
 import json
 import sys
+import textwrap
 import time
 from pathlib import Path
 
@@ -559,10 +560,14 @@ def draw_final_overlay(
     error_legend: list[LegendClass],
 ) -> None:
     """The error map, and the score with the checkpoint candidates and the demo walk,
-    on the base map; then the directions each leg of the walk gets, out and back."""
+    on the base map; then the walk close up, each leg coloured by the direction it gets,
+    and the directions out and back with the legs that get each."""
     step = max(1, round(score.shape[1] / 1000))
     extent = (cells.left, cells.right, cells.bottom, cells.top)
-    fig, axes = plt.subplots(1, 3, figsize=(32, 11), width_ratios=[1, 1.15, 0.9])
+    fig, axes = plt.subplots(1, 4, figsize=(42, 11), width_ratios=[1, 1.15, 1, 0.9])
+    legs = summary["landmark_directions"]["legs"]
+    directions = list(dict.fromkeys((leg["text"], leg["text_back"]) for leg in legs))
+    colours = dict(zip(directions, plt.get_cmap("tab10").colors, strict=False))
 
     ax = axes[0]
     ax.imshow(base_map.image, extent=base_map.extent)
@@ -588,15 +593,7 @@ def draw_final_overlay(
     ys = [p.y for p in route.path]
     ax.plot(xs, ys, "-", color="white", lw=2.5)
     ax.plot(xs, ys, "-", color="#d62728", lw=1.2, label=f"demo walk ({route.mode.value})")
-    for leg in summary["landmark_directions"]["legs"]:
-        a, b = route.path[leg["start_index"]], route.path[leg["end_index"]]
-        ax.annotate(
-            f"leg {leg['leg'] + 1}",
-            ((a.x + b.x) / 2, (a.y + b.y) / 2),
-            color="white",
-            fontsize=10,
-            weight="bold",
-        )
+    _walk_ends(ax, route)
     for c in summary["checkpoint_candidates"]:
         x, y = c["position"]["x"], c["position"]["y"]
         ax.plot(x, y, "*", color="#ff7f0e", mec="black", ms=16)
@@ -608,22 +605,44 @@ def draw_final_overlay(
     ax.set_title("Location quality: landmarks in view x measured error")
 
     ax = axes[2]
+    pad = 100.0
+    ax.imshow(base_map.image, extent=base_map.extent)
+    ax.imshow(score[::step, ::step], extent=extent, cmap="viridis", vmin=0, vmax=1, alpha=0.75)
+    for leg in legs:
+        part = route.path[leg["start_index"] : leg["end_index"] + 1]
+        colour = colours[(leg["text"], leg["text_back"])] if leg["text"] else "lightgrey"
+        ax.plot([p.x for p in part], [p.y for p in part], "-", color=colour, lw=3)
+        if leg["leg"] % 10 == 0:
+            a = route.path[leg["start_index"]]
+            ax.annotate(str(leg["leg"] + 1), (a.x, a.y), xytext=(5, 5), textcoords="offset points")
+    _walk_ends(ax, route)
+    for direction in directions:
+        if direction[0]:
+            ax.plot([], [], "-", color=colours[direction], lw=3, label=direction[0])
+    ax.legend(loc="upper left", fontsize=9, title="out (leg numbers every 10)")
+    ax.set_xlim(min(xs) - pad, max(xs) + pad)
+    ax.set_ylim(min(ys) - pad, max(ys) + pad)
+    ax.set_aspect("equal")
+    ax.set_title(f"Demo walk close up: {len(legs)} legs, coloured by direction")
+
+    ax = axes[3]
     ax.axis("off")
     lines = [f"Demo walk ({summary['landmark_directions']['route']}):"]
-    for leg in summary["landmark_directions"]["legs"]:
-        seen = ", ".join(
-            f"{v['id']} {v['side']} {v['share_of_leg_in_view']:.0%}"
-            for v in leg["landmarks"]
-            if v["side"]
+    for text, text_back in directions:
+        numbers = [
+            str(leg["leg"] + 1)
+            for leg in legs
+            if (leg["text"], leg["text_back"]) == (text, text_back)
+        ]
+        lines.append(f'  out: "{text}"' if text else "  no direction (leg outside the walk area)")
+        if text:
+            lines.append(f'  back: "{text_back}"')
+        lines += textwrap.wrap(
+            f"legs ({len(numbers)}): {', '.join(numbers)}",
+            88,
+            initial_indent="    ",
+            subsequent_indent="      ",
         )
-        lines.append(f"  leg {leg['leg'] + 1}, heading {leg['heading_deg']:.0f}°:")
-        if leg["text"]:
-            lines.append(f'    out: "{leg["text"]}"; back: "{leg["text_back"]}"')
-        else:
-            lines.append(
-                f"    no direction: {leg['share_in_walk_area']:.0%} of the leg is in the walk area"
-            )
-        lines.append(f"    in view: {seen or 'none'}")
     lines.append("")
     shown = summary["checkpoint_candidates"][:OVERLAY_CANDIDATES]
     lines.append(
@@ -645,6 +664,12 @@ def draw_final_overlay(
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=70)
     plt.close(fig)
+
+
+def _walk_ends(ax: plt.Axes, route: RouteResponse) -> None:
+    start, goal = route.path[0], route.path[-1]
+    ax.plot(start.x, start.y, "o", color="white", mec="black", ms=10, label="base camp")
+    ax.plot(goal.x, goal.y, "X", color="white", mec="black", ms=12, label="science target")
 
 
 if __name__ == "__main__":
