@@ -1,0 +1,135 @@
+{
+  "photo_id": "sol3655-site98-drive1520-NCAM00266",
+  "site": "gale",
+  "method": "horizon",
+  "position": {
+    "x": 8144000.0,
+    "y": -282240.0
+  },
+  "heading_deg": 64.75,
+  "uncertainty_m": 3041.38126514911,
+  "confidence_pct": 0.0,
+  "time_per_fix_s": 6.26,
+  "terrain_type": "textured",
+  "simulated": false,
+  "overlay": "results/horizon/overlays/p3-02-sol3655-site98-drive1520-NCAM00266.png",
+  "truth": {
+    "position": {
+      "x": 8144027.521682549,
+      "y": -282187.3644524739
+    },
+    "heading_deg": 65.1092,
+    "position_error_m": 59.396,
+    "heading_error_deg": 0.3592000000000013
+  },
+  "provenance": {
+    "script": "locate/horizon/fix.py",
+    "commit": "53d3757381febc430d2890fea2b8e1a3da04f549",
+    "inputs": [
+      {
+        "path": "gale/horizon/grid.npz",
+        "sha256": "7b1bd8dcf05079114cffe243e082ec14ae5cb65d28e577705cd8d2b3ce90b959"
+      },
+      {
+        "path": "places/localized_pos.csv",
+        "sha256": "d456ce9025ca71673af8b9f72a78dc508f5d963cbac74fa68eeac88a4c7c3a3b"
+      },
+      {
+        "path": "navcam/NRB_721967002ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "ec7781e368f2c22a35fc5a00a108b94bc4dbb218776884245a34e8e52462a528"
+      },
+      {
+        "path": "navcam/NRB_721967002ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "4fa971eb4033952c9b7f88854e4c6b891ed0ac0115bf52da2ade746db89f16ad"
+      },
+      {
+        "path": "navcam/NRB_721967032ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "ac7eebd02057af1d589320e09a6eb28d766972a72390a8c8cacb0a00543f972e"
+      },
+      {
+        "path": "navcam/NRB_721967032ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "7e8b90e66b611db0e01e06284efd9368af612bc0b5a4f6989f46f62ced07a3a3"
+      },
+      {
+        "path": "navcam/NRB_721967057ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "c1d7ee42c8aae44357a49c6e161f40ff6863c827d69c246cbcf6345a26754149"
+      },
+      {
+        "path": "navcam/NRB_721967057ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "27da92e44650d1cd21c326c44ce0736fc419db61af05ed7ed453eb5c7687d264"
+      },
+      {
+        "path": "navcam/NRB_721967088ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "1e59b31baa94d9d36edfa3f4d203c16f58c265b090e3a59ffe45e3db5c52c84c"
+      },
+      {
+        "path": "navcam/NRB_721967088ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "94b353cdbc4cf3d0332f15682715897d929780a7da13e2a75002f692f902f715"
+      },
+      {
+        "path": "navcam/NRB_721967112ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "b2bad3b617d28084ba6abb31ebcd318bab1b9e7734a7291a6685883a16a41bf2"
+      },
+      {
+        "path": "navcam/NRB_721967112ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "6d5128611ce06591de52c7d43ce9a5c777b3150ef6f52d9861476029b9986564"
+      },
+      {
+        "path": "navcam/NRB_721967136ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "364dd6e326c2a69099c7020d2b40d6fccdd1f60d437f4d7556439904cb7a3b0e"
+      },
+      {
+        "path": "navcam/NRB_721967136ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "3e5c40b90812af162a820fd09c0757667cc22b16dacc5e3f1b3fa3458ba61a1e"
+      },
+      {
+        "path": "navcam/NRB_721967167ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "107c77d4e547b9d0e8df3ec2a962b2c89af54e9a7ab46e4bee2ef9d22c012bfd"
+      },
+      {
+        "path": "navcam/NRB_721967167ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "bbcc4305c9d298b10d53a8c5b558f91fc988113542a280f8171673feaaa2ecc5"
+      },
+      {
+        "path": "navcam/NRB_721967191ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "2348cfe24c456b4b25d9d8a10b1773844c1d994d357d86c392dbeff025f88278"
+      },
+      {
+        "path": "navcam/NRB_721967191ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "d1a75a2fff5b74ac43b3f724d6fa15bb1046114f5108c33ae09480f7785cc3bb"
+      },
+      {
+        "path": "navcam/NRB_721967222ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "68da6d5918ed7457f00c74077802e14f02c472166e7b839ddb6f3d5353d5d30e"
+      },
+      {
+        "path": "navcam/NRB_721967222ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "60e85654ec08684a89af620a32cfdf3d12625bcfaa61cda66f48da79b257d780"
+      },
+      {
+        "path": "navcam/NRB_721967252ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "a1d7c462b753ccb32ebf88b85bc7a0b78653d32f50443462cb7dcd5affb57001"
+      },
+      {
+        "path": "navcam/NRB_721967252ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "1e35ecb7384ff50a877cf4ff43930056e2a730876174f5db40fdb694b44cf0ee"
+      },
+      {
+        "path": "navcam/NRB_721967276ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "bd1e2d26e364f0cc9ecfa7cea1b562e870b527cf26c3e77f776d9accbfa71b94"
+      },
+      {
+        "path": "navcam/NRB_721967276ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "cc049cd62d782c59e3bc8de5c95824c3f27ffedde92747505f63077d0e4c3374"
+      },
+      {
+        "path": "navcam/NRB_721967353ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "61c0dec8b9d79971b34266e8ca5fb3eedbb9ce05353a0c0dba9686f48950ec20"
+      },
+      {
+        "path": "navcam/NRB_721967353ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "94fcdacc10ba9b451fb929a785954c327ff95dd6c165b6ef226d651ad7de676b"
+      }
+    ]
+  }
+}

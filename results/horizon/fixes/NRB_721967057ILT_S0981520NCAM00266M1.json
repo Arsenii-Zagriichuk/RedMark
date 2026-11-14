@@ -1,0 +1,47 @@
+{
+  "photo_id": "NRB_721967057ILT_S0981520NCAM00266M1",
+  "site": "gale",
+  "method": "horizon",
+  "position": {
+    "x": 8144600.0,
+    "y": -282940.0
+  },
+  "heading_deg": 223.75,
+  "uncertainty_m": 3748.3329627982625,
+  "confidence_pct": 0.0,
+  "time_per_fix_s": 0.78,
+  "terrain_type": "textured",
+  "simulated": false,
+  "overlay": "results/horizon/overlays/p3-02-NRB_721967057ILT_S0981520NCAM00266M1.png",
+  "truth": {
+    "position": {
+      "x": 8144027.314983297,
+      "y": -282187.45945240656
+    },
+    "heading_deg": 124.977,
+    "position_error_m": 945.667,
+    "heading_error_deg": 98.773
+  },
+  "provenance": {
+    "script": "locate/horizon/fix.py",
+    "commit": "53d3757381febc430d2890fea2b8e1a3da04f549",
+    "inputs": [
+      {
+        "path": "gale/horizon/grid.npz",
+        "sha256": "7b1bd8dcf05079114cffe243e082ec14ae5cb65d28e577705cd8d2b3ce90b959"
+      },
+      {
+        "path": "places/localized_pos.csv",
+        "sha256": "d456ce9025ca71673af8b9f72a78dc508f5d963cbac74fa68eeac88a4c7c3a3b"
+      },
+      {
+        "path": "navcam/NRB_721967057ILT_S0981520NCAM00266M1.LBL",
+        "sha256": "c1d7ee42c8aae44357a49c6e161f40ff6863c827d69c246cbcf6345a26754149"
+      },
+      {
+        "path": "navcam/NRB_721967057ILT_S0981520NCAM00266M1.IMG",
+        "sha256": "27da92e44650d1cd21c326c44ce0736fc419db61af05ed7ed453eb5c7687d264"
+      }
+    ]
+  }
+}
