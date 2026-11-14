@@ -21,7 +21,6 @@ import hashlib
 import json
 import os
 import sys
-import tempfile
 import time
 from pathlib import Path
 from uuid import uuid4
@@ -38,6 +37,7 @@ from locate.drone.label import DroneFrame, onboard_position, read_drone_frame, t
 from locate.drone.matchers import load_matcher
 from locate.drone.pipeline import PreviousPhoto, fix_frame, search_centre
 from locate.drone.records import provenance, recorded
+from prep.common import written_atomically
 
 # The code a drone fix depends on; uncommitted changes here stop the run.
 FIX_CODE = ["locate/drone", "prep", "contracts", "pyproject.toml", "uv.lock"]
@@ -124,15 +124,12 @@ def _draw_overlay(
     text = ImageDraw.Draw(sheet)
     for i, line in enumerate(title.splitlines()):
         text.text((10, 8 + 14 * i), line, fill=(255, 255, 0))
-    out.parent.mkdir(parents=True, exist_ok=True)
     metadata = PngImagePlugin.PngInfo()
     metadata.add_itxt("fix_result", fix.model_dump_json())
     metadata.add_text("matches", str(estimate.matches))
     metadata.add_text("inliers", str(estimate.inliers))
-    with tempfile.TemporaryDirectory(dir=out.parent) as temporary:
-        staged = Path(temporary) / out.name
-        sheet.save(staged, pnginfo=metadata)
-        staged.replace(out)
+    with written_atomically(out) as partial:
+        sheet.save(partial, format="PNG", pnginfo=metadata)
 
 
 def _label(jezero: Path, row: dict) -> Path:
@@ -236,11 +233,8 @@ def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
     )
     _draw_overlay(window, ground, drone_fix, onboard, title, overlay, fix)
     path = RESULTS / "fixes" / f"{stem}.json"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(dir=path.parent) as temporary:
-        staged = Path(temporary) / path.name
-        staged.write_text(fix.model_dump_json(indent=2) + "\n", encoding="utf-8")
-        staged.replace(path)
+    with written_atomically(path) as partial:
+        partial.write_text(fix.model_dump_json(indent=2) + "\n", encoding="utf-8")
     print(f"wrote {recorded(path)}")
     print(
         f"wrote {recorded(overlay)}; {drone_fix.inliers}/{drone_fix.matches} matches agree, "
