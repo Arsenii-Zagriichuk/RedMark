@@ -92,7 +92,7 @@ def build(root: Path) -> None:
     targets = spec["science_targets"]
     files = site.files
     commit = _git_commit()
-    new_config = _site_config_with(targets)
+    _site_config_with(config.decode(), targets)  # refuse a bad config before building
 
     stage = root / STAGE
     shutil.rmtree(stage, ignore_errors=True)
@@ -174,6 +174,17 @@ def build(root: Path) -> None:
         overlays.science(photo, stage, walk, habitat, targets, drilled, track, overlay_dir),
     ]
 
+    # The site config as it is now, with any edit made during the build kept, unless
+    # the edit touches what the build read or writes.
+    current = SITE.read_text()
+    changed = _changed_fields(yaml.safe_load(config), yaml.safe_load(current))
+    if changed:
+        raise RuntimeError(
+            f"{SITE} changed during the build in fields it used or writes ({', '.join(changed)});"
+            " nothing was published: rerun the build"
+        )
+    new_config = _site_config_with(current, targets)
+
     # Everything built and checked: only now does anything live change, the route
     # engine's rasters included.
     (root / LAYERS).mkdir(parents=True, exist_ok=True)
@@ -223,11 +234,25 @@ def _source(source: dict) -> dict:
     return {"name": source["name"], "url": source["url"]}
 
 
-def _site_config_with(targets: list[dict]) -> str:
-    """sites/gale.yaml naming the sand and ridge rasters and setting the science
+# The site config fields the build reads or writes. An edit to any of them while the
+# build runs would be built on stale values or overwritten; any other edit is kept.
+USED_FIELDS = ("site", "projection", "bounds", "habitat", "base_camp", "replayed_sol",
+               "science_targets")  # fmt: skip
+USED_FILES = ("photo_map", "thermal_inertia", "crism", "chemistry", "rover_positions", "slope",
+              "sand", "ridges")  # fmt: skip
+
+
+def _changed_fields(before: dict, now: dict) -> list[str]:
+    """The fields the build reads or writes that differ between two site configs."""
+    changed = [f for f in USED_FIELDS if before.get(f) != now.get(f)]
+    files_before, files_now = before.get("files", {}), now.get("files", {})
+    return changed + [f"files.{f}" for f in USED_FILES if files_before.get(f) != files_now.get(f)]
+
+
+def _site_config_with(text: str, targets: list[dict]) -> str:
+    """The site config `text` naming the sand and ridge rasters and setting the science
     targets, keeping the rest and its header. Raises if the result is not a valid site
-    config, so the build checks it before anything live changes."""
-    text = SITE.read_text()
+    config."""
     header = "".join(line + "\n" for line in text.splitlines() if line.startswith("#"))
     config = yaml.safe_load(text)
     config["files"]["sand"] = SAND_RASTER
