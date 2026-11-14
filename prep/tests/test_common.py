@@ -10,6 +10,8 @@ from prep.common import (
     download,
     manifest_entry,
     merge_manifest,
+    publish_stage,
+    start_stage,
     update_manifest,
     written_atomically,
 )
@@ -125,3 +127,42 @@ def test_a_download_is_fetched_once_and_then_reused(tmp_path: Path):
 
     assert dest.read_bytes() == b"sol,target\n"
     assert list(dest.parent.iterdir()) == [dest]
+
+
+def test_a_stage_reuses_the_published_crops_and_leaves_them_alone(tmp_path):
+    published = tmp_path / "crops"
+    published.mkdir()
+    (published / "a.tif").write_text("old a")
+    (published / "pack.json").write_text("old pack")
+    stage = tmp_path / "crops.next"
+
+    start_stage(published, stage, reuse="*.tif")
+    reused = (stage / "a.tif").read_text()
+    with written_atomically(stage / "a.tif") as partial:
+        partial.write_text("new a")
+    (stage / "pack.json").write_text("new pack")
+
+    assert reused == "old a"
+    assert (published / "a.tif").read_text() == "old a"
+    assert (published / "pack.json").read_text() == "old pack"
+
+
+def test_publishing_a_stage_replaces_the_pack_whole(tmp_path):
+    published = tmp_path / "crops"
+    published.mkdir()
+    (published / "gone.png").write_text("old")
+    stage = tmp_path / "crops.next"
+    stage.mkdir()
+    (stage / "a.tif").write_text("new a")
+
+    publish_stage(stage, published)
+
+    assert sorted(p.name for p in published.iterdir()) == ["a.tif"]
+    assert not stage.exists()
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["crops"]
+
+
+def test_a_first_stage_starts_empty(tmp_path):
+    start_stage(tmp_path / "crops", tmp_path / "crops.next", reuse="*.tif")
+
+    assert list((tmp_path / "crops.next").iterdir()) == []

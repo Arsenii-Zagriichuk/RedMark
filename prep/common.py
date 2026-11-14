@@ -1,6 +1,8 @@
 """Helpers every prep pack shares: checksums, the data manifest and crop files."""
 
 import hashlib
+import os
+import shutil
 import urllib.request
 import uuid
 from collections.abc import Iterator
@@ -88,6 +90,29 @@ def written_atomically(out: Path) -> Iterator[Path]:
         partial.replace(out)
     finally:
         partial.unlink(missing_ok=True)
+
+
+def start_stage(published: Path, stage: Path, reuse: str) -> None:
+    """Start a candidate pack in `stage`, holding the `published` files matching `reuse`.
+
+    Those files are hard links, so they cost no space, and must only be
+    replaced through written_atomically, never written in place: an in-place
+    write would change the published file too. Every other file starts absent.
+    """
+    shutil.rmtree(stage, ignore_errors=True)
+    stage.mkdir(parents=True)
+    for path in sorted(published.glob(reuse)) if published.exists() else []:
+        os.link(path, stage / path.name)
+
+
+def publish_stage(stage: Path, published: Path) -> None:
+    """Replace the `published` pack with the candidate in `stage`, whole."""
+    old = published.with_name(f"{published.name}.old")
+    shutil.rmtree(old, ignore_errors=True)
+    if published.exists():
+        published.rename(old)
+    stage.rename(published)
+    shutil.rmtree(old, ignore_errors=True)
 
 
 def source_tag(raster: Path) -> str | None:

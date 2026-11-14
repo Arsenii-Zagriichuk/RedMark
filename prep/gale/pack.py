@@ -388,3 +388,26 @@ def check_apxs_placement(apxs_csvs: list[Path], track: list[dict]) -> dict:
                 checked += 1
                 same += (pose["site"], pose["drive"]) == (site, drive)
     return {"rows_checked": checked, "same_pose": same, "files_name_another_sol": elsewhere}
+
+
+# CRISM marks no data with 65535; real summary values are far below this.
+_CRISM_VALID_BELOW = 1e3
+
+
+def band_gaps(cube: np.ma.MaskedArray, names: list[str], regions: dict[str, np.ndarray]) -> dict:
+    """Cells without data in each band of a CRISM cube, counted in each region.
+
+    `cube` is (band, row, col); a cell has no data if masked or at the no-data
+    value. Each region is a boolean mask of the cube's cells. Bands with no gap
+    anywhere are left out of the list and counted as complete.
+    """
+    missing = np.ma.getmaskarray(cube) | (np.abs(cube.filled(0)) >= _CRISM_VALID_BELOW)
+    counts = {
+        name: {region: int(missing[i][inside].sum()) for region, inside in regions.items()}
+        for i, name in enumerate(names)
+    }
+    return {
+        "bands": len(names),
+        "bands_complete": {r: sum(c[r] == 0 for c in counts.values()) for r in regions},
+        "cells_without_data": {n: c for n, c in counts.items() if any(c.values())},
+    }

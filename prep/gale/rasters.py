@@ -32,9 +32,14 @@ def read_at(path: Path, res_m: float) -> tuple[np.ndarray, PixelGrid]:
 
 
 def read_window(path: Path, box: Bounds, float_data: bool = False) -> tuple[np.ndarray, tuple]:
+    """The crop's pixels inside `box` at full detail, and their extent (left, right, bottom, top).
+
+    A box past the crop's edge is cut at the edge, and the extent says so.
+    """
     with rasterio.open(path) as src:
         window = rasterio.windows.from_bounds(*box, transform=src.transform)
         window = window.round_offsets().round_lengths()
+        window = window.intersection(Window(0, 0, src.width, src.height))
         data = src.read(1, window=window, masked=True)
         b = rasterio.windows.bounds(window, src.transform)
     data = data.astype(np.float32).filled(np.nan) if float_data else data.filled(0)

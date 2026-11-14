@@ -14,6 +14,7 @@ import pytest
 from contracts.models.site import SiteConfig
 from prep.gale.pack import (
     PixelGrid,
+    band_gaps,
     best_move,
     best_shift,
     compare_heights,
@@ -226,38 +227,60 @@ def test_slope_of_a_plane_rising_one_in_ten_is_its_arctangent():
     assert slope_degrees(heights, 1.0)[15, 15] == pytest.approx(5.7106, abs=1e-3)
 
 
-def _hills(n: int, res: float) -> np.ndarray:
-    """Irregular ground: 40 waves of random direction and length, so no shift repeats it."""
+def _hills(n: int, res: float) -> tuple[np.ndarray, np.ndarray]:
+    """Irregular ground and a photo of it, both written out from the same waves.
+
+    40 waves of random direction and length, so no shift repeats the ground.
+    The photo is drawn without the code under test: each cell's brightness is
+    the cosine between its exact surface normal and a sun 35 degrees high in
+    the west-north-west (azimuth 300), plus a little noise.
+    """
     rng = np.random.default_rng(2)
-    y, x = np.mgrid[0:n, 0:n] * res
+    y, x = np.mgrid[0:n, 0:n] * res  # rows run south from the grid's top
     heights = np.zeros((n, n))
+    dz_dx = np.zeros((n, n))  # metres up per metre east
+    dz_dy = np.zeros((n, n))  # metres up per metre south
     for _ in range(40):
         angle, length, phase = rng.uniform(0, np.pi), rng.uniform(15, 120), rng.uniform(0, 6.3)
-        heights += np.sin((x * np.cos(angle) + y * np.sin(angle)) / length * 2 * np.pi + phase)
-    return heights
+        k = 2 * np.pi / length
+        u = (x * np.cos(angle) + y * np.sin(angle)) * k + phase
+        heights += np.sin(u)
+        dz_dx += np.cos(u) * k * np.cos(angle)
+        dz_dy += np.cos(u) * k * np.sin(angle)
+    azimuth, elevation = np.radians(300.0), np.radians(35.0)
+    sun = (  # east, north, up
+        np.sin(azimuth) * np.cos(elevation),
+        np.cos(azimuth) * np.cos(elevation),
+        np.sin(elevation),
+    )
+    # The surface normal (-dz/deast, -dz/dnorth, 1), with north = -south.
+    normal_length = np.sqrt(dz_dx**2 + dz_dy**2 + 1)
+    photo = (-dz_dx * sun[0] + dz_dy * sun[1] + sun[2]) / normal_length
+    photo += rng.normal(0, 0.02, photo.shape)
+    return heights, photo
 
 
 def test_a_photo_map_placed_off_its_terrain_is_found_off():
-    # Terrain on a 2 m grid from (0, 0). The photo shows its shading lit from
-    # the west-north-west, but starting at terrain column 20 and row 5 while its
+    # Terrain on a 2 m grid from (0, 0). The photo shows it lit from the
+    # west-north-west, but starting at terrain column 20 and row 5 while its
     # grid claims (0, 0): the terrain must move 40 m west and 10 m north to
     # line up with it.
     res = 2.0
-    heights = _hills(400, res)
-    photo = shading(heights, res, azimuth_deg=300.0)[5 : 5 + 300, 20 : 20 + 300]
+    heights, photo = _hills(400, res)
+    photo = photo[5 : 5 + 300, 20 : 20 + 300]
 
     found = photo_move_on_terrain(
         photo, PixelGrid(0.0, 0.0, res), heights, PixelGrid(0.0, 0.0, res), search_m=80.0
     )
 
     assert found["move_m"] == pytest.approx([-40.0, 10.0])
-    assert found["r"] == pytest.approx(1.0)
+    assert found["azimuth_deg"] == 300
+    assert found["r"] > 0.8
 
 
 def test_a_photo_map_on_its_terrain_needs_no_move():
     res = 2.0
-    heights = _hills(300, res)
-    photo = shading(heights, res, azimuth_deg=300.0)
+    heights, photo = _hills(300, res)
 
     found = photo_move_on_terrain(
         photo, PixelGrid(0.0, 0.0, res), heights, PixelGrid(0.0, 0.0, res), search_m=80.0
@@ -265,3 +288,34 @@ def test_a_photo_map_on_its_terrain_needs_no_move():
 
     assert found["move_m"] == pytest.approx([0.0, 0.0])
     assert found["azimuth_deg"] == 300
+
+
+def test_crism_gaps_are_counted_band_by_band_in_each_region():
+    # Two bands on a 3 x 3 grid. R770 is missing one corner cell; BD3200 has a
+    # no-data value (65535) in the centre and a masked cell on the edge.
+    r770 = np.ma.array(np.ones((3, 3)), mask=[[1, 0, 0], [0, 0, 0], [0, 0, 0]])
+    bd3200 = np.ma.array(np.ones((3, 3)), mask=[[0, 0, 0], [0, 0, 1], [0, 0, 0]])
+    bd3200[1, 1] = 65535
+    cube = np.ma.stack([r770, bd3200])
+    centre = np.zeros((3, 3), bool)
+    centre[1, 1] = True
+    regions = {"crop": np.ones((3, 3), bool), "walk_radius": centre}
+
+    gaps = band_gaps(cube, ["R770", "BD3200"], regions)
+
+    assert gaps == {
+        "bands": 2,
+        "bands_complete": {"crop": 0, "walk_radius": 1},
+        "cells_without_data": {
+            "R770": {"crop": 1, "walk_radius": 0},
+            "BD3200": {"crop": 2, "walk_radius": 1},
+        },
+    }
+
+
+def test_a_band_with_no_gaps_is_left_out_of_the_list():
+    cube = np.ma.array(np.ones((1, 2, 2)), mask=False)
+
+    gaps = band_gaps(cube, ["R770"], {"crop": np.ones((2, 2), bool)})
+
+    assert gaps == {"bands": 1, "bands_complete": {"crop": 1}, "cells_without_data": {}}

@@ -11,7 +11,8 @@ and downloads once, if missing:
   gale/source/crism/frt0000b6f1_07_sr165j_mtr3.img, .hdr
                                               CRISM summary parameters, 18 m
   gale/source/apxs/msl_apxs_concentrations_*.csv
-                                              Curiosity's APXS chemistry, sols 4489 to 4843
+                                              Curiosity's APXS chemistry, every table
+                                              overlapping the sols it spent in the crops
   places/localized_interp.csv                 Curiosity's position at every drive (PLACES)
 and writes, under $REDMARK_DATA/gale/crops/:
   photo-map-25cm.tif, terrain-1m.tif, thermal-inertia-100m.tif, crism-summary-18m.tif
@@ -22,6 +23,10 @@ and writes, under $REDMARK_DATA/gale/crops/:
   pack.json             crop bounds, frame check, offsets and provenance
 and, in the repo, sites/gale.yaml, the Gale entries in prep/data-manifest.yaml
 and copies of the overlays in prep/gale/evidence/.
+
+The pack is built in gale/crops.next/ and replaces gale/crops/ only if every
+check passes; the repo files are written after that. A failed check leaves the
+published pack, the site config and the manifest as they were.
 
 Walk area and margins come from prep/gale/walk_area.yaml, so a new walk area is
 a rerun, not a code change. Only the crops are read once they exist, so a rerun
@@ -44,13 +49,22 @@ from rasterio.windows import from_bounds
 
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
-from prep.common import Bounds, download, manifest_entry, sha256, update_manifest
+from prep.common import (
+    Bounds,
+    download,
+    manifest_entry,
+    publish_stage,
+    sha256,
+    start_stage,
+    update_manifest,
+)
 from prep.gale import overlays
 from prep.gale.crop import crop_is_current, crop_on_source_grid
 from prep.gale.pack import (
     PixelGrid,
     apxs_points,
     apxs_tables_for,
+    band_gaps,
     best_move,
     check_apxs_placement,
     compare_heights,
@@ -141,6 +155,8 @@ APXS_TABLES = [
 APXS_DIR = "gale/source/apxs"
 APXS_CREDIT = "MSL APXS RDR (MSL-M-APXS-4/5-RDR-V1.0), NASA/JPL-Caltech, PDS Geosciences Node"
 OUT = "gale/crops"
+# The candidate pack is built here and replaces OUT only once every check passes.
+STAGE = "gale/crops.next"
 # The data-manifest entries this pack owns: its own folder and its sources at the
 # data root. A rebuild replaces them all, so a source it stops using drops out.
 MANIFEST_OWNED = ("gale/", "MSL_Gale_", "THEMIS_TI_", PLACES, PLACES_INTERP)
@@ -186,6 +202,8 @@ def build(root: Path) -> None:
     walk = walk_area(habitat, spec["walk_radius_m"])
     asked = grow(walk, spec["crop_margin_m"])
     out = root / OUT
+    stage = root / STAGE
+    start_stage(out, stage, reuse="*.tif")  # crops are slow to cut; the rest is rewritten
 
     for name in ("file", "header"):
         download(CRISM_URL + Path(CRISM[name]).name, root / CRISM[name])
@@ -203,7 +221,7 @@ def build(root: Path) -> None:
     )
     crops: dict[str, dict] = {}
     for key, source in SOURCES.items():
-        crop = root / source["crop"]
+        crop = root / _staged(source["crop"])
         source_id = f"{source['file']} sha256:{checksums[source['file']]} bounds:{asked}"
         if crop_is_current(crop, source_id):
             with rasterio.open(crop) as src:
@@ -213,20 +231,20 @@ def build(root: Path) -> None:
             covered = crop_on_source_grid(root / source["file"], asked, crop, PROJECTION, source_id)
         with rasterio.open(crop) as src:
             res = src.res[0]
-        crops[key] = {"path": source["crop"], "bounds": list(covered), "res_m": res}
+        crops[key] = {"path": _staged(source["crop"]), "bounds": list(covered), "res_m": res}
         print(f"{key}: {source['crop']} covers {covered} at {res:g} m")
 
     crism_offset = _crism_offset(root, crops, asked)
     print(f"CRISM offset: {json.dumps(crism_offset)}")
     move = crism_offset["move_m"] if crism_offset["applied"] else [0.0, 0.0]
-    crism = root / CRISM["crop"]
+    crism = root / _staged(CRISM["crop"])
     source_id = f"{CRISM['file']} sha256:{checksums[CRISM['file']]} bounds:{asked} move:{move}"
     if not crop_is_current(crism, source_id):
         print(f"cropping {CRISM['file']}")
         crop_on_source_grid(root / CRISM["file"], asked, crism, PROJECTION, source_id, tuple(move))
     with rasterio.open(crism) as src:
         crops["crism"] = {
-            "path": CRISM["crop"],
+            "path": _staged(CRISM["crop"]),
             "bounds": list(src.bounds),
             "res_m": src.res[0],
             "bands": list(src.descriptions),
@@ -235,7 +253,7 @@ def build(root: Path) -> None:
 
     track = rover_track(root / PLACES_INTERP)
     chemistry = apxs_points([root / t for t in apxs], track, asked)
-    with (out / "chemistry-apxs.csv").open("w", newline="") as f:
+    with (stage / "chemistry-apxs.csv").open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(chemistry[0]))
         writer.writeheader()
         writer.writerows(chemistry)
@@ -244,7 +262,7 @@ def build(root: Path) -> None:
     print(f"APXS placement by sol against file names: {json.dumps(placement_check)}")
 
     positions = rover_positions(root / PLACES, asked)
-    with (out / "rover-positions.csv").open("w", newline="") as f:
+    with (stage / "rover-positions.csv").open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["sol", "site", "drive", "x", "y", "z"])
         writer.writeheader()
         writer.writerows(positions)
@@ -252,30 +270,28 @@ def build(root: Path) -> None:
 
     frame_check = _frame_check(root, crops, positions)
     print(f"frame check: {json.dumps(frame_check)}")
-    crism_coverage = _crism_coverage(root, crops, walk)
-    print(f"CRISM coverage: {json.dumps(crism_coverage)}")
+    crism_coverage = _crism_coverage(root, crops, walk, habitat, spec["walk_radius_m"])
+    gaps = {b: c for b, c in crism_coverage["cells_without_data"].items() if c["walk_radius"]}
+    print(f"CRISM bands with gaps inside the walk radius: {json.dumps(gaps)}")
     walk_area_figures = _walk_area_figures(root, crops, habitat, base_camp, positions)
     print(f"walk-area figures: {json.dumps(walk_area_figures)}")
     ti_offset = _thermal_inertia_offset(root, crops)
     print(f"thermal inertia offset (not corrected): {json.dumps(ti_offset)}")
 
-    overlay_dir = out / "overlays"
+    overlay_dir = stage / "overlays"
     overlay_dir.mkdir(parents=True, exist_ok=True)
     overlays.photo_map(root, crops, walk, habitat, base_camp, positions, frame_check, overlay_dir)
     overlays.terrain(root, crops, walk, habitat, overlay_dir)
     overlays.thermal_inertia(root, crops, walk, habitat, ti_offset, overlay_dir)
     overlays.crism(root, crops, walk, habitat, crism_offset, overlay_dir)
     overlays.chemistry(root, crops, walk, habitat, positions, chemistry, overlay_dir)
-    EVIDENCE.mkdir(parents=True, exist_ok=True)
-    for png in sorted(overlay_dir.glob("*.png")):
-        shutil.copy(png, EVIDENCE / png.name)
 
     pack = {
         "walk_area": list(walk),
         "crop_bounds_asked": list(asked),
         "habitat": list(habitat),
         "base_camp": list(base_camp),
-        "crops": crops,
+        "crops": {k: v | {"path": v["path"].replace(STAGE, OUT, 1)} for k, v in crops.items()},
         "rover_positions": f"{OUT}/rover-positions.csv",
         "chemistry": {
             "path": f"{OUT}/chemistry-apxs.csv",
@@ -303,13 +319,25 @@ def build(root: Path) -> None:
             ],
         },
     }
-    (out / "pack.json").write_text(json.dumps(pack, indent=2) + "\n")
+    (stage / "pack.json").write_text(json.dumps(pack, indent=2) + "\n")
 
+    if not frame_check["passed"]:
+        sys.exit(
+            "frame check failed: PLACES and the crops do not share one frame. "
+            f"The candidate pack is in {stage}; the published pack is unchanged."
+        )
+    publish_stage(stage, out)
+    EVIDENCE.mkdir(parents=True, exist_ok=True)
+    for png in sorted((out / "overlays").glob("*.png")):
+        shutil.copy(png, EVIDENCE / png.name)
     _write_site_config(spec, habitat, base_camp)
     _write_manifest(root, checksums, tables)
-    if not frame_check["passed"]:
-        sys.exit("frame check failed: PLACES and the crops do not share one frame")
     print(f"pack written to {out}")
+
+
+def _staged(path: str) -> str:
+    """Where a pack file is written while the candidate pack is checked."""
+    return path.replace(OUT, STAGE, 1)
 
 
 def _frame_check(root: Path, crops: dict, positions: list[dict]) -> dict:
@@ -364,23 +392,26 @@ def _frame_check(root: Path, crops: dict, positions: list[dict]) -> dict:
     return result
 
 
-def _crism_coverage(root: Path, crops: dict, walk: Bounds) -> dict:
-    """The share of the CRISM crop, and of the walk area, with a valid R770 reading.
+def _crism_coverage(root: Path, crops: dict, walk: Bounds, habitat, radius_m: float) -> dict:
+    """Cells without data in each CRISM band: in the crop, the walk area and the walk radius.
 
-    The cube's edge is ragged, so the crop's corners can hold no data.
+    The cube's edge is ragged, and some bands have gaps of their own inside it.
     """
     with rasterio.open(root / crops["crism"]["path"]) as src:
-        r770 = src.read(src.descriptions.index("R770") + 1, masked=True)
-        valid = ~np.ma.getmaskarray(r770) & (np.abs(r770.filled(0)) < 1e3)
-        inside = from_bounds(*walk, transform=src.transform).round_offsets().round_lengths()
-        rows = slice(max(0, inside.row_off), inside.row_off + inside.height)
-        cols = slice(max(0, inside.col_off), inside.col_off + inside.width)
-    return {
-        "crop_valid_share": round(float(valid.mean()), 4),
-        "crop_cells_without_data": int((~valid).sum()),
-        "walk_area_valid_share": round(float(valid[rows, cols].mean()), 4),
-        "walk_area_cells_without_data": int((~valid[rows, cols]).sum()),
+        cube = src.read(masked=True)
+        names = list(src.descriptions)
+        rows, cols = np.mgrid[0 : src.height, 0 : src.width]
+        xs, ys = rasterio.transform.xy(src.transform, rows.ravel(), cols.ravel())
+    x = np.asarray(xs).reshape(rows.shape)
+    y = np.asarray(ys).reshape(rows.shape)
+    regions = {
+        "crop": np.ones(rows.shape, bool),
+        "walk_area": (walk[0] <= x) & (x <= walk[2]) & (walk[1] <= y) & (y <= walk[3]),
+        "walk_radius": np.hypot(x - habitat[0], y - habitat[1]) <= radius_m,
     }
+    return {"cells": {r: int(m.sum()) for r, m in regions.items()}} | band_gaps(
+        cube, names, regions
+    )
 
 
 def _walk_area_figures(root: Path, crops: dict, habitat, base_camp, positions) -> dict:
@@ -546,7 +577,8 @@ def _write_manifest(root: Path, checksums: dict[str, str], tables: list[str]) ->
 
 def _source_checksums(root: Path, files: list[str]) -> dict[str, str]:
     """SHA-256 of each source, cached by size and modification time (the photo map is 50 GB)."""
-    cache_path = root / OUT / "source-checksums.json"
+    # Outside the pack, so publishing a candidate pack never drops it.
+    cache_path = root / "gale" / "source-checksums.json"
     cache = json.loads(cache_path.read_text()) if cache_path.exists() else {}
     result = {}
     for name in files:
