@@ -16,13 +16,16 @@ way the horizon test splits its numbers (locate.horizon.stop_terrain).
 
 Each pick becomes one demo cache entry, cache/demo/fixes/<step>.json, holding
 the request GET /fixes/horizon/<photo id> and the fix result file as its
-response, exactly as the service's recorder would save it. The fix result
-names its overlay image in results/horizon/overlays/.
+response, exactly as the service's recorder would save it. Each pick's
+overlay image is copied to cache/demo/horizon/overlays/ under the file name
+its fix result gives, so the offline demo can bundle it without results/ or
+the service.
 
 Run with `uv run python -m locate.horizon.demo_fixes`.
 """
 
 import json
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -41,6 +44,8 @@ TEST_SUMMARY = "results/horizon/horizon-gale.json"
 DEMO_CACHE = "cache/demo/fixes"
 """Where the service's recorder saves GET /fixes/... calls: the path's first segment."""
 OURS = ("checkpoint-fix-horizon*.json", "testlab-fix-horizon-*.json")
+DEMO_OVERLAYS = "cache/demo/horizon/overlays"
+"""The demo fixes' overlays, by the file name in their fix result; only this script writes here."""
 
 
 @dataclass(frozen=True)
@@ -88,6 +93,11 @@ def write_demo_cache(steps: dict[str, FixResult], root: Path) -> list[Path]:
     for pattern in OURS:
         for stale in cache.glob(pattern):
             stale.unlink()
+    overlays = root / DEMO_OVERLAYS
+    shutil.rmtree(overlays, ignore_errors=True)
+    overlays.mkdir(parents=True)
+    for fix in steps.values():
+        shutil.copyfile(root / fix.overlay, overlays / Path(fix.overlay).name)
     written = []
     for step, fix in steps.items():
         served = root / FIXES / f"{fix.photo_id}.json"

@@ -103,6 +103,18 @@ def test_a_demo_step_replays_the_fix_result_the_service_serves(tmp_path):
     assert entry.response == json.loads(served.read_text())
 
 
+def test_a_demo_fix_keeps_its_overlay_in_the_demo_cache_without_results_or_the_service(
+    tmp_path,
+):
+    fix = _fix_file(tmp_path, "NLB_759345596ILT_S1052222NCAM00275M1")
+
+    write_demo_cache({"checkpoint.fix.horizon": fix}, tmp_path)
+    (tmp_path / fix.overlay).unlink()
+
+    cached = tmp_path / "cache/demo/horizon/overlays/p3-03-NLB_759345596ILT_S1052222NCAM00275M1.png"
+    assert cached.read_bytes() == b"\x89PNG"
+
+
 def test_a_demo_fix_without_its_overlay_is_refused(tmp_path):
     fix = _fix_file(tmp_path, "NLB_759345596ILT_S1052222NCAM00275M1", with_overlay=False)
 
@@ -122,4 +134,7 @@ def test_a_rerun_drops_the_demo_fixes_it_no_longer_picks(tmp_path):
     assert sorted(path.name for path in (tmp_path / "cache/demo/fixes").iterdir()) == [
         "testlab-fix-drone-D1.json",
         "testlab-fix-horizon-NEW.json",
+    ]
+    assert [path.name for path in (tmp_path / "cache/demo/horizon/overlays").iterdir()] == [
+        "p3-03-NEW.png"
     ]
