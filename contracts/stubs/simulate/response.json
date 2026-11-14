@@ -6,12 +6,12 @@
     {
       "t_s": 0,
       "true_position": {
-        "x": 8143300,
-        "y": -282400
+        "x": 8142600,
+        "y": -285250
       },
       "estimated_position": {
-        "x": 8143300,
-        "y": -282400
+        "x": 8142600,
+        "y": -285250
       },
       "uncertainty_m": 1,
       "confidence_pct": 95,
@@ -25,12 +25,12 @@
     {
       "t_s": 1400,
       "true_position": {
-        "x": 8143900,
-        "y": -281900
+        "x": 8143200,
+        "y": -284750
       },
       "estimated_position": {
-        "x": 8143904,
-        "y": -281897
+        "x": 8143204,
+        "y": -284747
       },
       "uncertainty_m": 8,
       "confidence_pct": 80,
@@ -49,12 +49,12 @@
     {
       "t_s": 1410,
       "true_position": {
-        "x": 8143900,
-        "y": -281900
+        "x": 8143200,
+        "y": -284750
       },
       "estimated_position": {
-        "x": 8143901,
-        "y": -281899
+        "x": 8143201,
+        "y": -284749
       },
       "uncertainty_m": 3,
       "confidence_pct": 92,

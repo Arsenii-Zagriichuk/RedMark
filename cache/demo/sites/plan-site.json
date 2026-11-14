@@ -1,0 +1,60 @@
+{
+  "step": "plan.site",
+  "request": {
+    "method": "GET",
+    "path": "/sites/gale",
+    "body": null
+  },
+  "status": 200,
+  "contract": "site",
+  "response": {
+    "site": "gale",
+    "name": "Gale crater boxwork (stub)",
+    "projection": "+proj=eqc +lat_ts=0 +lon_0=0 +R=3396190 +units=m +no_defs",
+    "bounds": {
+      "min_x": 8141700,
+      "min_y": -284140,
+      "max_x": 8145700,
+      "max_y": -280140
+    },
+    "habitat": {
+      "x": 8143700,
+      "y": -282140
+    },
+    "base_camp": {
+      "x": 8143300,
+      "y": -282400
+    },
+    "science_targets": [
+      {
+        "id": "ridge-1",
+        "name": "Ridge centre (stub)",
+        "position": {
+          "x": 8144500,
+          "y": -281500
+        }
+      },
+      {
+        "id": "hollow-1",
+        "name": "Hollow (stub)",
+        "position": {
+          "x": 8144100,
+          "y": -281200
+        }
+      }
+    ],
+    "checkpoints": [
+      {
+        "id": "cp-1",
+        "position": {
+          "x": 8143900,
+          "y": -281900
+        }
+      }
+    ],
+    "files": {
+      "base_map": "gale/layers/base"
+    },
+    "replayed_sol": 4600
+  }
+}

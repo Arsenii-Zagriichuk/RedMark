@@ -28,10 +28,10 @@ import truststore
 import yaml
 from PIL import Image, ImageDraw
 
-from contracts.models.data_manifest import DataManifest
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
-from prep.jezero.crop import RESOLUTION, Bounds, crop_is_current, crop_to_site_frame
+from prep.common import USER_AGENT, Bounds, download, manifest_entry, update_manifest
+from prep.jezero.crop import RESOLUTION, crop_is_current, crop_to_site_frame
 from prep.jezero.flights import flight_bounds, load_flights
 from prep.jezero.frames import (
     HELICAM_DATA,
@@ -43,8 +43,6 @@ from prep.jezero.frames import (
 )
 from prep.jezero.pack import (
     label_index,
-    manifest_entry,
-    merge_manifest,
     multipart_part_size,
     s3_multipart_etag,
     site_config,
@@ -72,23 +70,9 @@ NASA_JSON = {
 INVENTORY = "collection_data_inventory.csv"
 INVENTORY_URL = f"{HELICAM_DATA}/{INVENTORY}"
 HELICAM_CREDIT = "Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech"
-USER_AGENT = "redmark-prep/0.1"
 OVERLAY_MAX_PX = 2000
 # The ticket's floor: enough candidates that Person 4 can key 20 good frames.
 MIN_CANDIDATE_FRAMES = 30
-
-
-def _download(url: str, dest: Path) -> Path:
-    """Fetch `url` to `dest` once; later runs reuse the file."""
-    if dest.exists() and dest.stat().st_size > 0:
-        return dest
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=120) as response:
-        tmp = dest.with_suffix(dest.suffix + ".part")
-        tmp.write_bytes(response.read())
-        tmp.replace(dest)
-    return dest
 
 
 def _remote_size_and_etag(url: str) -> tuple[int, str]:
@@ -124,7 +108,7 @@ def _frames_for_flight(
 
     def fetch(product: NavcamProduct) -> NavcamFrame:
         name = f"{product.file_stem}.xml"
-        return read_label(_download(f"{product.url_dir}{name}", folder / name).read_text())
+        return read_label(download(f"{product.url_dir}{name}", folder / name).read_text())
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         frames = list(pool.map(fetch, products))
@@ -175,8 +159,8 @@ def build(root: Path) -> None:
     source, pack = jezero / "source", jezero / "pack"
 
     for name in NASA_JSON:
-        _download(f"{MMGIS}/{name}", source / "nasa" / name)
-    _download(INVENTORY_URL, source / "helicam" / INVENTORY)
+        download(f"{MMGIS}/{name}", source / "nasa" / name)
+    download(INVENTORY_URL, source / "helicam" / INVENTORY)
     inventory = (source / "helicam" / INVENTORY).read_text().splitlines()
     flights = load_flights(source / "nasa" / "m20_heli_flight_path.json")
 
@@ -199,7 +183,7 @@ def build(root: Path) -> None:
         print(f"flight {flight} (sol {sol}): {len(frames)} frames, {len(picked)} picked")
         crop = pack / "crops" / f"flight-{flight:02d}.tif"
         for frame in picked:
-            img = _download(f"{url_dir}{frame.file_stem}.IMG", folder / f"{frame.file_stem}.IMG")
+            img = download(f"{url_dir}{frame.file_stem}.IMG", folder / f"{frame.file_stem}.IMG")
             png = pack / "frames" / f"{frame.file_stem}.png"
             _write_frame_png(folder / f"{frame.file_stem}.xml", png)
             for f in (img, folder / f"{frame.file_stem}.xml"):
@@ -309,12 +293,7 @@ def build(root: Path) -> None:
             credit=HELICAM_CREDIT,
         )
     )
-    manifest_path = REPO_ROOT / "prep" / "data-manifest.yaml"
-    text = manifest_path.read_text()
-    comments = "".join(line + "\n" for line in text.splitlines() if line.startswith("#"))
-    merged = merge_manifest(yaml.safe_load(text) or {}, manifest, replace_prefix="jezero/")
-    DataManifest.model_validate(merged)
-    manifest_path.write_text(comments + yaml.safe_dump(merged, sort_keys=False, allow_unicode=True))
+    update_manifest(manifest, owned=("jezero/",))
     print(f"pack: {len(rows)} frames from {len(crops)} flights in {pack}")
 
 
