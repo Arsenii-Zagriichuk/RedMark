@@ -76,6 +76,7 @@ def build(root: Path) -> None:
         }
         (stage / name / "provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")
 
+    (root / LAYERS).mkdir(parents=True, exist_ok=True)
     for name in inputs:
         publish_stage(stage / name, root / LAYERS / name)
     shutil.rmtree(stage, ignore_errors=True)
