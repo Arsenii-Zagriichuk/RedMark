@@ -3,7 +3,7 @@ overhead views land on the rover's PLACES position.
 
 The tuning pile is seven stops spread over the walk area's traverse (sites 105
 to 119), picked for the first look at whether stage 2 can work at all. No stop
-within TUNING_CLEARANCE_M of one of them is ever scored.
+whose view shares ground with one of theirs is ever scored.
 
 `uv run python -m locate.ground.tune` fetches the pile into
 REDMARK_DATA/gale/ground/tuning, prints each stop's error for every candidate
@@ -30,7 +30,8 @@ TUNING_STOPS = {
     (119, 486),
 }
 TUNING_CLEARANCE_M = 24.0
-"""A mosaic is 24 m across, so stops at least this far apart share no ground in their views."""
+"""A mosaic is a 24 m north-up square, so two stops' views share no ground once they
+are at least this far apart east-west or north-south (not merely this far apart)."""
 CANDIDATE_HIGHPASS_M = (0.5, 1.0, 2.0, 4.0, 8.0)
 OVERLAY = REPO_ROOT / "locate" / "ground" / "overlays" / "p3-07-tuning.png"
 

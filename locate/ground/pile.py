@@ -138,12 +138,17 @@ def fetch_stop(stop: Stop, folder: Path, photo_map: Path | None) -> None:
 
 
 def fetch_pile(stops: list[Stop], folder: Path, photo_map: Path | None) -> None:
-    """Fetch stops a few at a time, then sort the index by sol."""
+    """Fetch stops a few at a time (stops already fetched are kept), then
+    rewrite the index to hold exactly these stops, by sol."""
     with ThreadPoolExecutor(6) as pool:
         list(pool.map(lambda stop: fetch_stop(stop, folder, photo_map), stops))
     index = folder / "index.csv"
+    wanted = {stop.photo_id for stop in stops}
     with index.open() as f:
-        rows = sorted(csv.DictReader(f), key=lambda row: (int(row["sol"]), row["photo_id"]))
+        rows = [row for row in csv.DictReader(f) if row["photo_id"] in wanted]
+    rows.sort(key=lambda row: (int(row["sol"]), row["photo_id"]))
+    if len(rows) != len(wanted):
+        raise RuntimeError(f"index has {len(rows)} of the {len(wanted)} stops fetched")
     with index.open("w", newline="") as f:
         writer = csv.DictWriter(f, INDEX_FIELDS)
         writer.writeheader()
