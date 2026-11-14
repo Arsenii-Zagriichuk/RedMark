@@ -1,6 +1,7 @@
 """The walk simulation through the service's interface: simulate(request) -> response."""
 
 import json
+import math
 
 import pytest
 from jsonschema import Draft202012Validator
@@ -43,7 +44,7 @@ def test_a_kilometre_walked_at_two_kmh_ends_at_the_path_end_after_half_an_hour()
 
 
 def test_the_circle_grows_while_no_fix_is_taken():
-    run = simulate(walk([(0, 0), (2000, 0)]))
+    run = simulate(walk([(0, 0), (2000, 0)], radio_off=True))
 
     circles = [s["uncertainty_m"] for s in run["steps"]]
     assert all(b >= a for a, b in zip(circles, circles[1:], strict=False))
@@ -68,6 +69,11 @@ def test_the_same_seed_replays_the_same_walk_and_another_seed_does_not():
 
     assert first == again
     assert first["steps"][-1]["estimated_position"] != other["steps"][-1]["estimated_position"]
+
+
+def step_at(run: dict, t_s: float) -> dict:
+    """The last step at t_s."""
+    return [s for s in run["steps"] if s["t_s"] == pytest.approx(t_s)][-1]
 
 
 def fix_at(run: dict, t_s: float) -> tuple[dict, dict]:
@@ -117,18 +123,12 @@ def test_fix_error_sizes_come_from_the_test_summary_it_is_given(tmp_path):
 
 
 def test_a_fix_is_requested_once_when_the_circle_passes_ten_metres_on_open_ground():
-    run = simulate(walk([(0, 0), (6000, 0)]))
+    run = simulate(walk([(0, 0), (6000, 0)], radio_off=True))
 
     requested = [s for s in run["steps"] if {"kind": "fix_requested"} in s["events"]]
     assert len(requested) == 1
     at = run["steps"].index(requested[0])
     assert run["steps"][at]["uncertainty_m"] > 10 >= run["steps"][at - 1]["uncertainty_m"]
-
-
-@pytest.mark.parametrize("flag", ["camera_off", "radio_off", "drone_grounded"])
-def test_break_it_scenarios_are_refused_until_they_are_built(flag):
-    with pytest.raises(NotImplementedError, match="P4-06"):
-        simulate(walk([(0, 0), (100, 0)], **{flag: True}))
 
 
 def test_the_stub_request_gives_a_simulated_run_that_matches_the_contract():
@@ -156,3 +156,114 @@ def test_a_test_summary_with_no_error_still_leaves_a_circle(tmp_path):
 
     fix, _ = fix_at(run, 300)
     assert 0 < fix["uncertainty_m"] < 0.1
+
+
+def test_radio_off_is_offline_mode_from_start_to_end():
+    run = simulate(walk([(0, 0), (1000, 0)], radio_off=True))
+
+    assert {s["mode"] for s in run["steps"]} == {"offline"}
+    assert not any("radio" in s["sources"] for s in run["steps"])
+    assert {"kind": "radio_off"} in run["steps"][0]["events"]
+    # 180 ticks of 5.556 m, each drifting 2.5%: sigma^2 = (0.5 / 2.4477)^2 + 180 (0.1389)^2
+    # = 3.514 m^2, so a 95% circle of 2.4477 x 1.8746 = 4.59 m.
+    assert run["steps"][-1]["uncertainty_m"] == pytest.approx(4.59, abs=0.01)
+
+
+def test_radio_ranging_keeps_the_circle_small_while_the_radio_is_up():
+    path = [(0, 0), (6000, 0)]
+
+    ranged = simulate(walk(path))
+    offline = simulate(walk(path, radio_off=True))
+
+    assert "radio" in step_at(ranged, 60)["sources"]
+    labelled = [s for s in ranged["steps"] if {"kind": "radio_ranging_simulated"} in s["events"]]
+    assert [s["t_s"] for s in labelled] == [60]
+    assert "radio" not in step_at(ranged, 50)["sources"]
+    assert max(s["uncertainty_m"] for s in ranged["steps"]) < 5
+    assert offline["steps"][-1]["uncertainty_m"] > 10
+
+
+def test_with_the_camera_off_steps_and_the_sun_drift_twice_as_fast():
+    run = simulate(walk([(0, 0), (1000, 0)], camera_off=True, radio_off=True))
+
+    assert {"kind": "camera_off"} in run["steps"][0]["events"]
+    assert not any("visual_odometry" in s["sources"] for s in run["steps"])
+    assert {"motion_sensor", "step_count", "sun"} <= set(run["steps"][-1]["sources"])
+    # As above, but 5% per step: sigma^2 = 0.0417 + 180 (0.2778)^2 = 13.93 m^2, 9.14 m.
+    assert run["steps"][-1]["uncertainty_m"] == pytest.approx(9.14, abs=0.01)
+
+
+def test_with_the_camera_off_the_buddys_camera_takes_the_fix():
+    run = simulate(walk([(0, 0), (2000, 0)], fixes=[(1805, "horizon")], camera_off=True))
+
+    fix, before = fix_at(run, 1805)
+    assert {"kind": "buddy_camera"} in fix["events"]
+    assert fix["uncertainty_m"] < before["uncertainty_m"]
+
+
+def test_with_the_camera_and_radio_off_no_photo_fix_reaches_the_crew():
+    run = simulate(
+        walk([(0, 0), (2000, 0)], fixes=[(1805, "horizon")], camera_off=True, radio_off=True)
+    )
+
+    at = [s for s in run["steps"] if s["t_s"] == pytest.approx(1805)]
+    assert {"kind": "fix_unavailable", "method": "horizon"} in at[-1]["events"]
+    assert not any(e["kind"] == "fix" for s in run["steps"] for e in s["events"])
+    assert "horizon" not in at[-1]["sources"]
+
+
+def test_with_the_drone_grounded_drone_fixes_are_greyed_out():
+    run = simulate(walk([(0, 0), (2000, 0)], fixes=[(1805, "drone")], drone_grounded=True))
+
+    assert {"kind": "drone_grounded"} in run["steps"][0]["events"]
+    assert {"kind": "fix_unavailable", "method": "drone"} in step_at(run, 1805)["events"]
+    assert not any("drone" in s["sources"] for s in run["steps"])
+
+
+def test_everything_at_once_starts_lost_mode_when_the_circle_passes_ten_metres():
+    run = simulate(
+        walk(
+            [(0, 0), (4000, 0)],
+            fixes=[(600, "horizon"), (900, "drone")],
+            camera_off=True,
+            radio_off=True,
+            drone_grounded=True,
+        )
+    )
+
+    steps = run["steps"]
+    lost = [i for i, s in enumerate(steps) if {"kind": "lost_mode"} in s["events"]]
+    assert len(lost) == 1
+    at = lost[0]
+    assert steps[at]["uncertainty_m"] > 10 >= steps[at - 1]["uncertainty_m"]
+    assert {s["mode"] for s in steps[:at]} == {"offline"}
+    assert {s["mode"] for s in steps[at:]} == {"lost"}
+    assert not any({"kind": "fix_requested"} in s["events"] for s in steps)
+
+
+def test_near_a_hazard_a_circle_over_three_metres_says_stop_and_take_a_fix():
+    def steep_drop_at(x0, y0):
+        return lambda x, y: math.hypot(x - x0, y - y0)
+
+    path = [(0, 0), (1000, 0)]
+    # 1 m off the path at x = 500, where the circle is about 3.3 m: the hazard comes inside
+    # the circle, so the crew is told to stop once as they come up to it.
+    near = simulate(walk(path, radio_off=True), hazard_distance_m=steep_drop_at(500, 1))
+    far = simulate(walk(path, radio_off=True), hazard_distance_m=steep_drop_at(500, 100))
+
+    stops = [s for s in near["steps"] if {"kind": "stop_for_fix"} in s["events"]]
+    assert len(stops) == 1
+    assert stops[0]["uncertainty_m"] > 3
+    assert 490 < stops[0]["true_position"]["x"] < 505
+    assert not any({"kind": "stop_for_fix"} in s["events"] for s in far["steps"])
+
+
+def test_a_fix_that_cannot_reach_the_crew_needs_no_test_summary(tmp_path):
+    write_horizon_summary(tmp_path, 5)  # no drone summary at all
+
+    run = simulate(
+        walk([(0, 0), (500, 0)], fixes=[(100, "horizon"), (200, "drone")], drone_grounded=True),
+        results_root=tmp_path,
+    )
+
+    assert {"kind": "fix_unavailable", "method": "drone"} in step_at(run, 200)["events"]

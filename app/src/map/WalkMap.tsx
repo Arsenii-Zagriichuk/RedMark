@@ -3,7 +3,7 @@
 // 2 km walk limit, and pan, zoom, north-up and 3D tilt. Draping on 3D terrain waits for an
 // elevation layer from Person 2.
 import { FlyToInterpolator, MapView, WebMercatorViewport, type MapViewState } from "@deck.gl/core";
-import { BitmapLayer, PathLayer } from "@deck.gl/layers";
+import { BitmapLayer, PathLayer, ScatterplotLayer } from "@deck.gl/layers";
 import DeckGL from "@deck.gl/react";
 import type { LayerMeta } from "@contracts/layer";
 import type { Point, SiteConfig } from "@contracts/site";
@@ -36,6 +36,16 @@ export interface MapRoute {
   chosen: boolean;
 }
 
+/** The crew during a walk: the estimated position and its uncertainty circle. */
+export interface CrewPosition {
+  position: Point;
+  uncertainty_m: number;
+  level: "sure" | "check" | "over";
+  chip: string;
+  /** Direction of travel from map north; the followed view turns to it. */
+  heading: number;
+}
+
 export interface PointsShown {
   targets: boolean;
   checkpoints: boolean;
@@ -57,6 +67,8 @@ interface Props {
   routes: MapRoute[];
   /** Points the view frames when they change, such as the chosen route. */
   fitTo: Point[] | null;
+  /** During a walk: the view follows the crew until the user pans away. */
+  crew?: CrewPosition | null;
 }
 
 const MAP_VIEW = new MapView({ id: "map", repeat: false });
@@ -69,6 +81,13 @@ const FIT_PADDING = 1.4;
 const ROUTE_COLOUR: [number, number, number] = [111, 155, 255];
 const ALTERNATIVE_COLOUR: [number, number, number, number] = [154, 166, 191, 210];
 const OUTLINE_COLOUR: [number, number, number, number] = [5, 7, 13, 200];
+const FOLLOW_ZOOM = 17.5;
+const FOLLOW_PITCH = 45;
+const LEVEL_COLOURS: Record<CrewPosition["level"], [number, number, number]> = {
+  sure: [61, 220, 151],
+  check: [255, 176, 32],
+  over: [252, 61, 33],
+};
 
 /** The map's size: first from the page, then from deck.gl, so markers and tiles agree. */
 function useSize<T extends HTMLElement>() {
@@ -190,6 +209,25 @@ export function WalkMap(props: Props) {
     // Only a new set of points re-frames the view; resizing keeps the user's view.
   }, [fitTo, origin]);
 
+  // Follow the crew, heading up, until the user drags the map; Recenter follows again.
+  const { crew } = props;
+  const [following, setFollowing] = useState(true);
+  useEffect(() => {
+    if (!crew || !following) return;
+    const [longitude, latitude] = toLngLat(crew.position, origin);
+    setViewState(
+      (current) =>
+        current && {
+          ...current,
+          longitude,
+          latitude,
+          zoom: FOLLOW_ZOOM,
+          pitch: FOLLOW_PITCH,
+          bearing: crew.heading,
+        },
+    );
+  }, [crew, following, origin]);
+
   const viewport = useMemo(
     () =>
       viewState && size.width && size.height
@@ -226,8 +264,24 @@ export function WalkMap(props: Props) {
         ? rasterLayers(colourLayer, site, viewport, origin, props.fileUrl, COLOUR_OPACITY)
         : []),
       ...routeLayers,
+      ...(crew
+        ? [
+            new ScatterplotLayer<CrewPosition>({
+              id: "uncertainty-circle",
+              data: [crew],
+              getPosition: (d) => toLngLat(d.position, origin),
+              getRadius: (d) => d.uncertainty_m,
+              radiusUnits: "meters",
+              getFillColor: (d) => [...LEVEL_COLOURS[d.level], 60],
+              getLineColor: (d) => LEVEL_COLOURS[d.level],
+              stroked: true,
+              lineWidthUnits: "pixels",
+              getLineWidth: 2,
+            }),
+          ]
+        : []),
     ];
-  }, [viewport, baseLayer, colourLayer, site, origin, props.fileUrl, routes]);
+  }, [viewport, baseLayer, colourLayer, site, origin, props.fileUrl, routes, crew]);
 
   const project = (point: Point) => {
     const [x = 0, y = 0] = viewport?.project(toLngLat(point, origin)) ?? [];
@@ -250,8 +304,10 @@ export function WalkMap(props: Props) {
     }).join(" ");
   }, [viewport, origin]);
 
-  const change = (patch: Partial<MapViewState>) =>
+  const change = (patch: Partial<MapViewState>) => {
+    setFollowing(false);
     setViewState((current) => current && { ...current, ...patch, transitionDuration: 300 });
+  };
 
   return (
     <div className="map" ref={containerRef}>
@@ -259,7 +315,10 @@ export function WalkMap(props: Props) {
         <DeckGL
           views={MAP_VIEW}
           viewState={viewState}
-          onViewStateChange={({ viewState: next }) => setViewState(next as MapViewState)}
+          onViewStateChange={({ viewState: next, interactionState }) => {
+            if (interactionState.isDragging || interactionState.isPanning) setFollowing(false);
+            setViewState(next as MapViewState);
+          }}
           onResize={({ width, height }) => setSize({ width, height })}
           controller={{ dragRotate: true, touchRotate: true }}
           layers={layers}
@@ -335,6 +394,16 @@ export function WalkMap(props: Props) {
                 </button>
               );
             })}
+
+          {crew && (
+            <div className="marker" style={{ ...project(crew.position), zIndex: 10 }}>
+              <span className="position-dot" />
+              <span className={`position-chip position-chip--${crew.level}`}>
+                <span className="position-chip__light" />
+                {crew.chip}
+              </span>
+            </div>
+          )}
         </div>
       )}
 
@@ -345,22 +414,30 @@ export function WalkMap(props: Props) {
       )}
 
       <div className="map__controls">
-        <button
-          type="button"
-          aria-label="Layers"
-          className={`control${props.layersOpen ? " control--on" : ""}`}
-          onClick={props.onToggleLayers}
-        >
-          <LayersIcon />
-        </button>
+        {crew && !following && (
+          <button type="button" className="control control--wide" onClick={() => setFollowing(true)}>
+            Recenter
+          </button>
+        )}
+        {!crew && (
+          <button
+            type="button"
+            aria-label="Layers"
+            className={`control${props.layersOpen ? " control--on" : ""}`}
+            onClick={props.onToggleLayers}
+          >
+            <LayersIcon />
+          </button>
+        )}
         <button
           type="button"
           aria-label="North up"
           className="control"
           onClick={() => change({ bearing: 0 })}
-          style={{ transform: `rotate(${-(viewState?.bearing ?? 0)}deg)` }}
         >
-          <NorthIcon />
+          <span style={{ display: "flex", transform: `rotate(${-(viewState?.bearing ?? 0)}deg)` }}>
+            <NorthIcon />
+          </span>
         </button>
         <div className="map__zoom">
           <button

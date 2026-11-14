@@ -14,8 +14,10 @@ from dataclasses import dataclass
 
 import numpy as np
 from fastapi import HTTPException
+from scipy.ndimage import distance_transform_edt
 from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import dijkstra
+from scipy.spatial import cKDTree
 
 from contracts.models.common import Point
 from contracts.models.route_request import Limits, Mode
@@ -90,15 +92,28 @@ def plan_on_grid(
     mode: Mode = Mode.fastest,
     daylight_s: float | None = None,
     targets: Sequence[Point] = (),
+    uncertainty_m: float = 0.0,
 ) -> RouteResponse:
     """The crew's fastest safe route, the science alternative through targets, or the cart's
     route, by mode.
 
+    The hazard margin is the uncertainty circle: no cell closer than uncertainty_m to a hazard
+    is entered, so the route moves away from hazards as the circle grows.
     daylight_s is the time from the walk's start to sunset. The cart cannot cross a ridge,
     and the walk-back rule and daylight limit are crew rules, so they don't apply to it.
     """
     cart = mode == Mode.cart
-    blocked = blocked_cells(grid, habitat, limits)
+    hazards = Hazards(grid, limits.max_slope_deg)
+    for name, point in (("start", start), ("goal", goal)):
+        if hazards.metres_from(point) <= uncertainty_m:
+            raise NoSafeRoute(
+                f"the {name} is within the {uncertainty_m:g} m circle of a hazard: "
+                "stop and take a fix"
+            )
+    blocked = blocked_cells(grid, habitat, limits) | (hazards.cell_metres <= uncertainty_m)
+    # A diagonal step comes closest to a hazard centre at an end or at its middle, the corner
+    # between the two cells; a straight step comes no closer than its ends.
+    corners_blocked = hazards.corner_metres <= uncertainty_m
     if cart:
         blocked |= grid.ridge
     if grid.cell(start) == grid.cell(goal):
@@ -112,8 +127,8 @@ def plan_on_grid(
         mapped_targets.append(target)
     targets = mapped_targets
     walk_s = _walk_seconds_per_cell(grid, limits.planning_speed_kmh)
-    field = _Field(grid, walk_s, blocked, [habitat, start, *targets])
-    rules = _Rules(habitat, limits, daylight_s, cart)
+    rules = _Rules(habitat, limits, daylight_s, cart, uncertainty_m, hazards)
+    field = _Field(grid, walk_s, blocked, corners_blocked, [habitat, start, *targets], rules)
     fastest = _respond(
         grid,
         rules,
@@ -166,6 +181,8 @@ class _Rules:
     limits: Limits
     daylight_s: float | None
     cart: bool
+    uncertainty_m: float
+    hazards: Hazards
 
 
 class _Field:
@@ -175,13 +192,14 @@ class _Field:
     stretch from an exact point to its cell's centre is added at that cell's pace.
     """
 
-    def __init__(self, grid: CostGrid, walk_s: np.ndarray, blocked: np.ndarray, origins):
+    def __init__(self, grid: CostGrid, walk_s, blocked, corners_blocked, origins, rules: _Rules):
         self.grid, self.origins = grid, list(origins)
+        self.rules = rules
         self.pace = walk_s / grid.cell_m  # seconds per metre in each cell
         self.shape = blocked.shape
         self.cells = [grid.cell(p) for p in self.origins]
         seconds, self.previous = dijkstra(
-            _walking_graph(walk_s, blocked),
+            _walking_graph(walk_s, blocked, corners_blocked),
             directed=False,
             indices=[np.ravel_multi_index(c, self.shape) for c in self.cells],
             return_predecessors=True,
@@ -191,14 +209,19 @@ class _Field:
     def _origin(self, p: Point) -> int:
         return next(i for i, o in enumerate(self.origins) if o == p)
 
+    def _keeps_hazard_margin(self, a: Point, b: Point) -> bool:
+        return self.rules.hazards.metres_from_stretch(a, b) > self.rules.uncertainty_m
+
     def _to_centre_s(self, p: Point, cell: tuple[int, int]) -> float:
-        return _metres(p, self.grid.centre(*cell)) * self.pace[cell]
+        centre = self.grid.centre(*cell)
+        if not self._keeps_hazard_margin(p, centre):
+            return math.inf
+        return _metres(p, centre) * self.pace[cell]
 
     def time(self, origin: Point, p: Point) -> float:
         """Seconds from an origin to any exact point."""
         i, cell = self._origin(origin), self.grid.cell(p)
-        if cell == self.cells[i]:
-            # The direct stretch stays inside this one cell.
+        if cell == self.cells[i] and self._keeps_hazard_margin(origin, p):
             return _metres(origin, p) * self.pace[cell]
         return (
             self._to_centre_s(origin, self.cells[i])
@@ -209,7 +232,7 @@ class _Field:
     def walk(self, origin: Point, p: Point, walked_s: float) -> list[tuple[Point, float]]:
         """The points from an origin to p, each with the time walked to it."""
         i, cell = self._origin(origin), self.grid.cell(p)
-        if cell == self.cells[i]:
+        if cell == self.cells[i] and self._keeps_hazard_margin(origin, p):
             return [(origin, walked_s), (p, walked_s + self.time(origin, p))]
         set_off_s = walked_s + self._to_centre_s(origin, self.cells[i])
         cells = _trace(self.previous[i], cell, self.shape)
@@ -241,9 +264,10 @@ def _respond(
     max_walk_s = limits.max_walk_h * 3600
     if total_s > max_walk_s:
         raise NoSafeRoute(f"the fastest safe path takes {total_s / 3600:.1f} h")
-    if not all(math.isfinite(stop.home_s) for stop in stops):
+    home_reachable = all(math.isfinite(stop.home_s) for stop in stops)
+    if not home_reachable and not rules.cart:
         raise NoSafeRoute("part of the route has no safe path back to the habitat")
-    walk_back_margin_s = _spare_s(max_walk_s, stops)
+    walk_back_margin_s = _spare_s(max_walk_s, stops) if home_reachable else 0.0
     checks = []
     if not rules.cart:
         if walk_back_margin_s < 0:
@@ -260,6 +284,18 @@ def _respond(
     if furthest_m > limits.max_distance_from_habitat_m:
         raise NoSafeRoute(f"the route reaches {furthest_m:.0f} m from the habitat")
     steepest = max(grid.slope_deg[grid.cell(stop.point)] for stop in stops)
+    # With no hazard on the map, the nearest is no closer than across the whole walk area.
+    nearest_hazard_m = min(
+        rules.hazards.metres_from_stretch(a.point, b.point)
+        for a, b in zip(stops, stops[1:], strict=False)
+    )
+    if nearest_hazard_m <= rules.uncertainty_m:
+        raise NoSafeRoute(
+            f"the route comes within {nearest_hazard_m:.1f} m of a hazard, inside the "
+            f"{rules.uncertainty_m:g} m circle"
+        )
+    walk_area_m = math.hypot(*rules.hazards.cell_metres.shape) * grid.cell_m
+    nearest_hazard_m = min(nearest_hazard_m, walk_area_m)
     return RouteResponse(
         site=grid.site,
         mode=mode,
@@ -279,6 +315,7 @@ def _respond(
                 "km/h",
             ),
             _check("walk_time", total_s / 3600, limits.max_walk_h, "h"),
+            _check("hazard_margin", nearest_hazard_m, rules.uncertainty_m, "m", at_least=True),
             *checks,
         ],
         checkpoints=[],
@@ -334,6 +371,60 @@ def _walk_seconds_per_cell(grid: CostGrid, planning_speed_kmh: float) -> np.ndar
     return np.where(grid.ridge, seconds * RIDGE_TIME_FACTOR, seconds)
 
 
+class Hazards:
+    """The hazards on a grid: cells steeper than the slope limit or with no slope data.
+
+    Each hazard sits at its cell's centre. Distances to the cell centres and to the corners
+    between cells come from one distance transform on a half-cell lattice; distances from
+    exact points and stretches of route come from the hazard centres themselves.
+    """
+
+    def __init__(self, grid: CostGrid, max_slope_deg: float):
+        hazard = ~(grid.slope_deg <= max_slope_deg)
+        rows, cols = hazard.shape
+        self.found = bool(hazard.any())
+        if not self.found:
+            self.cell_metres = np.full(hazard.shape, np.inf)
+            self.corner_metres = np.full((rows - 1, cols - 1), np.inf)
+            return
+        lattice = np.zeros((2 * rows - 1, 2 * cols - 1), dtype=bool)
+        lattice[::2, ::2] = hazard
+        metres = distance_transform_edt(~lattice) * grid.cell_m / 2
+        self.cell_metres, self.corner_metres = metres[::2, ::2], metres[1::2, 1::2]
+        hazard_rows, hazard_cols = np.nonzero(hazard)
+        self._centres = cKDTree(
+            np.column_stack(
+                [
+                    grid.min_x + (hazard_cols + 0.5) * grid.cell_m,
+                    grid.max_y - (hazard_rows + 0.5) * grid.cell_m,
+                ]
+            )
+        )
+
+    def metres_from(self, p: Point) -> float:
+        """Ground metres from an exact point to the nearest hazard; infinite with none."""
+        if not self.found:
+            return math.inf
+        return float(self._centres.query([p.x, p.y])[0])
+
+    def metres_from_stretch(self, a: Point, b: Point) -> float:
+        """Ground metres from the straight stretch a to b to the nearest hazard."""
+        if not self.found:
+            return math.inf
+        if a == b:
+            return self.metres_from(a)
+        middle = np.array([(a.x + b.x) / 2, (a.y + b.y) / 2])
+        # Any hazard nearer the stretch than the one nearest its middle lies within this
+        # radius of the middle.
+        reach = self._centres.query(middle)[0] + _metres(a, b) / 2
+        near = self._centres.data[self._centres.query_ball_point(middle, reach)]
+        start, step = np.array([a.x, a.y]), np.array([b.x - a.x, b.y - a.y])
+        length_sq = float(step @ step)
+        t = (near - start) @ step / length_sq
+        closest = start + np.clip(t, 0.0, 1.0)[:, None] * step
+        return float(np.min(np.hypot(*(near - closest).T)))
+
+
 def blocked_cells(grid: CostGrid, habitat: Point, limits: Limits) -> np.ndarray:
     """Cells no route may enter: too steep, no slope data, or too far from the habitat."""
     blocked = ~(grid.slope_deg <= limits.max_slope_deg)
@@ -344,12 +435,13 @@ def blocked_cells(grid: CostGrid, habitat: Point, limits: Limits) -> np.ndarray:
 _STEPS = ((0, 1), (1, 0), (1, 1), (1, -1))
 
 
-def _walking_graph(walk_s: np.ndarray, blocked: np.ndarray):
+def _walking_graph(walk_s: np.ndarray, blocked: np.ndarray, corners_blocked: np.ndarray):
     """Every step between two open cells, weighted by its walking time.
 
     A step costs the mean of its two cells' seconds times its length in cells. A diagonal
     step between two blocked cells that touch at a corner is left out, so no path slips
-    through a diagonal wall, while both open cells stay walkable.
+    through a diagonal wall, while both open cells stay walkable. So is a diagonal step
+    across a blocked corner (one too close to a hazard).
     """
     rows, cols = blocked.shape
     index = np.arange(blocked.size).reshape(rows, cols)
@@ -360,6 +452,9 @@ def _walking_graph(walk_s: np.ndarray, blocked: np.ndarray):
         open_step = ~blocked[here] & ~blocked[there]
         if dr and dc:
             open_step &= ~(blocked[here[0], there[1]] & blocked[there[0], here[1]])
+            # Both diagonals of a 2 x 2 block cross the same corner, (r + 0.5, c + 0.5) for a
+            # step down-right from (r, c) and (r + 0.5, c - 0.5) for one down-left.
+            open_step &= ~corners_blocked
         heads.append(index[here][open_step])
         tails.append(index[there][open_step])
         seconds.append(((walk_s[here] + walk_s[there]) / 2 * np.hypot(dr, dc))[open_step])

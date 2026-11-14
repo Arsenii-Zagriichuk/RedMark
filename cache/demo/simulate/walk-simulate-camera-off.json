@@ -1,0 +1,5633 @@
+{
+  "step": "walk.simulate.camera-off",
+  "request": {
+    "method": "POST",
+    "path": "/simulate",
+    "body": {
+      "site": "gale",
+      "path": [
+        {
+          "x": 8142600,
+          "y": -285250
+        },
+        {
+          "x": 8143200,
+          "y": -284750
+        },
+        {
+          "x": 8143800,
+          "y": -284350
+        }
+      ],
+      "fix_schedule": [
+        {
+          "time_s": 900,
+          "method": "horizon"
+        },
+        {
+          "time_s": 1800,
+          "method": "drone"
+        },
+        {
+          "time_s": 2400,
+          "method": "ground"
+        }
+      ],
+      "break_it": {
+        "camera_off": true,
+        "radio_off": false,
+        "drone_grounded": false
+      },
+      "seed": 1
+    }
+  },
+  "status": 200,
+  "contract": "simulate_response",
+  "response": {
+    "site": "gale",
+    "simulated": true,
+    "seed": 1,
+    "steps": [
+      {
+        "t_s": 0.0,
+        "true_position": {
+          "x": 8142600.0,
+          "y": -285250.0
+        },
+        "estimated_position": {
+          "x": 8142600.0,
+          "y": -285250.0
+        },
+        "uncertainty_m": 0.5,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [
+          {
+            "kind": "camera_off"
+          }
+        ],
+        "mode": "normal"
+      },
+      {
+        "t_s": 10.0,
+        "true_position": {
+          "x": 8142604.2678959975,
+          "y": -285246.4434200019
+        },
+        "estimated_position": {
+          "x": 8142604.359684074,
+          "y": -285246.8054081218
+        },
+        "uncertainty_m": 0.8439812576134474,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 20.0,
+        "true_position": {
+          "x": 8142608.535791996,
+          "y": -285242.8868400037
+        },
+        "estimated_position": {
+          "x": 8142608.879067813,
+          "y": -285243.12483518687
+        },
+        "uncertainty_m": 1.0837936733555666,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 30.0,
+        "true_position": {
+          "x": 8142612.803687993,
+          "y": -285239.3302600056
+        },
+        "estimated_position": {
+          "x": 8142612.997810134,
+          "y": -285239.40683349315
+        },
+        "uncertainty_m": 1.2794190437883628,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 40.0,
+        "true_position": {
+          "x": 8142617.071583991,
+          "y": -285235.77368000743
+        },
+        "estimated_position": {
+          "x": 8142617.366976242,
+          "y": -285235.76855002367
+        },
+        "uncertainty_m": 1.4488676450287323,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 50.0,
+        "true_position": {
+          "x": 8142621.339479988,
+          "y": -285232.2171000093
+        },
+        "estimated_position": {
+          "x": 8142621.642767306,
+          "y": -285232.060105307
+        },
+        "uncertainty_m": 1.6004754968489463,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 60.0,
+        "true_position": {
+          "x": 8142625.607375987,
+          "y": -285228.6605200112
+        },
+        "estimated_position": {
+          "x": 8142625.6564382175,
+          "y": -285228.49173912854
+        },
+        "uncertainty_m": 1.7216243625344145,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [
+          {
+            "kind": "radio_ranging_simulated"
+          }
+        ],
+        "mode": "normal"
+      },
+      {
+        "t_s": 70.0,
+        "true_position": {
+          "x": 8142629.875271984,
+          "y": -285225.10394001304
+        },
+        "estimated_position": {
+          "x": 8142629.935368134,
+          "y": -285225.01639711676
+        },
+        "uncertainty_m": 1.8510253398791723,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 80.0,
+        "true_position": {
+          "x": 8142634.143167982,
+          "y": -285221.5473600149
+        },
+        "estimated_position": {
+          "x": 8142633.986067336,
+          "y": -285221.5312594077
+        },
+        "uncertainty_m": 1.9719531363796607,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 90.0,
+        "true_position": {
+          "x": 8142638.41106398,
+          "y": -285217.99078001676
+        },
+        "estimated_position": {
+          "x": 8142638.256225051,
+          "y": -285218.0512357721
+        },
+        "uncertainty_m": 2.0858819562190853,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 100.0,
+        "true_position": {
+          "x": 8142642.678959978,
+          "y": -285214.43420001864
+        },
+        "estimated_position": {
+          "x": 8142642.88358322,
+          "y": -285214.21501013084
+        },
+        "uncertainty_m": 2.1939024359535986,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 110.0,
+        "true_position": {
+          "x": 8142646.946855975,
+          "y": -285210.87762002053
+        },
+        "estimated_position": {
+          "x": 8142646.398378529,
+          "y": -285211.1831560344
+        },
+        "uncertainty_m": 2.296848332321033,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 120.0,
+        "true_position": {
+          "x": 8142651.214751973,
+          "y": -285207.32104002236
+        },
+        "estimated_position": {
+          "x": 8142650.679163007,
+          "y": -285207.6881635673
+        },
+        "uncertainty_m": 2.3507720796858074,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 130.0,
+        "true_position": {
+          "x": 8142655.482647971,
+          "y": -285203.76446002425
+        },
+        "estimated_position": {
+          "x": 8142655.535347548,
+          "y": -285204.4404782255
+        },
+        "uncertainty_m": 2.447127649680971,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 140.0,
+        "true_position": {
+          "x": 8142659.750543969,
+          "y": -285200.2078800261
+        },
+        "estimated_position": {
+          "x": 8142659.698353266,
+          "y": -285200.3164616697
+        },
+        "uncertainty_m": 2.5398303283951646,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 150.0,
+        "true_position": {
+          "x": 8142664.018439966,
+          "y": -285196.65130002797
+        },
+        "estimated_position": {
+          "x": 8142664.145888985,
+          "y": -285196.5756974015
+        },
+        "uncertainty_m": 2.6292665251432132,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 160.0,
+        "true_position": {
+          "x": 8142668.286335964,
+          "y": -285193.0947200298
+        },
+        "estimated_position": {
+          "x": 8142668.271005435,
+          "y": -285193.4769160619
+        },
+        "uncertainty_m": 2.715758977420758,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 170.0,
+        "true_position": {
+          "x": 8142672.554231962,
+          "y": -285189.5381400317
+        },
+        "estimated_position": {
+          "x": 8142672.585419418,
+          "y": -285189.8900543727
+        },
+        "uncertainty_m": 2.7995805376242022,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 180.0,
+        "true_position": {
+          "x": 8142676.82212796,
+          "y": -285185.9815600336
+        },
+        "estimated_position": {
+          "x": 8142676.509734236,
+          "y": -285186.74282849825
+        },
+        "uncertainty_m": 2.804315660277867,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 190.0,
+        "true_position": {
+          "x": 8142681.090023957,
+          "y": -285182.4249800354
+        },
+        "estimated_position": {
+          "x": 8142680.7503330195,
+          "y": -285183.1597254369
+        },
+        "uncertainty_m": 2.8855659212158833,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 200.0,
+        "true_position": {
+          "x": 8142685.357919956,
+          "y": -285178.8684000373
+        },
+        "estimated_position": {
+          "x": 8142685.028114084,
+          "y": -285179.7437820105
+        },
+        "uncertainty_m": 2.964590199148146,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 210.0,
+        "true_position": {
+          "x": 8142689.625815953,
+          "y": -285175.3118200391
+        },
+        "estimated_position": {
+          "x": 8142689.460940101,
+          "y": -285175.93965563615
+        },
+        "uncertainty_m": 3.041562002012785,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 220.0,
+        "true_position": {
+          "x": 8142693.893711951,
+          "y": -285171.755240041
+        },
+        "estimated_position": {
+          "x": 8142693.817960627,
+          "y": -285172.6103618123
+        },
+        "uncertainty_m": 3.1166334040581027,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 230.0,
+        "true_position": {
+          "x": 8142698.161607948,
+          "y": -285168.1986600429
+        },
+        "estimated_position": {
+          "x": 8142698.289093371,
+          "y": -285169.1930707082
+        },
+        "uncertainty_m": 3.189938579109882,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 240.0,
+        "true_position": {
+          "x": 8142702.429503947,
+          "y": -285164.6420800447
+        },
+        "estimated_position": {
+          "x": 8142703.079751736,
+          "y": -285165.8551784769
+        },
+        "uncertainty_m": 3.1516010133679067,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 250.0,
+        "true_position": {
+          "x": 8142706.697399944,
+          "y": -285161.0855000466
+        },
+        "estimated_position": {
+          "x": 8142707.0007730415,
+          "y": -285162.38579277653
+        },
+        "uncertainty_m": 3.2241112435312145,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 260.0,
+        "true_position": {
+          "x": 8142710.965295942,
+          "y": -285157.52892004844
+        },
+        "estimated_position": {
+          "x": 8142711.28369745,
+          "y": -285158.7534374064
+        },
+        "uncertainty_m": 3.295026202303583,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 270.0,
+        "true_position": {
+          "x": 8142715.23319194,
+          "y": -285153.9723400503
+        },
+        "estimated_position": {
+          "x": 8142715.278763413,
+          "y": -285155.50446103245
+        },
+        "uncertainty_m": 3.3644467653791086,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 280.0,
+        "true_position": {
+          "x": 8142719.5010879375,
+          "y": -285150.4157600522
+        },
+        "estimated_position": {
+          "x": 8142719.602099559,
+          "y": -285152.0775337057
+        },
+        "uncertainty_m": 3.4324636050907693,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 290.0,
+        "true_position": {
+          "x": 8142723.768983935,
+          "y": -285146.85918005405
+        },
+        "estimated_position": {
+          "x": 8142723.9354137825,
+          "y": -285148.3099760624
+        },
+        "uncertainty_m": 3.499158579355256,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 300.0,
+        "true_position": {
+          "x": 8142728.0368799325,
+          "y": -285143.30260005593
+        },
+        "estimated_position": {
+          "x": 8142728.246929458,
+          "y": -285144.691138965
+        },
+        "uncertainty_m": 3.422399110059895,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 310.0,
+        "true_position": {
+          "x": 8142732.304775931,
+          "y": -285139.74602005776
+        },
+        "estimated_position": {
+          "x": 8142732.289599184,
+          "y": -285140.9256023482
+        },
+        "uncertainty_m": 3.4892864645571207,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 320.0,
+        "true_position": {
+          "x": 8142736.572671928,
+          "y": -285136.18944005965
+        },
+        "estimated_position": {
+          "x": 8142736.627896992,
+          "y": -285137.12016594154
+        },
+        "uncertainty_m": 3.554915525711449,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 330.0,
+        "true_position": {
+          "x": 8142740.840567926,
+          "y": -285132.63286006154
+        },
+        "estimated_position": {
+          "x": 8142740.799899736,
+          "y": -285133.97520213056
+        },
+        "uncertainty_m": 3.619354743341289,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 340.0,
+        "true_position": {
+          "x": 8142745.108463924,
+          "y": -285129.07628006337
+        },
+        "estimated_position": {
+          "x": 8142745.037237189,
+          "y": -285130.542463286
+        },
+        "uncertainty_m": 3.6826665775426726,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 350.0,
+        "true_position": {
+          "x": 8142749.376359922,
+          "y": -285125.51970006526
+        },
+        "estimated_position": {
+          "x": 8142749.520500914,
+          "y": -285126.9320963856
+        },
+        "uncertainty_m": 3.744908207760591,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 360.0,
+        "true_position": {
+          "x": 8142753.644255919,
+          "y": -285121.9631200671
+        },
+        "estimated_position": {
+          "x": 8142753.752311749,
+          "y": -285123.2539456441
+        },
+        "uncertainty_m": 3.6344352071611685,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 370.0,
+        "true_position": {
+          "x": 8142757.912151917,
+          "y": -285118.406540069
+        },
+        "estimated_position": {
+          "x": 8142757.842362368,
+          "y": -285119.69765697833
+        },
+        "uncertainty_m": 3.6974888286856835,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 380.0,
+        "true_position": {
+          "x": 8142762.180047915,
+          "y": -285114.84996007086
+        },
+        "estimated_position": {
+          "x": 8142762.234028798,
+          "y": -285116.0109646647
+        },
+        "uncertainty_m": 3.7594850713173735,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 390.0,
+        "true_position": {
+          "x": 8142766.447943913,
+          "y": -285111.2933800727
+        },
+        "estimated_position": {
+          "x": 8142766.745325405,
+          "y": -285112.38313865894
+        },
+        "uncertainty_m": 3.8204754108174788,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 400.0,
+        "true_position": {
+          "x": 8142770.71583991,
+          "y": -285107.7368000746
+        },
+        "estimated_position": {
+          "x": 8142770.986880197,
+          "y": -285108.89846090105
+        },
+        "uncertainty_m": 3.880507277130627,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 410.0,
+        "true_position": {
+          "x": 8142774.983735909,
+          "y": -285104.1802200764
+        },
+        "estimated_position": {
+          "x": 8142775.548038085,
+          "y": -285105.9671182015
+        },
+        "uncertainty_m": 3.9396244860476908,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 420.0,
+        "true_position": {
+          "x": 8142779.251631906,
+          "y": -285100.6236400783
+        },
+        "estimated_position": {
+          "x": 8142779.039587257,
+          "y": -285102.0695247328
+        },
+        "uncertainty_m": 3.8002530714369263,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 430.0,
+        "true_position": {
+          "x": 8142783.519527904,
+          "y": -285097.0670600801
+        },
+        "estimated_position": {
+          "x": 8142783.126571863,
+          "y": -285098.2733767357
+        },
+        "uncertainty_m": 3.8605994055546047,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 440.0,
+        "true_position": {
+          "x": 8142787.787423901,
+          "y": -285093.510480082
+        },
+        "estimated_position": {
+          "x": 8142787.359581171,
+          "y": -285094.53092083737
+        },
+        "uncertainty_m": 3.9200168537101145,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 450.0,
+        "true_position": {
+          "x": 8142792.0553199,
+          "y": -285089.9539000839
+        },
+        "estimated_position": {
+          "x": 8142791.966044837,
+          "y": -285090.86797151074
+        },
+        "uncertainty_m": 3.9785470333495017,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 460.0,
+        "true_position": {
+          "x": 8142796.323215897,
+          "y": -285086.3973200857
+        },
+        "estimated_position": {
+          "x": 8142795.990684961,
+          "y": -285087.73203557695
+        },
+        "uncertainty_m": 4.036228544046645,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 470.0,
+        "true_position": {
+          "x": 8142800.591111895,
+          "y": -285082.8407400876
+        },
+        "estimated_position": {
+          "x": 8142800.745632102,
+          "y": -285084.2063700769
+        },
+        "uncertainty_m": 4.093097265272312,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 480.0,
+        "true_position": {
+          "x": 8142804.859007892,
+          "y": -285079.28416008945
+        },
+        "estimated_position": {
+          "x": 8142804.72738831,
+          "y": -285080.0338476311
+        },
+        "uncertainty_m": 3.929507855095791,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 490.0,
+        "true_position": {
+          "x": 8142809.126903891,
+          "y": -285075.72758009133
+        },
+        "estimated_position": {
+          "x": 8142809.004708804,
+          "y": -285076.47344830417
+        },
+        "uncertainty_m": 3.9878987382407667,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 500.0,
+        "true_position": {
+          "x": 8142813.394799888,
+          "y": -285072.1710000932
+        },
+        "estimated_position": {
+          "x": 8142813.074110434,
+          "y": -285072.78643272305
+        },
+        "uncertainty_m": 4.04544691099328,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 510.0,
+        "true_position": {
+          "x": 8142817.662695886,
+          "y": -285068.61442009505
+        },
+        "estimated_position": {
+          "x": 8142817.054821231,
+          "y": -285069.04488343606
+        },
+        "uncertainty_m": 4.102187839783529,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 520.0,
+        "true_position": {
+          "x": 8142821.930591884,
+          "y": -285065.05784009694
+        },
+        "estimated_position": {
+          "x": 8142821.746033206,
+          "y": -285065.9118273374
+        },
+        "uncertainty_m": 4.158154570969029,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 530.0,
+        "true_position": {
+          "x": 8142826.198487882,
+          "y": -285061.50126009877
+        },
+        "estimated_position": {
+          "x": 8142825.328865528,
+          "y": -285062.18389212945
+        },
+        "uncertainty_m": 4.213377955901109,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 540.0,
+        "true_position": {
+          "x": 8142830.466383879,
+          "y": -285057.94468010066
+        },
+        "estimated_position": {
+          "x": 8142829.644053989,
+          "y": -285058.4819080461
+        },
+        "uncertainty_m": 4.029886873714857,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 550.0,
+        "true_position": {
+          "x": 8142834.734279877,
+          "y": -285054.38810010254
+        },
+        "estimated_position": {
+          "x": 8142833.678416211,
+          "y": -285055.06589068245
+        },
+        "uncertainty_m": 4.086843840684653,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 560.0,
+        "true_position": {
+          "x": 8142839.002175875,
+          "y": -285050.8315201044
+        },
+        "estimated_position": {
+          "x": 8142837.849612913,
+          "y": -285051.36153232696
+        },
+        "uncertainty_m": 4.143017854335757,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 570.0,
+        "true_position": {
+          "x": 8142843.2700718725,
+          "y": -285047.27494010626
+        },
+        "estimated_position": {
+          "x": 8142842.004924921,
+          "y": -285047.72776265105
+        },
+        "uncertainty_m": 4.19844034190646,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 580.0,
+        "true_position": {
+          "x": 8142847.53796787,
+          "y": -285043.7183601081
+        },
+        "estimated_position": {
+          "x": 8142846.223783903,
+          "y": -285044.405813515
+        },
+        "uncertainty_m": 4.253140682807285,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 590.0,
+        "true_position": {
+          "x": 8142851.805863868,
+          "y": -285040.16178011
+        },
+        "estimated_position": {
+          "x": 8142850.402839274,
+          "y": -285041.1132334239
+        },
+        "uncertainty_m": 4.307146390703848,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 600.0,
+        "true_position": {
+          "x": 8142856.073759866,
+          "y": -285036.60520011187
+        },
+        "estimated_position": {
+          "x": 8142854.214856495,
+          "y": -285036.9059345728
+        },
+        "uncertainty_m": 4.107564147653806,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 610.0,
+        "true_position": {
+          "x": 8142860.341655863,
+          "y": -285033.0486201137
+        },
+        "estimated_position": {
+          "x": 8142858.467979098,
+          "y": -285033.3643273595
+        },
+        "uncertainty_m": 4.163458609172633,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 620.0,
+        "true_position": {
+          "x": 8142864.609551861,
+          "y": -285029.4920401156
+        },
+        "estimated_position": {
+          "x": 8142862.877968545,
+          "y": -285029.9246520843
+        },
+        "uncertainty_m": 4.218612562620143,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 630.0,
+        "true_position": {
+          "x": 8142868.877447859,
+          "y": -285025.9354601174
+        },
+        "estimated_position": {
+          "x": 8142867.082382497,
+          "y": -285026.2499752152
+        },
+        "uncertainty_m": 4.273054682156461,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 640.0,
+        "true_position": {
+          "x": 8142873.145343857,
+          "y": -285022.3788801193
+        },
+        "estimated_position": {
+          "x": 8142871.42872734,
+          "y": -285023.01542208565
+        },
+        "uncertainty_m": 4.326811837820317,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 650.0,
+        "true_position": {
+          "x": 8142877.413239854,
+          "y": -285018.8223001212
+        },
+        "estimated_position": {
+          "x": 8142875.928107392,
+          "y": -285019.622851794
+        },
+        "uncertainty_m": 4.379909250555863,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 660.0,
+        "true_position": {
+          "x": 8142881.681135853,
+          "y": -285015.265720123
+        },
+        "estimated_position": {
+          "x": 8142879.8824449,
+          "y": -285015.2511383717
+        },
+        "uncertainty_m": 4.167486298916959,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 670.0,
+        "true_position": {
+          "x": 8142885.94903185,
+          "y": -285011.7091401249
+        },
+        "estimated_position": {
+          "x": 8142883.823803146,
+          "y": -285011.6500928479
+        },
+        "uncertainty_m": 4.222587644426501,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 680.0,
+        "true_position": {
+          "x": 8142890.216927848,
+          "y": -285008.15256012673
+        },
+        "estimated_position": {
+          "x": 8142887.497859044,
+          "y": -285008.0939481089
+        },
+        "uncertainty_m": 4.276979165025956,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 690.0,
+        "true_position": {
+          "x": 8142894.484823845,
+          "y": -285004.5959801286
+        },
+        "estimated_position": {
+          "x": 8142892.015634602,
+          "y": -285004.6031079225
+        },
+        "uncertainty_m": 4.3306876060585235,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 700.0,
+        "true_position": {
+          "x": 8142898.752719844,
+          "y": -285001.03940013045
+        },
+        "estimated_position": {
+          "x": 8142896.108709788,
+          "y": -285000.9822192954
+        },
+        "uncertainty_m": 4.383738074346104,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 710.0,
+        "true_position": {
+          "x": 8142903.020615841,
+          "y": -284997.48282013234
+        },
+        "estimated_position": {
+          "x": 8142900.571092383,
+          "y": -284997.241289972
+        },
+        "uncertainty_m": 4.436154175372454,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 720.0,
+        "true_position": {
+          "x": 8142907.288511839,
+          "y": -284993.9262401342
+        },
+        "estimated_position": {
+          "x": 8142905.261203272,
+          "y": -284993.73678573355
+        },
+        "uncertainty_m": 4.213590608792793,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 730.0,
+        "true_position": {
+          "x": 8142911.556407836,
+          "y": -284990.36966013606
+        },
+        "estimated_position": {
+          "x": 8142909.508960784,
+          "y": -284990.1500009066
+        },
+        "uncertainty_m": 4.268096786825435,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 740.0,
+        "true_position": {
+          "x": 8142915.824303835,
+          "y": -284986.81308013794
+        },
+        "estimated_position": {
+          "x": 8142913.768515724,
+          "y": -284986.5450970366
+        },
+        "uncertainty_m": 4.321915610572744,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 750.0,
+        "true_position": {
+          "x": 8142920.092199832,
+          "y": -284983.2565001398
+        },
+        "estimated_position": {
+          "x": 8142917.572286705,
+          "y": -284982.75806455064
+        },
+        "uncertainty_m": 4.375072446041911,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 760.0,
+        "true_position": {
+          "x": 8142924.36009583,
+          "y": -284979.69992014166
+        },
+        "estimated_position": {
+          "x": 8142921.680532905,
+          "y": -284979.5273619682
+        },
+        "uncertainty_m": 4.427591136421466,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 770.0,
+        "true_position": {
+          "x": 8142928.627991828,
+          "y": -284976.14334014355
+        },
+        "estimated_position": {
+          "x": 8142926.125582004,
+          "y": -284975.6048580791
+        },
+        "uncertainty_m": 4.479494127077376,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 780.0,
+        "true_position": {
+          "x": 8142932.895887826,
+          "y": -284972.5867601454
+        },
+        "estimated_position": {
+          "x": 8142930.253734534,
+          "y": -284970.3432499101
+        },
+        "uncertainty_m": 4.248987603151954,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 790.0,
+        "true_position": {
+          "x": 8142937.163783823,
+          "y": -284969.03018014727
+        },
+        "estimated_position": {
+          "x": 8142934.766146814,
+          "y": -284967.10314065375
+        },
+        "uncertainty_m": 4.303045434914877,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 800.0,
+        "true_position": {
+          "x": 8142941.431679821,
+          "y": -284965.4736001491
+        },
+        "estimated_position": {
+          "x": 8142938.817476724,
+          "y": -284963.5223997532
+        },
+        "uncertainty_m": 4.356432528818107,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 810.0,
+        "true_position": {
+          "x": 8142945.699575819,
+          "y": -284961.917020151
+        },
+        "estimated_position": {
+          "x": 8142942.6535029635,
+          "y": -284959.9189779754
+        },
+        "uncertainty_m": 4.409173249187121,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 820.0,
+        "true_position": {
+          "x": 8142949.967471817,
+          "y": -284958.3604401529
+        },
+        "estimated_position": {
+          "x": 8142946.793879084,
+          "y": -284956.021767255
+        },
+        "uncertainty_m": 4.461290520079374,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 830.0,
+        "true_position": {
+          "x": 8142954.235367814,
+          "y": -284954.8038601547
+        },
+        "estimated_position": {
+          "x": 8142951.329040267,
+          "y": -284953.2183221005
+        },
+        "uncertainty_m": 4.512805941734352,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 840.0,
+        "true_position": {
+          "x": 8142958.5032638125,
+          "y": -284951.2472801566
+        },
+        "estimated_position": {
+          "x": 8142956.639190276,
+          "y": -284950.14713765436
+        },
+        "uncertainty_m": 4.276117458358802,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 850.0,
+        "true_position": {
+          "x": 8142962.77115981,
+          "y": -284947.6907001584
+        },
+        "estimated_position": {
+          "x": 8142961.059421121,
+          "y": -284946.8864256364
+        },
+        "uncertainty_m": 4.3298365882425305,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 860.0,
+        "true_position": {
+          "x": 8142967.0390558075,
+          "y": -284944.1341201603
+        },
+        "estimated_position": {
+          "x": 8142965.835214407,
+          "y": -284942.76871414745
+        },
+        "uncertainty_m": 4.382897357238302,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 870.0,
+        "true_position": {
+          "x": 8142971.306951805,
+          "y": -284940.5775401622
+        },
+        "estimated_position": {
+          "x": 8142969.80734067,
+          "y": -284939.10857439326
+        },
+        "uncertainty_m": 4.43532339376615,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 880.0,
+        "true_position": {
+          "x": 8142975.574847803,
+          "y": -284937.020960164
+        },
+        "estimated_position": {
+          "x": 8142973.888208216,
+          "y": -284935.5585415998
+        },
+        "uncertainty_m": 4.487136945814341,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 890.0,
+        "true_position": {
+          "x": 8142979.842743801,
+          "y": -284933.4643801659
+        },
+        "estimated_position": {
+          "x": 8142977.804538386,
+          "y": -284931.48331006983
+        },
+        "uncertainty_m": 4.538358991275902,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 900.0,
+        "true_position": {
+          "x": 8142984.110639798,
+          "y": -284929.90780016774
+        },
+        "estimated_position": {
+          "x": 8142982.396710832,
+          "y": -284928.64213364496
+        },
+        "uncertainty_m": 4.296882892252241,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 900.0,
+        "true_position": {
+          "x": 8142984.110639798,
+          "y": -284929.90780016774
+        },
+        "estimated_position": {
+          "x": 8142982.387319816,
+          "y": -284928.66753652226
+        },
+        "uncertainty_m": 4.295551772571212,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio",
+          "horizon"
+        ],
+        "events": [
+          {
+            "kind": "fix",
+            "method": "horizon"
+          },
+          {
+            "kind": "buddy_camera"
+          }
+        ],
+        "mode": "normal"
+      },
+      {
+        "t_s": 910.0,
+        "true_position": {
+          "x": 8142988.378535797,
+          "y": -284926.3512201696
+        },
+        "estimated_position": {
+          "x": 8142986.6181433825,
+          "y": -284925.4361072561
+        },
+        "uncertainty_m": 4.34903085687403,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 920.0,
+        "true_position": {
+          "x": 8142992.646431794,
+          "y": -284922.7946401715
+        },
+        "estimated_position": {
+          "x": 8142990.764376026,
+          "y": -284921.93699751486
+        },
+        "uncertainty_m": 4.401860260985717,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 930.0,
+        "true_position": {
+          "x": 8142996.914327792,
+          "y": -284919.23806017335
+        },
+        "estimated_position": {
+          "x": 8142994.939570355,
+          "y": -284918.36467030697
+        },
+        "uncertainty_m": 4.454063102432207,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 940.0,
+        "true_position": {
+          "x": 8143001.182223789,
+          "y": -284915.68148017523
+        },
+        "estimated_position": {
+          "x": 8142999.12604907,
+          "y": -284914.59886491764
+        },
+        "uncertainty_m": 4.5056611594360705,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 950.0,
+        "true_position": {
+          "x": 8143005.450119788,
+          "y": -284912.12490017706
+        },
+        "estimated_position": {
+          "x": 8143003.304168422,
+          "y": -284911.0802431407
+        },
+        "uncertainty_m": 4.556674977091692,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 960.0,
+        "true_position": {
+          "x": 8143009.718015785,
+          "y": -284908.56832017895
+        },
+        "estimated_position": {
+          "x": 8143006.891944733,
+          "y": -284907.4594735114
+        },
+        "uncertainty_m": 4.311742790922054,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 970.0,
+        "true_position": {
+          "x": 8143013.985911783,
+          "y": -284905.0117401808
+        },
+        "estimated_position": {
+          "x": 8143010.842474615,
+          "y": -284904.110075846
+        },
+        "uncertainty_m": 4.365023511766125,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 980.0,
+        "true_position": {
+          "x": 8143018.25380778,
+          "y": -284901.45516018267
+        },
+        "estimated_position": {
+          "x": 8143015.210160794,
+          "y": -284900.44166991295
+        },
+        "uncertainty_m": 4.417661668968534,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 990.0,
+        "true_position": {
+          "x": 8143022.521703779,
+          "y": -284897.89858018456
+        },
+        "estimated_position": {
+          "x": 8143019.366913806,
+          "y": -284897.44599708443
+        },
+        "uncertainty_m": 4.469679964457929,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1000.0,
+        "true_position": {
+          "x": 8143026.789599776,
+          "y": -284894.3420001864
+        },
+        "estimated_position": {
+          "x": 8143023.751619049,
+          "y": -284893.81731612544
+        },
+        "uncertainty_m": 4.521099794063321,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1010.0,
+        "true_position": {
+          "x": 8143031.057495774,
+          "y": -284890.7854201883
+        },
+        "estimated_position": {
+          "x": 8143027.627186932,
+          "y": -284890.046757771
+        },
+        "uncertainty_m": 4.571941350354593,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1020.0,
+        "true_position": {
+          "x": 8143035.325391772,
+          "y": -284887.2288401901
+        },
+        "estimated_position": {
+          "x": 8143032.212601845,
+          "y": -284886.967557568
+        },
+        "uncertainty_m": 4.324112898499368,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1030.0,
+        "true_position": {
+          "x": 8143039.59328777,
+          "y": -284883.672260192
+        },
+        "estimated_position": {
+          "x": 8143036.536782287,
+          "y": -284883.8570186972
+        },
+        "uncertainty_m": 4.377243050388152,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1040.0,
+        "true_position": {
+          "x": 8143043.861183767,
+          "y": -284880.1156801939
+        },
+        "estimated_position": {
+          "x": 8143041.308075539,
+          "y": -284880.46784386976
+        },
+        "uncertainty_m": 4.42973600628459,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1050.0,
+        "true_position": {
+          "x": 8143048.129079765,
+          "y": -284876.5591001957
+        },
+        "estimated_position": {
+          "x": 8143045.148288395,
+          "y": -284876.73936326365
+        },
+        "uncertainty_m": 4.481614156593238,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1060.0,
+        "true_position": {
+          "x": 8143052.396975763,
+          "y": -284873.0025201976
+        },
+        "estimated_position": {
+          "x": 8143049.317627691,
+          "y": -284873.0925447973
+        },
+        "uncertainty_m": 4.532898610357361,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1070.0,
+        "true_position": {
+          "x": 8143056.664871761,
+          "y": -284869.4459401994
+        },
+        "estimated_position": {
+          "x": 8143053.491188013,
+          "y": -284869.5525593437
+        },
+        "uncertainty_m": 4.583609295629643,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1080.0,
+        "true_position": {
+          "x": 8143060.932767758,
+          "y": -284865.8893602013
+        },
+        "estimated_position": {
+          "x": 8143058.642190125,
+          "y": -284866.45858401206
+        },
+        "uncertainty_m": 4.333557661460457,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1090.0,
+        "true_position": {
+          "x": 8143065.200663757,
+          "y": -284862.3327802032
+        },
+        "estimated_position": {
+          "x": 8143062.668506361,
+          "y": -284862.880606119
+        },
+        "uncertainty_m": 4.38657341992647,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1100.0,
+        "true_position": {
+          "x": 8143069.468559754,
+          "y": -284858.77620020503
+        },
+        "estimated_position": {
+          "x": 8143067.060024936,
+          "y": -284859.38765927125
+        },
+        "uncertainty_m": 4.438956040738428,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1110.0,
+        "true_position": {
+          "x": 8143073.736455752,
+          "y": -284855.2196202069
+        },
+        "estimated_position": {
+          "x": 8143071.088332104,
+          "y": -284855.6589166158
+        },
+        "uncertainty_m": 4.490727679876723,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1120.0,
+        "true_position": {
+          "x": 8143078.004351749,
+          "y": -284851.66304020875
+        },
+        "estimated_position": {
+          "x": 8143074.867247881,
+          "y": -284852.38868776656
+        },
+        "uncertainty_m": 4.541909230490383,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1130.0,
+        "true_position": {
+          "x": 8143082.2722477475,
+          "y": -284848.10646021063
+        },
+        "estimated_position": {
+          "x": 8143079.14612246,
+          "y": -284849.2101798235
+        },
+        "uncertainty_m": 4.592520421426181,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1140.0,
+        "true_position": {
+          "x": 8143086.540143745,
+          "y": -284844.5498802125
+        },
+        "estimated_position": {
+          "x": 8143084.379343898,
+          "y": -284846.10345656786
+        },
+        "uncertainty_m": 4.340765275159164,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1150.0,
+        "true_position": {
+          "x": 8143090.8080397425,
+          "y": -284840.99330021435
+        },
+        "estimated_position": {
+          "x": 8143088.473376973,
+          "y": -284842.4543261017
+        },
+        "uncertainty_m": 4.393694065047131,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1160.0,
+        "true_position": {
+          "x": 8143095.075935741,
+          "y": -284837.43672021624
+        },
+        "estimated_position": {
+          "x": 8143092.058616418,
+          "y": -284838.0366232428
+        },
+        "uncertainty_m": 4.445992791315924,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1170.0,
+        "true_position": {
+          "x": 8143099.343831738,
+          "y": -284833.88014021807
+        },
+        "estimated_position": {
+          "x": 8143096.132442769,
+          "y": -284834.6827752037
+        },
+        "uncertainty_m": 4.4976834330170385,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1180.0,
+        "true_position": {
+          "x": 8143103.611727736,
+          "y": -284830.32356021996
+        },
+        "estimated_position": {
+          "x": 8143100.639540853,
+          "y": -284831.137259606
+        },
+        "uncertainty_m": 4.548786720306714,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1190.0,
+        "true_position": {
+          "x": 8143107.879623733,
+          "y": -284826.76698022184
+        },
+        "estimated_position": {
+          "x": 8143104.413151123,
+          "y": -284827.4065331134
+        },
+        "uncertainty_m": 4.5993222315947255,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1200.0,
+        "true_position": {
+          "x": 8143112.147519732,
+          "y": -284823.2104002237
+        },
+        "estimated_position": {
+          "x": 8143109.148286537,
+          "y": -284823.5720758304
+        },
+        "uncertainty_m": 4.346263532252378,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1210.0,
+        "true_position": {
+          "x": 8143116.415415729,
+          "y": -284819.65382022556
+        },
+        "estimated_position": {
+          "x": 8143113.163743576,
+          "y": -284819.89372123114
+        },
+        "uncertainty_m": 4.399126169478399,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1220.0,
+        "true_position": {
+          "x": 8143120.683311727,
+          "y": -284816.0972402274
+        },
+        "estimated_position": {
+          "x": 8143117.487000271,
+          "y": -284816.52462251513
+        },
+        "uncertainty_m": 4.451361074794143,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1230.0,
+        "true_position": {
+          "x": 8143124.951207725,
+          "y": -284812.5406602293
+        },
+        "estimated_position": {
+          "x": 8143121.368201304,
+          "y": -284813.03071080334
+        },
+        "uncertainty_m": 4.502990093415179,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1240.0,
+        "true_position": {
+          "x": 8143129.219103723,
+          "y": -284808.9840802311
+        },
+        "estimated_position": {
+          "x": 8143125.392924452,
+          "y": -284809.195961298
+        },
+        "uncertainty_m": 4.554033832175384,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1250.0,
+        "true_position": {
+          "x": 8143133.48699972,
+          "y": -284805.427500233
+        },
+        "estimated_position": {
+          "x": 8143129.700844163,
+          "y": -284805.4221355992
+        },
+        "uncertainty_m": 4.604511755637159,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1260.0,
+        "true_position": {
+          "x": 8143137.754895718,
+          "y": -284801.8709202349
+        },
+        "estimated_position": {
+          "x": 8143133.985130439,
+          "y": -284801.3803731349
+        },
+        "uncertainty_m": 4.350456587452499,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1270.0,
+        "true_position": {
+          "x": 8143142.022791716,
+          "y": -284798.3143402367
+        },
+        "estimated_position": {
+          "x": 8143138.748775958,
+          "y": -284797.9098174577
+        },
+        "uncertainty_m": 4.403268886010894,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1280.0,
+        "true_position": {
+          "x": 8143146.290687714,
+          "y": -284794.7577602386
+        },
+        "estimated_position": {
+          "x": 8143142.852012364,
+          "y": -284794.397080988
+        },
+        "uncertainty_m": 4.455455223174663,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1290.0,
+        "true_position": {
+          "x": 8143150.558583711,
+          "y": -284791.20118024043
+        },
+        "estimated_position": {
+          "x": 8143146.986219394,
+          "y": -284791.03535635053
+        },
+        "uncertainty_m": 4.507037342747139,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1300.0,
+        "true_position": {
+          "x": 8143154.826479709,
+          "y": -284787.6446002423
+        },
+        "estimated_position": {
+          "x": 8143151.292502515,
+          "y": -284787.5595867783
+        },
+        "uncertainty_m": 4.558035758100188,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1310.0,
+        "true_position": {
+          "x": 8143159.094375707,
+          "y": -284784.0880202442
+        },
+        "estimated_position": {
+          "x": 8143155.960085623,
+          "y": -284784.0029507682
+        },
+        "uncertainty_m": 4.608469847500658,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1320.0,
+        "true_position": {
+          "x": 8143163.362271705,
+          "y": -284780.53144024604
+        },
+        "estimated_position": {
+          "x": 8143160.5128996,
+          "y": -284779.317111561
+        },
+        "uncertainty_m": 4.353653554052519,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1330.0,
+        "true_position": {
+          "x": 8143167.630167702,
+          "y": -284776.9748602479
+        },
+        "estimated_position": {
+          "x": 8143164.605047205,
+          "y": -284775.98506703565
+        },
+        "uncertainty_m": 4.406427536215353,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1340.0,
+        "true_position": {
+          "x": 8143171.898063701,
+          "y": -284773.41828024975
+        },
+        "estimated_position": {
+          "x": 8143168.771202365,
+          "y": -284772.4603529797
+        },
+        "uncertainty_m": 4.458576902456621,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1350.0,
+        "true_position": {
+          "x": 8143176.165959698,
+          "y": -284769.86170025164
+        },
+        "estimated_position": {
+          "x": 8143172.649843307,
+          "y": -284768.9135215327
+        },
+        "uncertainty_m": 4.5101233196357775,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1360.0,
+        "true_position": {
+          "x": 8143180.433855696,
+          "y": -284766.3051202535
+        },
+        "estimated_position": {
+          "x": 8143176.454548585,
+          "y": -284764.97023642337
+        },
+        "uncertainty_m": 4.561087230203476,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1370.0,
+        "true_position": {
+          "x": 8143184.701751693,
+          "y": -284762.74854025536
+        },
+        "estimated_position": {
+          "x": 8143180.699945429,
+          "y": -284761.5919780154
+        },
+        "uncertainty_m": 4.611487946935134,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1380.0,
+        "true_position": {
+          "x": 8143188.969647692,
+          "y": -284759.19196025725
+        },
+        "estimated_position": {
+          "x": 8143185.113150655,
+          "y": -284758.93678647163
+        },
+        "uncertainty_m": 4.356090638925924,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1390.0,
+        "true_position": {
+          "x": 8143193.237543689,
+          "y": -284755.6353802591
+        },
+        "estimated_position": {
+          "x": 8143189.125548015,
+          "y": -284755.4321995304
+        },
+        "uncertainty_m": 4.408835449156708,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1400.0,
+        "true_position": {
+          "x": 8143197.505439687,
+          "y": -284752.07880026096
+        },
+        "estimated_position": {
+          "x": 8143193.248781861,
+          "y": -284751.6147270035
+        },
+        "uncertainty_m": 4.460956666561962,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1410.0,
+        "true_position": {
+          "x": 8143201.920676395,
+          "y": -284748.7195490696
+        },
+        "estimated_position": {
+          "x": 8143197.980093674,
+          "y": -284748.2510254778
+        },
+        "uncertainty_m": 4.51247589956405,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1420.0,
+        "true_position": {
+          "x": 8143206.543178031,
+          "y": -284745.63788131275
+        },
+        "estimated_position": {
+          "x": 8143202.734150747,
+          "y": -284745.5402433803
+        },
+        "uncertainty_m": 4.563413536745181,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1430.0,
+        "true_position": {
+          "x": 8143211.165679666,
+          "y": -284742.556213556
+        },
+        "estimated_position": {
+          "x": 8143207.5337128565,
+          "y": -284742.46707103174
+        },
+        "uncertainty_m": 4.6137888411317585,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1440.0,
+        "true_position": {
+          "x": 8143215.788181301,
+          "y": -284739.47454579914
+        },
+        "estimated_position": {
+          "x": 8143211.288307987,
+          "y": -284738.84309646254
+        },
+        "uncertainty_m": 4.3579482120916175,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1450.0,
+        "true_position": {
+          "x": 8143220.410682936,
+          "y": -284736.39287804236
+        },
+        "estimated_position": {
+          "x": 8143215.605498771,
+          "y": -284735.5969296248
+        },
+        "uncertainty_m": 4.410670808672452,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1460.0,
+        "true_position": {
+          "x": 8143225.033184572,
+          "y": -284733.3112102855
+        },
+        "estimated_position": {
+          "x": 8143219.863191119,
+          "y": -284732.6528728588
+        },
+        "uncertainty_m": 4.4627705907516795,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1470.0,
+        "true_position": {
+          "x": 8143229.655686207,
+          "y": -284730.22954252874
+        },
+        "estimated_position": {
+          "x": 8143224.542007687,
+          "y": -284729.400785828
+        },
+        "uncertainty_m": 4.514269122336512,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1480.0,
+        "true_position": {
+          "x": 8143234.278187842,
+          "y": -284727.1478747719
+        },
+        "estimated_position": {
+          "x": 8143229.185285457,
+          "y": -284726.53934888757
+        },
+        "uncertainty_m": 4.565186751063273,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1490.0,
+        "true_position": {
+          "x": 8143238.900689477,
+          "y": -284724.06620701513
+        },
+        "estimated_position": {
+          "x": 8143233.654028143,
+          "y": -284723.21198588324
+        },
+        "uncertainty_m": 4.615542702140932,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1500.0,
+        "true_position": {
+          "x": 8143243.523191112,
+          "y": -284720.9845392583
+        },
+        "estimated_position": {
+          "x": 8143239.476056862,
+          "y": -284720.38302464865
+        },
+        "uncertainty_m": 4.35936393241114,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1510.0,
+        "true_position": {
+          "x": 8143248.145692748,
+          "y": -284717.9028715015
+        },
+        "estimated_position": {
+          "x": 8143244.341173927,
+          "y": -284717.3948645214
+        },
+        "uncertainty_m": 4.412069611691309,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1520.0,
+        "true_position": {
+          "x": 8143252.768194383,
+          "y": -284714.8212037447
+        },
+        "estimated_position": {
+          "x": 8143249.19371904,
+          "y": -284714.60793702013
+        },
+        "uncertainty_m": 4.4641530687928554,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1530.0,
+        "true_position": {
+          "x": 8143257.390696018,
+          "y": -284711.7395359879
+        },
+        "estimated_position": {
+          "x": 8143253.974553956,
+          "y": -284711.66248601605
+        },
+        "uncertainty_m": 4.515635833945807,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1540.0,
+        "true_position": {
+          "x": 8143262.013197653,
+          "y": -284708.6578682311
+        },
+        "estimated_position": {
+          "x": 8143258.784375508,
+          "y": -284708.3014726714
+        },
+        "uncertainty_m": 4.566538223645809,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1550.0,
+        "true_position": {
+          "x": 8143266.635699289,
+          "y": -284705.5762004743
+        },
+        "estimated_position": {
+          "x": 8143263.202435436,
+          "y": -284705.2340353255
+        },
+        "uncertainty_m": 4.616879434338849,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1560.0,
+        "true_position": {
+          "x": 8143271.258200924,
+          "y": -284702.4945327175
+        },
+        "estimated_position": {
+          "x": 8143268.721172941,
+          "y": -284702.6811435352
+        },
+        "uncertainty_m": 4.360442818573355,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1570.0,
+        "true_position": {
+          "x": 8143275.880702559,
+          "y": -284699.4128649607
+        },
+        "estimated_position": {
+          "x": 8143273.4707879815,
+          "y": -284699.3925065535
+        },
+        "uncertainty_m": 4.4131356128325265,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1580.0,
+        "true_position": {
+          "x": 8143280.503204194,
+          "y": -284696.3311972039
+        },
+        "estimated_position": {
+          "x": 8143278.683235698,
+          "y": -284696.77726910135
+        },
+        "uncertainty_m": 4.4652066358068465,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1590.0,
+        "true_position": {
+          "x": 8143285.12570583,
+          "y": -284693.24952944706
+        },
+        "estimated_position": {
+          "x": 8143283.156750584,
+          "y": -284693.3252204589
+        },
+        "uncertainty_m": 4.516677392027935,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1600.0,
+        "true_position": {
+          "x": 8143289.748207465,
+          "y": -284690.1678616903
+        },
+        "estimated_position": {
+          "x": 8143287.402843803,
+          "y": -284690.5767361977
+        },
+        "uncertainty_m": 4.567568174297899,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1610.0,
+        "true_position": {
+          "x": 8143294.3707091,
+          "y": -284687.08619393344
+        },
+        "estimated_position": {
+          "x": 8143292.168979381,
+          "y": -284687.21217714617
+        },
+        "uncertainty_m": 4.617898157177334,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1620.0,
+        "true_position": {
+          "x": 8143298.993210735,
+          "y": -284684.00452617666
+        },
+        "estimated_position": {
+          "x": 8143296.9831672665,
+          "y": -284683.01923765504
+        },
+        "uncertainty_m": 4.361264963377517,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1630.0,
+        "true_position": {
+          "x": 8143303.61571237,
+          "y": -284680.9228584198
+        },
+        "estimated_position": {
+          "x": 8143301.605247113,
+          "y": -284679.66250120045
+        },
+        "uncertainty_m": 4.413947943053595,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1640.0,
+        "true_position": {
+          "x": 8143308.238214006,
+          "y": -284677.84119066305
+        },
+        "estimated_position": {
+          "x": 8143305.976882677,
+          "y": -284676.63218867965
+        },
+        "uncertainty_m": 4.4660094947491835,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1650.0,
+        "true_position": {
+          "x": 8143312.860715641,
+          "y": -284674.7595229062
+        },
+        "estimated_position": {
+          "x": 8143310.572521963,
+          "y": -284673.2341020485
+        },
+        "uncertainty_m": 4.517471103437479,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1660.0,
+        "true_position": {
+          "x": 8143317.483217276,
+          "y": -284671.67785514944
+        },
+        "estimated_position": {
+          "x": 8143315.35602722,
+          "y": -284670.361254606
+        },
+        "uncertainty_m": 4.568353043887415,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1670.0,
+        "true_position": {
+          "x": 8143322.105718911,
+          "y": -284668.5961873926
+        },
+        "estimated_position": {
+          "x": 8143320.167964345,
+          "y": -284667.0655226057
+        },
+        "uncertainty_m": 4.618674474002057,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1680.0,
+        "true_position": {
+          "x": 8143326.728220547,
+          "y": -284665.5145196358
+        },
+        "estimated_position": {
+          "x": 8143324.886443,
+          "y": -284665.3172645926
+        },
+        "uncertainty_m": 4.36189143526999,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1690.0,
+        "true_position": {
+          "x": 8143331.350722182,
+          "y": -284662.432851879
+        },
+        "estimated_position": {
+          "x": 8143329.561373249,
+          "y": -284662.1704362999
+        },
+        "uncertainty_m": 4.414566938702422,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1700.0,
+        "true_position": {
+          "x": 8143335.973223817,
+          "y": -284659.3511841222
+        },
+        "estimated_position": {
+          "x": 8143333.9434502935,
+          "y": -284658.88253347366
+        },
+        "uncertainty_m": 4.466621275582613,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1710.0,
+        "true_position": {
+          "x": 8143340.595725452,
+          "y": -284656.26951636537
+        },
+        "estimated_position": {
+          "x": 8143338.1845722245,
+          "y": -284655.9541470561
+        },
+        "uncertainty_m": 4.518075915994554,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1720.0,
+        "true_position": {
+          "x": 8143345.2182270875,
+          "y": -284653.1878486086
+        },
+        "estimated_position": {
+          "x": 8143342.675068564,
+          "y": -284652.3203932349
+        },
+        "uncertainty_m": 4.56895112097873,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1730.0,
+        "true_position": {
+          "x": 8143349.8407287225,
+          "y": -284650.10618085176
+        },
+        "estimated_position": {
+          "x": 8143346.853352403,
+          "y": -284649.08243929606
+        },
+        "uncertainty_m": 4.619266035756718,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1740.0,
+        "true_position": {
+          "x": 8143354.4632303575,
+          "y": -284647.024513095
+        },
+        "estimated_position": {
+          "x": 8143352.834588137,
+          "y": -284646.67622857506
+        },
+        "uncertainty_m": 4.362368788711723,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1750.0,
+        "true_position": {
+          "x": 8143359.0857319925,
+          "y": -284643.94284533814
+        },
+        "estimated_position": {
+          "x": 8143356.823684605,
+          "y": -284643.38155584905
+        },
+        "uncertainty_m": 4.415038596878736,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1760.0,
+        "true_position": {
+          "x": 8143363.708233628,
+          "y": -284640.86117758136
+        },
+        "estimated_position": {
+          "x": 8143361.114011751,
+          "y": -284640.39055472467
+        },
+        "uncertainty_m": 4.467087437596418,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1770.0,
+        "true_position": {
+          "x": 8143368.330735263,
+          "y": -284637.7795098245
+        },
+        "estimated_position": {
+          "x": 8143365.409056164,
+          "y": -284637.01656978537
+        },
+        "uncertainty_m": 4.518536769611874,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1780.0,
+        "true_position": {
+          "x": 8143372.953236898,
+          "y": -284634.69784206775
+        },
+        "estimated_position": {
+          "x": 8143370.271877309,
+          "y": -284634.13491971244
+        },
+        "uncertainty_m": 4.569406843512326,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1790.0,
+        "true_position": {
+          "x": 8143377.575738533,
+          "y": -284631.6161743109
+        },
+        "estimated_position": {
+          "x": 8143375.145348901,
+          "y": -284631.019563828
+        },
+        "uncertainty_m": 4.619716794863085,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1800.0,
+        "true_position": {
+          "x": 8143382.198240168,
+          "y": -284628.53450655413
+        },
+        "estimated_position": {
+          "x": 8143379.914064745,
+          "y": -284627.6090405258
+        },
+        "uncertainty_m": 4.362732508758784,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1800.0,
+        "true_position": {
+          "x": 8143382.198240168,
+          "y": -284628.53450655413
+        },
+        "estimated_position": {
+          "x": 8143380.453563145,
+          "y": -284627.9699217185
+        },
+        "uncertainty_m": 4.0227769970531115,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio",
+          "drone"
+        ],
+        "events": [
+          {
+            "kind": "fix",
+            "method": "drone"
+          }
+        ],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1810.0,
+        "true_position": {
+          "x": 8143386.820741804,
+          "y": -284625.4528387973
+        },
+        "estimated_position": {
+          "x": 8143385.355580267,
+          "y": -284625.0581082991
+        },
+        "uncertainty_m": 4.079833223456865,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1820.0,
+        "true_position": {
+          "x": 8143391.443243439,
+          "y": -284622.3711710405
+        },
+        "estimated_position": {
+          "x": 8143390.057785692,
+          "y": -284621.8591751614
+        },
+        "uncertainty_m": 4.13610245211905,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1830.0,
+        "true_position": {
+          "x": 8143396.065745074,
+          "y": -284619.2895032837
+        },
+        "estimated_position": {
+          "x": 8143395.0910670655,
+          "y": -284618.9179077833
+        },
+        "uncertainty_m": 4.191616377679139,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1840.0,
+        "true_position": {
+          "x": 8143400.688246709,
+          "y": -284616.2078355269
+        },
+        "estimated_position": {
+          "x": 8143400.197758269,
+          "y": -284615.78730531776
+        },
+        "uncertainty_m": 4.246404622834565,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1850.0,
+        "true_position": {
+          "x": 8143405.310748345,
+          "y": -284613.12616777007
+        },
+        "estimated_position": {
+          "x": 8143404.7663774295,
+          "y": -284612.8924355473
+        },
+        "uncertainty_m": 4.300494923149373,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1860.0,
+        "true_position": {
+          "x": 8143409.93324998,
+          "y": -284610.0445000133
+        },
+        "estimated_position": {
+          "x": 8143408.974701479,
+          "y": -284610.4584917736
+        },
+        "uncertainty_m": 4.102070965132568,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1870.0,
+        "true_position": {
+          "x": 8143414.555751615,
+          "y": -284606.96283225645
+        },
+        "estimated_position": {
+          "x": 8143413.442892223,
+          "y": -284607.56460346223
+        },
+        "uncertainty_m": 4.158039269437747,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1880.0,
+        "true_position": {
+          "x": 8143419.17825325,
+          "y": -284603.8811644997
+        },
+        "estimated_position": {
+          "x": 8143418.368255633,
+          "y": -284604.1008417338
+        },
+        "uncertainty_m": 4.21326416563087,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1890.0,
+        "true_position": {
+          "x": 8143423.800754886,
+          "y": -284600.79949674284
+        },
+        "estimated_position": {
+          "x": 8143423.232023831,
+          "y": -284600.919765952
+        },
+        "uncertainty_m": 4.267774512857016,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1900.0,
+        "true_position": {
+          "x": 8143428.423256521,
+          "y": -284597.71782898606
+        },
+        "estimated_position": {
+          "x": 8143427.735570408,
+          "y": -284597.82296396996
+        },
+        "uncertainty_m": 4.321597350030974,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1910.0,
+        "true_position": {
+          "x": 8143433.045758156,
+          "y": -284594.6361612292
+        },
+        "estimated_position": {
+          "x": 8143432.60382399,
+          "y": -284594.1493594815
+        },
+        "uncertainty_m": 4.374758052623881,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1920.0,
+        "true_position": {
+          "x": 8143437.668259791,
+          "y": -284591.55449347245
+        },
+        "estimated_position": {
+          "x": 8143437.523704465,
+          "y": -284591.4720918026
+        },
+        "uncertainty_m": 4.163254428858005,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1930.0,
+        "true_position": {
+          "x": 8143442.290761427,
+          "y": -284588.4728257156
+        },
+        "estimated_position": {
+          "x": 8143441.928873163,
+          "y": -284588.4416023797
+        },
+        "uncertainty_m": 4.218411051878248,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1940.0,
+        "true_position": {
+          "x": 8143446.913263062,
+          "y": -284585.39115795883
+        },
+        "estimated_position": {
+          "x": 8143446.605712213,
+          "y": -284584.84996196
+        },
+        "uncertainty_m": 4.272855738942206,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1950.0,
+        "true_position": {
+          "x": 8143451.535764697,
+          "y": -284582.309490202
+        },
+        "estimated_position": {
+          "x": 8143451.242667312,
+          "y": -284581.39125029347
+        },
+        "uncertainty_m": 4.326615366428374,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1960.0,
+        "true_position": {
+          "x": 8143456.158266332,
+          "y": -284579.2278224452
+        },
+        "estimated_position": {
+          "x": 8143456.356138136,
+          "y": -284578.2876914616
+        },
+        "uncertainty_m": 4.379715161082612,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1970.0,
+        "true_position": {
+          "x": 8143460.780767967,
+          "y": -284576.1461546884
+        },
+        "estimated_position": {
+          "x": 8143461.425250573,
+          "y": -284575.00743053685
+        },
+        "uncertainty_m": 4.432178838384083,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1980.0,
+        "true_position": {
+          "x": 8143465.403269603,
+          "y": -284573.0644869316
+        },
+        "estimated_position": {
+          "x": 8143465.882760911,
+          "y": -284572.13306935655
+        },
+        "uncertainty_m": 4.210338197000192,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 1990.0,
+        "true_position": {
+          "x": 8143470.025771238,
+          "y": -284569.98281917477
+        },
+        "estimated_position": {
+          "x": 8143470.450045537,
+          "y": -284569.0113434599
+        },
+        "uncertainty_m": 4.26488594177167,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2000.0,
+        "true_position": {
+          "x": 8143474.648272873,
+          "y": -284566.901151418
+        },
+        "estimated_position": {
+          "x": 8143475.193153044,
+          "y": -284566.175476224
+        },
+        "uncertainty_m": 4.318744778234108,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2010.0,
+        "true_position": {
+          "x": 8143479.270774508,
+          "y": -284563.81948366115
+        },
+        "estimated_position": {
+          "x": 8143479.813046996,
+          "y": -284563.51668486214
+        },
+        "uncertainty_m": 4.371940166874104,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2020.0,
+        "true_position": {
+          "x": 8143483.893276144,
+          "y": -284560.7378159044
+        },
+        "estimated_position": {
+          "x": 8143484.507991826,
+          "y": -284560.26179502875
+        },
+        "uncertainty_m": 4.42449603750867,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2030.0,
+        "true_position": {
+          "x": 8143488.515777779,
+          "y": -284557.65614814754
+        },
+        "estimated_position": {
+          "x": 8143489.1760364715,
+          "y": -284557.1007236186
+        },
+        "uncertainty_m": 4.476434915100712,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2040.0,
+        "true_position": {
+          "x": 8143493.138279414,
+          "y": -284554.57448039076
+        },
+        "estimated_position": {
+          "x": 8143493.719299983,
+          "y": -284553.9408836494
+        },
+        "uncertainty_m": 4.246492758868036,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2050.0,
+        "true_position": {
+          "x": 8143497.760781049,
+          "y": -284551.4928126339
+        },
+        "estimated_position": {
+          "x": 8143498.620103211,
+          "y": -284550.7495155033
+        },
+        "uncertainty_m": 4.300581950657541,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2060.0,
+        "true_position": {
+          "x": 8143502.383282685,
+          "y": -284548.41114487714
+        },
+        "estimated_position": {
+          "x": 8143503.951732464,
+          "y": -284547.69322568324
+        },
+        "uncertainty_m": 4.353999250978831,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2070.0,
+        "true_position": {
+          "x": 8143507.00578432,
+          "y": -284545.3294771203
+        },
+        "estimated_position": {
+          "x": 8143508.851917552,
+          "y": -284544.25968912686
+        },
+        "uncertainty_m": 4.406769093193671,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2080.0,
+        "true_position": {
+          "x": 8143511.628285955,
+          "y": -284542.2478093635
+        },
+        "estimated_position": {
+          "x": 8143513.437260896,
+          "y": -284541.4059416151
+        },
+        "uncertainty_m": 4.458914464746971,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2090.0,
+        "true_position": {
+          "x": 8143516.25078759,
+          "y": -284539.1661416067
+        },
+        "estimated_position": {
+          "x": 8143517.731261718,
+          "y": -284538.2791969139
+        },
+        "uncertainty_m": 4.510457024197494,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2100.0,
+        "true_position": {
+          "x": 8143520.873289225,
+          "y": -284536.0844738499
+        },
+        "estimated_position": {
+          "x": 8143522.549407219,
+          "y": -284535.4707021819
+        },
+        "uncertainty_m": 4.2742066473766,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2110.0,
+        "true_position": {
+          "x": 8143525.495790861,
+          "y": -284533.0028060931
+        },
+        "estimated_position": {
+          "x": 8143527.327750447,
+          "y": -284532.98232082825
+        },
+        "uncertainty_m": 4.32794949458529,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2120.0,
+        "true_position": {
+          "x": 8143530.118292496,
+          "y": -284529.9211383363
+        },
+        "estimated_position": {
+          "x": 8143532.014800208,
+          "y": -284529.8928402077
+        },
+        "uncertainty_m": 4.381033119126568,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2130.0,
+        "true_position": {
+          "x": 8143534.740794131,
+          "y": -284526.83947057946
+        },
+        "estimated_position": {
+          "x": 8143536.256651774,
+          "y": -284526.2068396942
+        },
+        "uncertainty_m": 4.4334812003759145,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2140.0,
+        "true_position": {
+          "x": 8143539.363295766,
+          "y": -284523.7578028227
+        },
+        "estimated_position": {
+          "x": 8143540.493760845,
+          "y": -284523.4244831865
+        },
+        "uncertainty_m": 4.48531603315635,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2150.0,
+        "true_position": {
+          "x": 8143543.9857974015,
+          "y": -284520.67613506585
+        },
+        "estimated_position": {
+          "x": 8143544.782689395,
+          "y": -284520.0343799292
+        },
+        "uncertainty_m": 4.5365586384937435,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2160.0,
+        "true_position": {
+          "x": 8143548.6082990365,
+          "y": -284517.59446730907
+        },
+        "estimated_position": {
+          "x": 8143549.452573291,
+          "y": -284516.7089740921
+        },
+        "uncertainty_m": 4.2954211509844855,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2170.0,
+        "true_position": {
+          "x": 8143553.2308006715,
+          "y": -284514.5127995523
+        },
+        "estimated_position": {
+          "x": 8143553.711858563,
+          "y": -284513.79733588477
+        },
+        "uncertainty_m": 4.348901841560427,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2180.0,
+        "true_position": {
+          "x": 8143557.8533023065,
+          "y": -284511.43113179546
+        },
+        "estimated_position": {
+          "x": 8143558.799114357,
+          "y": -284511.07421101665
+        },
+        "uncertainty_m": 4.401732794108524,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2190.0,
+        "true_position": {
+          "x": 8143562.475803942,
+          "y": -284508.3494640387
+        },
+        "estimated_position": {
+          "x": 8143563.190600726,
+          "y": -284508.03761173843
+        },
+        "uncertainty_m": 4.45393712954429,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2200.0,
+        "true_position": {
+          "x": 8143567.098305577,
+          "y": -284505.26779628184
+        },
+        "estimated_position": {
+          "x": 8143568.037821826,
+          "y": -284504.88604420645
+        },
+        "uncertainty_m": 4.505536629208111,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2210.0,
+        "true_position": {
+          "x": 8143571.720807212,
+          "y": -284502.18612852506
+        },
+        "estimated_position": {
+          "x": 8143572.866446838,
+          "y": -284502.10084706993
+        },
+        "uncertainty_m": 4.556551841067845,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2220.0,
+        "true_position": {
+          "x": 8143576.343308847,
+          "y": -284499.1044607682
+        },
+        "estimated_position": {
+          "x": 8143576.587107318,
+          "y": -284497.9357099362
+        },
+        "uncertainty_m": 4.311642957919407,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2230.0,
+        "true_position": {
+          "x": 8143580.965810483,
+          "y": -284496.02279301145
+        },
+        "estimated_position": {
+          "x": 8143581.846386137,
+          "y": -284495.06753588974
+        },
+        "uncertainty_m": 4.364924897381256,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2240.0,
+        "true_position": {
+          "x": 8143585.588312118,
+          "y": -284492.9411252546
+        },
+        "estimated_position": {
+          "x": 8143586.484346888,
+          "y": -284491.59769519314
+        },
+        "uncertainty_m": 4.417564229638496,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2250.0,
+        "true_position": {
+          "x": 8143590.210813753,
+          "y": -284489.85945749783
+        },
+        "estimated_position": {
+          "x": 8143590.695392904,
+          "y": -284489.0687664139
+        },
+        "uncertainty_m": 4.469583659154878,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2260.0,
+        "true_position": {
+          "x": 8143594.833315388,
+          "y": -284486.777789741
+        },
+        "estimated_position": {
+          "x": 8143594.957632283,
+          "y": -284486.1446172088
+        },
+        "uncertainty_m": 4.521004584092689,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2270.0,
+        "true_position": {
+          "x": 8143599.455817023,
+          "y": -284483.6961219842
+        },
+        "estimated_position": {
+          "x": 8143599.419455525,
+          "y": -284482.89424190373
+        },
+        "uncertainty_m": 4.571847199173422,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2280.0,
+        "true_position": {
+          "x": 8143604.078318659,
+          "y": -284480.6144542274
+        },
+        "estimated_position": {
+          "x": 8143604.4658976635,
+          "y": -284479.0459237369
+        },
+        "uncertainty_m": 4.324036652828075,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2290.0,
+        "true_position": {
+          "x": 8143608.700820294,
+          "y": -284477.5327864706
+        },
+        "estimated_position": {
+          "x": 8143609.420914376,
+          "y": -284475.68894835573
+        },
+        "uncertainty_m": 4.37716773018848,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2300.0,
+        "true_position": {
+          "x": 8143613.323321929,
+          "y": -284474.45111871377
+        },
+        "estimated_position": {
+          "x": 8143614.049020992,
+          "y": -284472.33404965594
+        },
+        "uncertainty_m": 4.429661578654308,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2310.0,
+        "true_position": {
+          "x": 8143617.945823564,
+          "y": -284471.369450957
+        },
+        "estimated_position": {
+          "x": 8143618.403152399,
+          "y": -284469.0437667222
+        },
+        "uncertainty_m": 4.481540590534572,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2320.0,
+        "true_position": {
+          "x": 8143622.5683252,
+          "y": -284468.28778320015
+        },
+        "estimated_position": {
+          "x": 8143623.001418362,
+          "y": -284465.64795849373
+        },
+        "uncertainty_m": 4.53282587662616,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2330.0,
+        "true_position": {
+          "x": 8143627.190826835,
+          "y": -284465.2061154434
+        },
+        "estimated_position": {
+          "x": 8143627.753367373,
+          "y": -284462.86903512187
+        },
+        "uncertainty_m": 4.583537366599569,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2340.0,
+        "true_position": {
+          "x": 8143631.81332847,
+          "y": -284462.12444768654
+        },
+        "estimated_position": {
+          "x": 8143631.6285596965,
+          "y": -284460.13491082913
+        },
+        "uncertainty_m": 4.33349946310982,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2350.0,
+        "true_position": {
+          "x": 8143636.435830105,
+          "y": -284459.04277992976
+        },
+        "estimated_position": {
+          "x": 8143636.037541051,
+          "y": -284457.468700278
+        },
+        "uncertainty_m": 4.386515924965494,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2360.0,
+        "true_position": {
+          "x": 8143641.058331741,
+          "y": -284455.9611121729
+        },
+        "estimated_position": {
+          "x": 8143640.927061653,
+          "y": -284454.0228666037
+        },
+        "uncertainty_m": 4.4388992242648,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2370.0,
+        "true_position": {
+          "x": 8143645.680833376,
+          "y": -284452.87944441615
+        },
+        "estimated_position": {
+          "x": 8143645.771797512,
+          "y": -284450.87381820375
+        },
+        "uncertainty_m": 4.490671518423657,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2380.0,
+        "true_position": {
+          "x": 8143650.303335011,
+          "y": -284449.7977766593
+        },
+        "estimated_position": {
+          "x": 8143650.379845984,
+          "y": -284447.725655919
+        },
+        "uncertainty_m": 4.54185370191337,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2390.0,
+        "true_position": {
+          "x": 8143654.925836646,
+          "y": -284446.71610890253
+        },
+        "estimated_position": {
+          "x": 8143654.799137643,
+          "y": -284444.3956977177
+        },
+        "uncertainty_m": 4.592465504800987,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2400.0,
+        "true_position": {
+          "x": 8143659.548338281,
+          "y": -284443.6344411457
+        },
+        "estimated_position": {
+          "x": 8143659.357516399,
+          "y": -284441.33014974184
+        },
+        "uncertainty_m": 4.340720871659842,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2400.0,
+        "true_position": {
+          "x": 8143659.548338281,
+          "y": -284443.6344411457
+        },
+        "estimated_position": {
+          "x": 8143659.281313833,
+          "y": -284440.5444782974
+        },
+        "uncertainty_m": 4.005500875830476,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio",
+          "ground"
+        ],
+        "events": [
+          {
+            "kind": "fix",
+            "method": "ground"
+          },
+          {
+            "kind": "buddy_camera"
+          }
+        ],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2410.0,
+        "true_position": {
+          "x": 8143664.170839917,
+          "y": -284440.5527733889
+        },
+        "estimated_position": {
+          "x": 8143663.9537310805,
+          "y": -284437.9856080112
+        },
+        "uncertainty_m": 4.062799727956261,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2420.0,
+        "true_position": {
+          "x": 8143668.793341552,
+          "y": -284437.4711056321
+        },
+        "estimated_position": {
+          "x": 8143668.6869287295,
+          "y": -284434.3810885185
+        },
+        "uncertainty_m": 4.119301638953411,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2430.0,
+        "true_position": {
+          "x": 8143673.415843187,
+          "y": -284434.3894378753
+        },
+        "estimated_position": {
+          "x": 8143673.499756953,
+          "y": -284431.05512084224
+        },
+        "uncertainty_m": 4.175038964595063,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2440.0,
+        "true_position": {
+          "x": 8143678.038344822,
+          "y": -284431.30777011847
+        },
+        "estimated_position": {
+          "x": 8143678.1322756065,
+          "y": -284428.521061276
+        },
+        "uncertainty_m": 4.230041928762623,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2450.0,
+        "true_position": {
+          "x": 8143682.660846458,
+          "y": -284428.2261023617
+        },
+        "estimated_position": {
+          "x": 8143682.251927867,
+          "y": -284425.7854901233
+        },
+        "uncertainty_m": 4.284338815067334,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2460.0,
+        "true_position": {
+          "x": 8143687.283348093,
+          "y": -284425.14443460485
+        },
+        "estimated_position": {
+          "x": 8143687.273495599,
+          "y": -284423.08970976726
+        },
+        "uncertainty_m": 4.088717511127983,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2470.0,
+        "true_position": {
+          "x": 8143691.905849728,
+          "y": -284422.0627668481
+        },
+        "estimated_position": {
+          "x": 8143692.161810917,
+          "y": -284420.0857499989
+        },
+        "uncertainty_m": 4.144866131614791,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2480.0,
+        "true_position": {
+          "x": 8143696.528351363,
+          "y": -284418.98109909124
+        },
+        "estimated_position": {
+          "x": 8143696.588621019,
+          "y": -284416.7675150989
+        },
+        "uncertainty_m": 4.200264231237144,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2490.0,
+        "true_position": {
+          "x": 8143701.150852999,
+          "y": -284415.89943133446
+        },
+        "estimated_position": {
+          "x": 8143700.95711016,
+          "y": -284414.44392648956
+        },
+        "uncertainty_m": 4.2549411247880915,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2500.0,
+        "true_position": {
+          "x": 8143705.773354634,
+          "y": -284412.8177635776
+        },
+        "estimated_position": {
+          "x": 8143705.285179362,
+          "y": -284411.3361033034
+        },
+        "uncertainty_m": 4.308924266985405,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2510.0,
+        "true_position": {
+          "x": 8143710.395856269,
+          "y": -284409.73609582084
+        },
+        "estimated_position": {
+          "x": 8143709.052076064,
+          "y": -284408.3536405595
+        },
+        "uncertainty_m": 4.362239413629025,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2520.0,
+        "true_position": {
+          "x": 8143715.018357904,
+          "y": -284406.654428064
+        },
+        "estimated_position": {
+          "x": 8143712.894170428,
+          "y": -284406.0480178515
+        },
+        "uncertainty_m": 4.1529634270495945,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2530.0,
+        "true_position": {
+          "x": 8143719.64085954,
+          "y": -284403.57276030723
+        },
+        "estimated_position": {
+          "x": 8143717.364699794,
+          "y": -284402.616372731
+        },
+        "uncertainty_m": 4.208254934009381,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2540.0,
+        "true_position": {
+          "x": 8143724.263361175,
+          "y": -284400.4910925504
+        },
+        "estimated_position": {
+          "x": 8143722.091330052,
+          "y": -284399.9738314868
+        },
+        "uncertainty_m": 4.26282933658117,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2550.0,
+        "true_position": {
+          "x": 8143728.88586281,
+          "y": -284397.4094247936
+        },
+        "estimated_position": {
+          "x": 8143726.476428501,
+          "y": -284396.6962910836
+        },
+        "uncertainty_m": 4.31671383300073,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2560.0,
+        "true_position": {
+          "x": 8143733.508364445,
+          "y": -284394.3277570368
+        },
+        "estimated_position": {
+          "x": 8143731.62559035,
+          "y": -284393.5072623563
+        },
+        "uncertainty_m": 4.369933944491908,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2570.0,
+        "true_position": {
+          "x": 8143738.13086608,
+          "y": -284391.24608928
+        },
+        "estimated_position": {
+          "x": 8143736.3344010245,
+          "y": -284389.908718915
+        },
+        "uncertainty_m": 4.422513656556122,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2580.0,
+        "true_position": {
+          "x": 8143742.7533677155,
+          "y": -284388.16442152316
+        },
+        "estimated_position": {
+          "x": 8143740.330021325,
+          "y": -284387.36290240206
+        },
+        "uncertainty_m": 4.202426712704887,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2590.0,
+        "true_position": {
+          "x": 8143747.3758693505,
+          "y": -284385.0827537664
+        },
+        "estimated_position": {
+          "x": 8143745.557720943,
+          "y": -284384.6761628099
+        },
+        "uncertainty_m": 4.257075831936561,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2600.0,
+        "true_position": {
+          "x": 8143751.9983709855,
+          "y": -284382.00108600955
+        },
+        "estimated_position": {
+          "x": 8143750.183331386,
+          "y": -284381.98569711635
+        },
+        "uncertainty_m": 4.311032243217528,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2610.0,
+        "true_position": {
+          "x": 8143756.6208726205,
+          "y": -284378.9194182528
+        },
+        "estimated_position": {
+          "x": 8143754.841520729,
+          "y": -284378.65746069193
+        },
+        "uncertainty_m": 4.364321638612799,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2620.0,
+        "true_position": {
+          "x": 8143761.243374256,
+          "y": -284375.83775049594
+        },
+        "estimated_position": {
+          "x": 8143759.396341998,
+          "y": -284375.37291869335
+        },
+        "uncertainty_m": 4.416968160227862,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2630.0,
+        "true_position": {
+          "x": 8143765.865875891,
+          "y": -284372.75608273916
+        },
+        "estimated_position": {
+          "x": 8143764.2190780295,
+          "y": -284372.16707737657
+        },
+        "uncertainty_m": 4.468994528042013,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2640.0,
+        "true_position": {
+          "x": 8143770.488377526,
+          "y": -284369.6744149823
+        },
+        "estimated_position": {
+          "x": 8143769.275730875,
+          "y": -284369.3743927123
+        },
+        "uncertainty_m": 4.240422633390993,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2650.0,
+        "true_position": {
+          "x": 8143775.110879161,
+          "y": -284366.59274722554
+        },
+        "estimated_position": {
+          "x": 8143773.663425191,
+          "y": -284366.1605395562
+        },
+        "uncertainty_m": 4.294588277469377,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2660.0,
+        "true_position": {
+          "x": 8143779.733380797,
+          "y": -284363.5110794687
+        },
+        "estimated_position": {
+          "x": 8143778.196004101,
+          "y": -284362.32076984405
+        },
+        "uncertainty_m": 4.348079212270649,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2670.0,
+        "true_position": {
+          "x": 8143784.355882432,
+          "y": -284360.4294117119
+        },
+        "estimated_position": {
+          "x": 8143783.330296738,
+          "y": -284359.2986920871
+        },
+        "uncertainty_m": 4.400920040103312,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2680.0,
+        "true_position": {
+          "x": 8143788.978384067,
+          "y": -284357.3477439551
+        },
+        "estimated_position": {
+          "x": 8143787.861373025,
+          "y": -284355.74753084325
+        },
+        "uncertainty_m": 4.453133903509493,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2690.0,
+        "true_position": {
+          "x": 8143793.600885702,
+          "y": -284354.2660761983
+        },
+        "estimated_position": {
+          "x": 8143791.960719165,
+          "y": -284352.79129393626
+        },
+        "uncertainty_m": 4.504742603722047,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2700.0,
+        "true_position": {
+          "x": 8143798.223387337,
+          "y": -284351.1844084415
+        },
+        "estimated_position": {
+          "x": 8143796.724635756,
+          "y": -284350.32530470385
+        },
+        "uncertainty_m": 4.26955665351688,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 2703.843400830234,
+        "true_position": {
+          "x": 8143800.0,
+          "y": -284350.0
+        },
+        "estimated_position": {
+          "x": 8143798.571797083,
+          "y": -284349.1262137362
+        },
+        "uncertainty_m": 4.277546536232181,
+        "confidence_pct": 95.0,
+        "sources": [
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      }
+    ]
+  }
+}
