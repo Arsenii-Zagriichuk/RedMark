@@ -1,7 +1,8 @@
-"""The walk simulation behind POST /simulate: one step per time tick along a route.
+"""The walk simulation behind POST /simulate: time ticks along a route.
 
 The service calls simulate(request) with a SimulateRequest as a dict and gets a
-SimulateResponse back as a dict. Every run is simulated and says so.
+SimulateResponse back as a dict. Fix ticks contain a prediction then a correction
+at the same time, in that order. Every run is simulated and says so.
 """
 
 from __future__ import annotations
@@ -69,17 +70,24 @@ def simulate(request: dict, results_root: Path = REPO_ROOT / "results") -> dict:
     variance = (START_CIRCLE_M / _CIRCLE_PER_SIGMA) ** 2  # per axis, square metres
     steps = []
     circle_m = START_CIRCLE_M
+    previous_walked_m = 0.0
     for t in ticks:
         walked_m = min(t * speed_m_s, along_m[-1])
         moved_to = np.array([np.interp(walked_m, along_m, corners[:, i]) for i in (0, 1)])
-        step_m = float(np.linalg.norm(moved_to - true))
+        # Turns can cancel displacement, but not the distance walked.
+        step_m = walked_m - previous_walked_m
+        previous_walked_m = walked_m
         drift_sigma = DRIFT_PER_M * step_m
         estimate = estimate + (moved_to - true) + rng.normal(0.0, drift_sigma, 2)
         variance += drift_sigma**2
         true = moved_to
         sources = ["visual_odometry", "motion_sensor", "step_count", "sun"]
         events = []
-        for fix in (f for f in walk.fix_schedule if f.time_s == t):
+        fixes = [f for f in walk.fix_schedule if f.time_s == t]
+        if fixes:
+            predicted_circle_m = _CIRCLE_PER_SIGMA * math.sqrt(variance)
+            steps.append(_step(t, true, estimate, predicted_circle_m, sources, []))
+        for fix in fixes:
             method, sigma = fix.method.value, fix_sigma[fix.method.value]
             gain = variance / (variance + sigma**2)
             estimate = estimate + gain * (true + rng.normal(0.0, sigma, 2) - estimate)
@@ -89,18 +97,7 @@ def simulate(request: dict, results_root: Path = REPO_ROOT / "results") -> dict:
         previous_circle_m, circle_m = circle_m, _CIRCLE_PER_SIGMA * math.sqrt(variance)
         if previous_circle_m <= FIX_REQUEST_OPEN_GROUND_M < circle_m:
             events.append({"kind": "fix_requested"})
-        steps.append(
-            {
-                "t_s": float(t),
-                "true_position": _point(true),
-                "estimated_position": _point(estimate),
-                "uncertainty_m": circle_m,
-                "confidence_pct": CIRCLE_COVERAGE * 100,
-                "sources": list(dict.fromkeys(sources)),
-                "events": events,
-                "mode": "normal",
-            }
-        )
+        steps.append(_step(t, true, estimate, circle_m, sources, events))
     response = {"site": walk.site, "simulated": True, "seed": walk.seed, "steps": steps}
     return SimulateResponse.model_validate(response).model_dump(mode="json", exclude_none=True)
 
@@ -113,3 +110,24 @@ def _fix_sigma_m(summary: Path) -> float:
 
 def _point(p: np.ndarray) -> dict:
     return {"x": float(p[0]), "y": float(p[1])}
+
+
+def _step(
+    t_s: float,
+    true: np.ndarray,
+    estimate: np.ndarray,
+    circle_m: float,
+    sources: list[str],
+    events: list[dict],
+) -> dict:
+    """Snapshot the state so later corrections cannot mutate a prediction sample."""
+    return {
+        "t_s": float(t_s),
+        "true_position": _point(true),
+        "estimated_position": _point(estimate),
+        "uncertainty_m": circle_m,
+        "confidence_pct": CIRCLE_COVERAGE * 100,
+        "sources": list(dict.fromkeys(sources)),
+        "events": list(events),
+        "mode": "normal",
+    }

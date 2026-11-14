@@ -13,6 +13,14 @@ from sim.engine import simulate
 RESULTS = REPO_ROOT / "results"
 
 
+def write_horizon_summary(results_root, median_error_m: float) -> None:
+    summary = json.loads((RESULTS / "horizon" / "horizon-gale.json").read_text())
+    summary["overall"]["median_error_m"] = median_error_m
+    folder = results_root / "horizon"
+    folder.mkdir()
+    (folder / "horizon-gale.json").write_text(json.dumps(summary))
+
+
 def walk(path, fixes=(), seed=1, **break_it) -> dict:
     return {
         "site": "gale",
@@ -42,6 +50,16 @@ def test_the_circle_grows_while_no_fix_is_taken():
     assert circles[-1] > 2 * circles[0]
 
 
+def test_the_circle_grows_for_distance_walked_out_and_back_within_one_tick():
+    run = simulate(walk([(0, 0), (2, 0), (0, 0)]))
+
+    first, last = run["steps"][0], run["steps"][-1]
+    assert last["t_s"] == pytest.approx(7.2)
+    assert last["true_position"] == first["true_position"]
+    # Walking 4 m adds 0.1 m drift sigma per axis; the initial 0.5 m circle becomes 0.5567 m.
+    assert last["uncertainty_m"] == pytest.approx(0.5567, abs=0.0001)
+
+
 def test_the_same_seed_replays_the_same_walk_and_another_seed_does_not():
     path = [(0, 0), (600, 500), (1200, 900)]
 
@@ -52,16 +70,20 @@ def test_the_same_seed_replays_the_same_walk_and_another_seed_does_not():
     assert first["steps"][-1]["estimated_position"] != other["steps"][-1]["estimated_position"]
 
 
-def step_at(run: dict, t_s: float) -> tuple[dict, dict]:
-    """The step at t_s and the one before it."""
-    i = next(i for i, s in enumerate(run["steps"]) if s["t_s"] == pytest.approx(t_s))
+def fix_at(run: dict, t_s: float) -> tuple[dict, dict]:
+    """The correction at t_s and its preceding prediction."""
+    i = next(
+        i
+        for i, s in enumerate(run["steps"])
+        if s["t_s"] == pytest.approx(t_s) and any(e["kind"] == "fix" for e in s["events"])
+    )
     return run["steps"][i], run["steps"][i - 1]
 
 
 def test_the_circle_shrinks_at_a_fix():
     run = simulate(walk([(0, 0), (2000, 0)], fixes=[(1805, "horizon")]))
 
-    fix, before = step_at(run, 1805)
+    fix, before = fix_at(run, 1805)
     assert {"kind": "fix", "method": "horizon"} in fix["events"]
     assert "horizon" in fix["sources"]
     assert fix["uncertainty_m"] < before["uncertainty_m"]
@@ -69,17 +91,28 @@ def test_the_circle_shrinks_at_a_fix():
     assert "horizon" not in after["sources"] and after["events"] == []
 
 
+def test_a_noisy_fix_emits_its_prediction_before_the_correction(tmp_path):
+    write_horizon_summary(tmp_path, 5)
+    run = simulate(walk([(0, 0), (1000, 0)], fixes=[(10, "horizon")]), results_root=tmp_path)
+
+    correction, prediction = fix_at(run, 10)
+    assert prediction["t_s"] == correction["t_s"] == 10
+    assert prediction["true_position"] == correction["true_position"]
+    assert prediction["uncertainty_m"] > run["steps"][0]["uncertainty_m"]
+    assert correction["uncertainty_m"] < prediction["uncertainty_m"]
+    assert correction["uncertainty_m"] > run["steps"][0]["uncertainty_m"]
+    assert prediction["events"] == [] and "horizon" not in prediction["sources"]
+    assert "horizon" in correction["sources"]
+
+
 def test_fix_error_sizes_come_from_the_test_summary_it_is_given(tmp_path):
-    summary = json.loads((RESULTS / "horizon" / "horizon-gale.json").read_text())
-    summary["overall"]["median_error_m"] = 0.1
-    (tmp_path / "horizon").mkdir()
-    (tmp_path / "horizon" / "horizon-gale.json").write_text(json.dumps(summary))
+    write_horizon_summary(tmp_path, 0.1)
 
     run = simulate(walk([(0, 0), (2000, 0)], fixes=[(1800, "horizon")]), results_root=tmp_path)
 
     # A 0.1 m median radial error is sigma = 0.1 / sqrt(2 ln 2) = 0.0849 m per axis, whose
     # 95% circle is 0.0849 * sqrt(-2 ln 0.05) = 0.208 m; the walked circle barely widens it.
-    fix, _ = step_at(run, 1800)
+    fix, _ = fix_at(run, 1800)
     assert fix["uncertainty_m"] == pytest.approx(0.208, rel=0.02)
 
 
@@ -117,12 +150,9 @@ def test_the_stub_request_gives_a_simulated_run_that_matches_the_contract():
 
 
 def test_a_test_summary_with_no_error_still_leaves_a_circle(tmp_path):
-    summary = json.loads((RESULTS / "horizon" / "horizon-gale.json").read_text())
-    summary["overall"]["median_error_m"] = 0
-    (tmp_path / "horizon").mkdir()
-    (tmp_path / "horizon" / "horizon-gale.json").write_text(json.dumps(summary))
+    write_horizon_summary(tmp_path, 0)
 
     run = simulate(walk([(0, 0), (500, 0)], fixes=[(300, "horizon")]), results_root=tmp_path)
 
-    fix, _ = step_at(run, 300)
+    fix, _ = fix_at(run, 300)
     assert 0 < fix["uncertainty_m"] < 0.1
