@@ -91,9 +91,10 @@ ERROR_LAYER = "error_map"
 ERROR_RASTER = "gale/rasters/error_map.tif"
 HORIZON_TEST = REPO_ROOT / "results" / "horizon" / "horizon-gale.json"
 """The horizon test summary the error map takes its medians from (P3-03)."""
-DEMO_ROUTES = REPO_ROOT / "cache" / "demo" / "route"
+DEMO_CACHE = REPO_ROOT / "cache" / "demo" / "route"
+"""The demo cache's saved POST /route responses, one file per demo step."""
 DEMO_SLOPE_DEG = 20
-"""The app's default slope limit, so the demo walk's."""
+"""The app's default slope limit (app/src/plan/PlanScreen.tsx), so the demo walk's."""
 CHECKPOINT_SQUARE_M = 500.0
 """Each square of the walk area this size gives one checkpoint candidate."""
 CHECKPOINT_NEIGHBOURHOOD_M = 10.0
@@ -135,7 +136,7 @@ def demo_route(site: SiteConfig) -> Path:
     if not site.science_targets:
         raise ValueError(f"{site.site.value} has no science target, so no demo walk to follow")
     step = f"plan.route.fastest.{site.science_targets[0].id}.{DEMO_SLOPE_DEG}"
-    return DEMO_ROUTES / f"{step.replace('.', '-')}.json"
+    return DEMO_CACHE / f"{step.replace('.', '-')}.json"
 
 
 def main() -> None:

@@ -87,7 +87,7 @@ def leg_directions(
         start, end = leg["start_index"], leg["end_index"]
         samples = _samples(points[start : end + 1], step_m)
         seen = []
-        means = []
+        chosen = None
         for landmark in landmarks:
             relative = [
                 _wrap(landmark_bearing_deg(landmark, at) - heading)
@@ -95,23 +95,15 @@ def leg_directions(
                 if in_view(masks[landmark.id], cells, at)
             ]
             mean = _wrap(_circular_mean(relative)) if relative else None
-            means.append(mean)
-            seen.append(
-                {
-                    "id": landmark.id,
-                    "share_of_leg_in_view": round(len(relative) / len(samples), 3),
-                    "relative_deg": None if mean is None else round(mean, 1),
-                    "side": None if mean is None else _side(mean),
-                }
-            )
-        chosen = next(
-            (
-                (landmark, mean)
-                for landmark, mean, view in zip(landmarks, means, seen, strict=True)
-                if view["share_of_leg_in_view"] >= MIN_SHARE_IN_VIEW
-            ),
-            None,
-        )
+            view = {
+                "id": landmark.id,
+                "share_of_leg_in_view": round(len(relative) / len(samples), 3),
+                "relative_deg": None if mean is None else round(mean, 1),
+                "side": None if mean is None else _side(mean),
+            }
+            seen.append(view)
+            if chosen is None and view["share_of_leg_in_view"] >= MIN_SHARE_IN_VIEW:
+                chosen = landmark, mean
         side = _side(chosen[1]) if chosen else None
         out.append(
             {
