@@ -3,9 +3,11 @@
 import json
 import time
 
+import pytest
 from fastapi.testclient import TestClient
 
 from contracts.paths import REPO_ROOT
+from route.engine import daylight_s
 from service.app import Settings, create_app
 
 STUB_REQUEST = json.loads((REPO_ROOT / "contracts/stubs/route/request.json").read_text())
@@ -38,12 +40,29 @@ def test_a_goal_beyond_the_distance_limit_is_refused_with_the_reason():
     assert "no safe route" in reply.json()["detail"]
 
 
-def test_the_science_and_cart_routes_say_they_are_not_built_yet():
-    for mode in ("science", "cart"):
-        reply = post_route(STUB_REQUEST | {"mode": mode})
+CREW_CHECKS = [
+    "slope",
+    "distance_from_habitat",
+    "planning_speed",
+    "walk_time",
+    "walk_back",
+    "daylight",
+]
 
-        assert reply.status_code == 501
-        assert "P4-04" in reply.json()["detail"]
+
+def test_all_three_route_modes_come_back_with_their_limit_checks():
+    routes = {}
+    for mode in ("fastest", "science", "cart"):
+        reply = post_route(STUB_REQUEST | {"mode": mode})
+        assert reply.status_code == 200, reply.text
+        routes[mode] = reply.json()
+
+    assert [c["limit"] for c in routes["fastest"]["limit_checks"]] == CREW_CHECKS
+    assert [c["limit"] for c in routes["science"]["limit_checks"]] == CREW_CHECKS
+    assert [c["limit"] for c in routes["cart"]["limit_checks"]] == CREW_CHECKS[:4]
+    assert {r["mode"] for r in routes.values()} == {"fastest", "science", "cart"}
+    assert routes["fastest"]["extra_time_vs_fastest_s"] is None
+    assert routes["science"]["extra_time_vs_fastest_s"] >= 0
 
 
 def test_start_and_goal_in_the_same_spot_is_refused_with_the_reason():
@@ -58,3 +77,21 @@ def test_a_site_without_a_habitat_is_refused_with_the_reason():
 
     assert reply.status_code == 422
     assert "no habitat" in reply.json()["detail"]
+
+
+def test_daylight_runs_from_first_light_to_sunset_on_the_replayed_sol():
+    conditions = json.loads((REPO_ROOT / "conditions/4600.json").read_text())
+    assert conditions["steps"][0]["lmst"] == "06:00" and conditions["sunset_lmst"] == "17:30"
+
+    # 11.5 Mars hours of 88775.244 s / 24 = 3698.97 s each.
+    assert daylight_s(conditions) == pytest.approx(42538.1, abs=0.1)
+    conditions["steps"][0]["sun_elevation_deg"] = -1.0
+    assert daylight_s(conditions) == pytest.approx(38839.2, abs=0.1)
+
+
+def test_a_sol_whose_sun_never_rises_has_no_daylight():
+    conditions = json.loads((REPO_ROOT / "conditions/4600.json").read_text())
+    for step in conditions["steps"]:
+        step["sun_elevation_deg"] = -5.0
+
+    assert daylight_s(conditions) == 0
