@@ -1,0 +1,155 @@
+{
+  "photo_id": "NLB_784293577ILT_S1110348NCAM00281M1",
+  "site": "gale",
+  "method": "horizon",
+  "position": {
+    "x": 8144600.0,
+    "y": -283440.0
+  },
+  "heading_deg": 261.094,
+  "uncertainty_m": 100.0,
+  "confidence_pct": 0.0,
+  "time_per_fix_s": 6.32,
+  "terrain_type": "plain",
+  "simulated": false,
+  "overlay": "results/horizon/overlays/p3-03-NLB_784293406ILT_S1110348NCAM00281M1.png",
+  "truth": {
+    "position": {
+      "x": 8144590.846637714,
+      "y": -283465.2073372456
+    },
+    "heading_deg": 260.003,
+    "position_error_m": 26.818,
+    "heading_error_deg": 1.0910000000000082
+  },
+  "provenance": {
+    "script": "locate/horizon/hidden_test.py",
+    "commit": "606df4ebf1253f9a323fcb07647a69765443823c",
+    "inputs": [
+      {
+        "path": "gale/horizon/grid.npz",
+        "sha256": "7b1bd8dcf05079114cffe243e082ec14ae5cb65d28e577705cd8d2b3ce90b959"
+      },
+      {
+        "path": "places/localized_pos.csv",
+        "sha256": "d456ce9025ca71673af8b9f72a78dc508f5d963cbac74fa68eeac88a4c7c3a3b"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293406ILT_S1110348NCAM00281M1.LBL",
+        "sha256": "88bd538b7d704673108533d19d5f4c1d391624f2d65821ef357e30e4df95e97b"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293406ILT_S1110348NCAM00281M1.IMG",
+        "sha256": "ce39b90b4e8f796d1144c89dbac894ec05c8600023b20d15d6cd5a6fd07c7ee9"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293429ILT_S1110348NCAM00281M1.LBL",
+        "sha256": "7ed86c9ccb609675f60b951ef6c8d38144e379169213a0410d6bceb35b41b189"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293429ILT_S1110348NCAM00281M1.IMG",
+        "sha256": "043904392033aac836df336d6ba7bc7a6e487d9c436cd7c47d68333cf7ffe00d"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293453ILT_S1110348NCAM00281M1.LBL",
+        "sha256": "53788af4acca6c64e6ff06c86c02ef6095fb823d755a2ae3836bbff418d5ae8d"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293453ILT_S1110348NCAM00281M1.IMG",
+        "sha256": "bed00360d0d09a8254a3807815d713eb398831efb9e3aca971f4f652f533a880"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293484ILT_S1110348NCAM00281M1.LBL",
+        "sha256": "996e67bd56dc11bf29420b39bd27b9a9cc390bb3a38f21156f97136990877280"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293484ILT_S1110348NCAM00281M1.IMG",
+        "sha256": "ef54fb4379d131df3691660300c070cefac613d7fb61e954643e552a7f85ea97"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293515ILT_S1110348NCAM00281M1.LBL",
+        "sha256": "280e3c1dc60f94085382c2d68229113a917ce02cf50a67717789c26829ebd33b"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293515ILT_S1110348NCAM00281M1.IMG",
+        "sha256": "6eed815ecd0292256daa2a383246078d09546989a498ed283f8933d01606f27b"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293546ILT_S1110348NCAM00281M1.LBL",
+        "sha256": "f2d9abab7aafce8f822dc18620f3334ab68d7095c944bd8044a53d1503f251a9"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293546ILT_S1110348NCAM00281M1.IMG",
+        "sha256": "065d2f6febd4f266b40c4151291655a220eb80585b36814dfc5f5268633f29e8"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293577ILT_S1110348NCAM00281M1.LBL",
+        "sha256": "79f911904bf0802a8aa97dd51055e45b40c0ac475ed20b5ff9faaf4f6bc364dc"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293577ILT_S1110348NCAM00281M1.IMG",
+        "sha256": "4c711e391db8794eafe5c15b93521b4ea575df781cb5d900c602692d62427fad"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293601ILT_S1110348NCAM00281M1.LBL",
+        "sha256": "8e3aeff9702b1979d03f08daee463e40d16d33171c126506ce614a26a486a15f"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293601ILT_S1110348NCAM00281M1.IMG",
+        "sha256": "8c910afdcb243f969972e50919bbed7706e7e0c3565f5ce956eefeb9c19f6834"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293631ILT_S1110348NCAM00281M1.LBL",
+        "sha256": "6b5069abdda3e8fe6a1b6a0d28340a27f3cd93d9a2fe2c23ac21f2c1a93719d6"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293631ILT_S1110348NCAM00281M1.IMG",
+        "sha256": "371a64898ef18cdbc3d1421382ba27aea948deb61d2276ddf20ecf98244be096"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293667ILT_S1110348NCAM00281M1.LBL",
+        "sha256": "403e103143a322cbc561c7dba326e9d6bcad922f40cf5a5725e1ba12159d9418"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293667ILT_S1110348NCAM00281M1.IMG",
+        "sha256": "d411e3a4951661512e7eb75ed0b9be166c7268153f6335f7590a658c27e31744"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293698ILT_S1110348NCAM00281M1.LBL",
+        "sha256": "1bd766cd38cbdc2afafd00f89ed697dc12ddc5bcf86f0416a6fd373f787f9eeb"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293698ILT_S1110348NCAM00281M1.IMG",
+        "sha256": "1d04ba5b1b8ac563d5098dbe1ea4e6e8beac4a7d3c4e0704b785a3ccec6fcd61"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293729ILT_S1110348NCAM00281M1.LBL",
+        "sha256": "56a594bdd4dbfc0fd42c2fa6db3f1fbe4cfb93034aab453f693cfa20cae6fe46"
+      },
+      {
+        "path": "hidden/horizon/NLB_784293729ILT_S1110348NCAM00281M1.IMG",
+        "sha256": "935e378724eb4b86eed7f82054a3754dafd6803cd211338ca2a96d4339858c3a"
+      },
+      {
+        "path": "sites/gale.yaml",
+        "sha256": "4301cb1364ab0e81394e9cdeec6cc241c105c43995cbecbb66e1188ead412a04"
+      },
+      {
+        "path": "gale/layers/base/layer.json",
+        "sha256": "1b10e14184c5f13321f1d7dceb3a5f3a2249bd99a3206f07b7c69198f51448c2"
+      },
+      {
+        "path": "gale/layers/base/tiles/0/0/0.png",
+        "sha256": "2f81971ce0db225743b7cc1640059913e7b3267738fc93670344c69df3f166e4"
+      },
+      {
+        "path": "MSL_Gale_DEM_Mosaic_1m_v3.tif",
+        "sha256": "c481ae885b4827af68fbdb428e9fac8a824d6828aebfba492577ba39bf55e42e"
+      },
+      {
+        "path": "hidden/horizon/index.csv",
+        "sha256": "06c6a8ec284ecfe7e9a07355c70ab8977cda495e584ca216930cce352fb4ab09"
+      }
+    ]
+  }
+}

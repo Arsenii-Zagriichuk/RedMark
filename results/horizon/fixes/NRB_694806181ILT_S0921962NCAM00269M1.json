@@ -9,7 +9,7 @@
   "heading_deg": 64.25,
   "uncertainty_m": 3397.057550292606,
   "confidence_pct": 0.0,
-  "time_per_fix_s": 5.25,
+  "time_per_fix_s": 5.14,
   "terrain_type": "plain",
   "simulated": false,
   "overlay": "results/horizon/overlays/p3-03-NRB_694806181ILT_S0921962NCAM00269M1.png",
@@ -24,7 +24,7 @@
   },
   "provenance": {
     "script": "locate/horizon/hidden_test.py",
-    "commit": "6f173d3a2b67ee604903758f17fa1af497797796",
+    "commit": "606df4ebf1253f9a323fcb07647a69765443823c",
     "inputs": [
       {
         "path": "gale/horizon/grid.npz",

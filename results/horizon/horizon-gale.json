@@ -10,7 +10,7 @@
     "within_5m_pct": 0.0,
     "within_10m_pct": 0.0,
     "median_heading_error_deg": 0.8385000000000034,
-    "median_time_per_fix_s": 4.1850000000000005
+    "median_time_per_fix_s": 4.155
   },
   "groups": {
     "textured": {
@@ -20,7 +20,7 @@
       "within_5m_pct": 0.0,
       "within_10m_pct": 0.0,
       "median_heading_error_deg": 1.1598499999999916,
-      "median_time_per_fix_s": 4.984999999999999
+      "median_time_per_fix_s": 4.915
     },
     "plain": {
       "n": 12,
@@ -29,7 +29,7 @@
       "within_5m_pct": 0.0,
       "within_10m_pct": 0.0,
       "median_heading_error_deg": 0.47810000000000485,
-      "median_time_per_fix_s": 4.1850000000000005
+      "median_time_per_fix_s": 4.155
     },
     "hollow": {
       "n": 4,
@@ -38,7 +38,7 @@
       "within_5m_pct": 0.0,
       "within_10m_pct": 0.0,
       "median_heading_error_deg": 0.9846499999999949,
-      "median_time_per_fix_s": 4.6
+      "median_time_per_fix_s": 4.52
     },
     "ridge_top_or_open": {
       "n": 16,
@@ -47,12 +47,12 @@
       "within_5m_pct": 0.0,
       "within_10m_pct": 0.0,
       "median_heading_error_deg": 0.7618499999999955,
-      "median_time_per_fix_s": 4.1850000000000005
+      "median_time_per_fix_s": 4.155
     }
   },
   "provenance": {
     "script": "locate/horizon/hidden_test.py",
-    "commit": "6f173d3a2b67ee604903758f17fa1af497797796",
+    "commit": "606df4ebf1253f9a323fcb07647a69765443823c",
     "inputs": [
       {
         "path": "gale/horizon/grid.npz",
