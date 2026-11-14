@@ -13,6 +13,7 @@ import { WalkMap, type MapRoute, type PointsShown } from "../map/WalkMap";
 import { Directions, type RouteState } from "./Directions";
 import { formatDuration, ROUTE_MODES, routeRequests, type SlopeLimit } from "./routes";
 import { Sidebar } from "./Sidebar";
+import { WalkScreen } from "../walk/WalkScreen";
 
 const SITE = "gale";
 const ALL_PLANNING: Record<RouteMode, RouteState> = {
@@ -58,6 +59,7 @@ export function PlanScreen() {
   const [slopeLimit, setSlopeLimit] = useState<SlopeLimit>(20);
   const [chosen, setChosen] = useState<RouteMode>("fastest");
   const [routes, setRoutes] = useState(ALL_PLANNING);
+  const [walking, setWalking] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -144,6 +146,21 @@ export function PlanScreen() {
     [planning, chosenState],
   );
 
+  if (walking && site && origin && selected && chosenState.status === "ok") {
+    return (
+      <WalkScreen
+        site={site}
+        origin={origin}
+        baseLayer={baseLayer}
+        route={chosenState.route}
+        step={`walk.simulate.${chosen}.${selected.id}.${slopeLimit}`}
+        target={selected}
+        conditions={loaded?.conditions ?? null}
+        onEnd={() => setWalking(false)}
+      />
+    );
+  }
+
   return (
     <div className="plan">
       {planning && site && selected ? (
@@ -156,6 +173,7 @@ export function PlanScreen() {
           slopeLimit={slopeLimit}
           onSlopeLimit={setSlopeLimit}
           onBack={() => setPlanning(false)}
+          onStartWalk={() => setWalking(true)}
         />
       ) : (
         <Sidebar
