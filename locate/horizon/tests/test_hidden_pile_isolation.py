@@ -6,13 +6,19 @@ from pathlib import Path
 
 from contracts.paths import REPO_ROOT
 
-# The scripts allowed to name the hidden pile: the one that fetches it and the
-# one that scores the matcher on it.
-SCORING_SCRIPTS = {"locate/horizon/hidden_pile.py", "locate/horizon/hidden_test.py"}
+# The scripts allowed to name a hidden pile: for each test, the one that fetches
+# it and the one that scores the matcher on it.
+SCORING_SCRIPTS = {
+    "locate/horizon/hidden_pile.py",
+    "locate/horizon/hidden_test.py",
+    "locate/ground/hidden_pile.py",
+    "locate/ground/hidden_test.py",
+}
 # The folder's name in any spelling a path can take, the constant that holds it,
 # or an import of either scoring script (which would hand over the folder or its index).
 POINTS_AT_HIDDEN_PILE = re.compile(
-    r"hidden/horizon|[\"']hidden[\"']|HIDDEN_PILE|horizon\.hidden_(pile|test)|from \.hidden_"
+    r"hidden/(horizon|ground)|[\"']hidden[\"']|HIDDEN_PILE"
+    r"|(horizon|ground)\.hidden_(pile|test)|from \.hidden_"
 )
 SKIPPED_DIRS = {".git", ".venv", "node_modules", "worktrees", "__pycache__"}
 
@@ -40,6 +46,20 @@ def test_a_tuning_script_naming_the_hidden_pile_is_caught(tmp_path):
     assert hidden_pile_readers(tmp_path) == {
         "locate/horizon/tune.py",
         "locate/horizon/peek.py",
+    }
+
+
+def test_a_ground_tuning_script_naming_its_hidden_pile_is_caught(tmp_path):
+    (tmp_path / "locate/ground").mkdir(parents=True)
+    (tmp_path / "locate/ground/tune.py").write_text('views = data / "hidden/ground"\n')
+    (tmp_path / "locate/ground/peek.py").write_text(
+        "from locate.ground.hidden_test import HIDDEN_PILE\n"
+    )
+    (tmp_path / "locate/ground/match.py").write_text('views = data / "gale/ground/tuning"\n')
+
+    assert hidden_pile_readers(tmp_path) == {
+        "locate/ground/tune.py",
+        "locate/ground/peek.py",
     }
 
 
