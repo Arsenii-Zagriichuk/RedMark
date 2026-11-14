@@ -161,9 +161,20 @@ def main() -> None:
 
 def _first_ring(stretch: list[Stop], folder: Path) -> tuple[Stop, list[Pointing]] | None:
     for stop in stretch:
-        ring = horizon_ring(_pointings(stop, folder))
+        try:
+            ring = horizon_ring(_pointings(stop, folder))
+        except (subprocess.CalledProcessError, RuntimeError) as error:
+            # The archive drops connections now and then; one stop it won't serve
+            # is skipped rather than ending the whole fetch.
+            print(
+                f"sol {stop.sol} site {stop.site} drive {stop.drive}: skipped, {error}", flush=True
+            )
+            continue
         if ring:
-            print(f"sol {stop.sol} site {stop.site} drive {stop.drive}: {len(ring)} frames")
+            print(
+                f"sol {stop.sol} site {stop.site} drive {stop.drive}: {len(ring)} frames",
+                flush=True,
+            )
             return stop, ring
     return None
 
@@ -203,7 +214,7 @@ def _fetch(url: str, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     partial = path.with_name(path.name + ".part")
     status = subprocess.run(
-        ["curl", "-sL", "--retry", "5", "--retry-all-errors", "--max-time", "600"]
+        ["curl", "-sL", "--http1.1", "--retry", "5", "--retry-all-errors", "--max-time", "600"]
         + ["-w", "%{http_code}", "-o", str(partial), url],
         capture_output=True,
         text=True,
