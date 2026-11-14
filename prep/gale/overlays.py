@@ -15,7 +15,7 @@ from prep.gale.rasters import read_window
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.patches import Circle, Patch, Rectangle  # noqa: E402
+from matplotlib.patches import Circle, Patch, Polygon, Rectangle  # noqa: E402
 
 OVERLAY_PX = 2000  # long side of the downsampled base map in each overlay
 ZOOM_HALF_M = 300  # half-width of the full-detail zoom panels
@@ -366,3 +366,200 @@ def _hillshade(heights: np.ndarray, res: float) -> np.ndarray:
 def _save(fig, path: Path) -> None:
     fig.savefig(path, dpi=80, bbox_inches="tight")
     plt.close(fig)
+
+
+# ---- layers 2 and 3 (P2-03) ---------------------------------------------------------
+
+SAMPLE_HALF_M = 50  # half-width of each ridge sample area
+
+
+def walkability(photo, layers, walk, habitat, zones, track, folder) -> Path:
+    """Layer 2 placed by its own layer.json on the photo map: sand over the walk area,
+    and the ridge map with its boxwork zones."""
+    image, extent = _read_small(photo)
+    sand_meta = json.loads((layers / "sand" / "layer.json").read_text())
+    ridge_meta = json.loads((layers / "ridges" / "layer.json").read_text())
+    fig, (wide, ridges) = plt.subplots(1, 2, figsize=(22, 11), gridspec_kw={"wspace": 0.08})
+    _show_gray(wide, image, extent)
+    colours, c_extent = _mosaic(layers / "sand", 0)
+    wide.imshow(colours, alpha=0.5, extent=c_extent)
+    _walk_area_patches(wide, walk, habitat)
+    _track(wide, track)
+    wide.plot(*habitat, "*", c="cyan", ms=16, mec="black")
+    wide.set_xlim(walk[0], walk[2])
+    wide.set_ylim(walk[1], walk[3])
+    wide.legend(handles=_legend(sand_meta), loc="lower left", fontsize=9)
+    wide.set_title(
+        "Loose sand, 100 m THEMIS pixels from the sand layer's tiles, 50% on the base map"
+    )
+    # The boxwork zones together, with the ridge tiles at full resolution.
+    xs = [p[0] for zone in zones for p in zone]
+    ys = [p[1] for zone in zones for p in zone]
+    box = (min(xs) - 50, min(ys) - 50, max(xs) + 50, max(ys) + 50)
+    detail, p_extent = read_window(photo, box)
+    _show_gray(ridges, detail[::4, ::4], p_extent)
+    colours, c_extent = _mosaic(layers / "ridges", ridge_meta["tiles"]["max_zoom"] - 2, box)
+    ridges.imshow(_masked(colours), extent=c_extent)
+    for zone in zones:
+        ridges.add_patch(Polygon(zone, closed=True, fill=False, ec="cyan", lw=1.5))
+    _track(ridges, track)
+    ridges.plot(*habitat, "*", c="cyan", ms=16, mec="black")
+    ridges.set_xlim(box[0], box[2])
+    ridges.set_ylim(box[1], box[3])
+    ridges.legend(
+        handles=[*_legend(ridge_meta), Patch(fill=False, ec="cyan", label="boxwork zone")],
+        loc="lower left",
+        fontsize=9,
+    )
+    ridges.set_title("Boxwork ridges (tiles at 2 m: a pixel is red if any 50 cm ridge pixel is)")
+    out = folder / "walkability.png"
+    _save(fig, out)
+    return out
+
+
+def ridge_samples(photo, layer, samples, targets, folder) -> Path:
+    """Each sample area twice at full detail: the photo alone, then with the ridge
+    tiles at 50 cm on it, to check the ridge map by eye. Science targets are marked."""
+    meta = json.loads((layer / "layer.json").read_text())
+    fig, axes = plt.subplots(len(samples), 2, figsize=(16, 8 * len(samples)))
+    for (title, (x, y)), (bare, marked) in zip(samples, axes, strict=True):
+        box = (x - SAMPLE_HALF_M, y - SAMPLE_HALF_M, x + SAMPLE_HALF_M, y + SAMPLE_HALF_M)
+        detail, p_extent = read_window(photo, box)
+        colours, c_extent = _mosaic(layer, meta["tiles"]["max_zoom"], box)
+        for ax in (bare, marked):
+            _show_gray(ax, detail, p_extent)
+            ax.set_xlim(box[0], box[2])
+            ax.set_ylim(box[1], box[3])
+        marked.imshow(_masked(colours), alpha=0.6, extent=c_extent)
+        for ax in (bare, marked):
+            _targets(ax, targets, ms=14)
+        bare.set_title(f"{title}: 25 cm photo")
+        marked.set_title("with the ridge layer's 50 cm tiles at 60%")
+    out = folder / "ridge-samples.png"
+    _save(fig, out)
+    return out
+
+
+def science(photo, layers, walk, habitat, targets, drilled, track, folder) -> Path:
+    """Layer 3 placed by its own layer.json on the photo map: CRISM mineral highlights
+    over the walk area; Curiosity's chemistry and drill sites over the whole chemistry
+    layer; then a close-up of the chemistry tiles at full detail round the drill sites
+    inside the walk area."""
+    image, extent = _read_small(photo)
+    fig, (minerals, overview, zoom) = plt.subplots(
+        1, 3, figsize=(33, 11), gridspec_kw={"wspace": 0.08}
+    )
+    meta = json.loads((layers / "minerals" / "layer.json").read_text())
+    _show_gray(minerals, image, extent)
+    colours, c_extent = _mosaic(layers / "minerals", meta["tiles"]["max_zoom"])
+    minerals.imshow(_masked(colours), alpha=0.6, extent=c_extent)
+    _walk_area_patches(minerals, walk, habitat)
+    _track(minerals, track)
+    minerals.plot(*habitat, "*", c="cyan", ms=16, mec="black")
+    _targets(minerals, targets, ms=12)
+    minerals.set_xlim(walk[0], walk[2])
+    minerals.set_ylim(walk[1], walk[3])
+    minerals.legend(handles=_legend(meta) + _target_handles(), loc="lower left", fontsize=8)
+    minerals.set_title("CRISM highlights on its own 18 m pixels, 60% on the base map")
+
+    meta = json.loads((layers / "chemistry" / "layer.json").read_text())
+    b = meta["bounds"]
+    whole = (b["min_x"], b["min_y"], b["max_x"], b["max_y"])
+    inside = [
+        d for d in drilled if whole[0] <= d["x"] <= whole[2] and whole[1] <= d["y"] <= whole[3]
+    ]
+    _show_gray(overview, image, extent)
+    colours, c_extent = _mosaic(layers / "chemistry", meta["tiles"]["max_zoom"])
+    overview.imshow(_masked(colours), extent=c_extent)
+    places = _drill_places(inside)
+    _drill_labels(overview, places)
+    overview.plot(*habitat, "*", c="cyan", ms=16, mec="black")
+    overview.set_xlim(whole[0], whole[2])
+    overview.set_ylim(whole[1], whole[3])
+    overview.legend(handles=_legend(meta), loc="lower left", fontsize=8)
+    overview.set_title(
+        f"Whole chemistry layer, 1 m tiles: APXS points by SO3; {len(inside)} APXS records on"
+        f" drill tailings at {len(places)} places"
+    )
+
+    if inside:
+        _drill_close_up(zoom, photo, layers / "chemistry", meta, inside, places)
+    else:
+        zoom.set_axis_off()
+        zoom.set_title("No drill-tailings records in the walk area: no close-up")
+    out = folder / "science.png"
+    _save(fig, out)
+    return out
+
+
+def _drill_close_up(ax, photo, layer, meta, inside, places) -> None:
+    """The chemistry tiles at full detail, 600 m round the drill records' centre."""
+    cx = sum(d["x"] for d in inside) / len(inside)
+    cy = sum(d["y"] for d in inside) / len(inside)
+    box = (cx - 300, cy - 300, cx + 300, cy + 300)
+    detail, p_extent = read_window(photo, box)
+    _show_gray(ax, detail[::2, ::2], p_extent)
+    colours, c_extent = _mosaic(layer, meta["tiles"]["max_zoom"], box)
+    ax.imshow(_masked(colours), extent=c_extent)
+    _drill_labels(
+        ax, [p for p in places if box[0] <= p["x"] <= box[2] and box[1] <= p["y"] <= box[3]]
+    )
+    ax.set_xlim(box[0], box[2])
+    ax.set_ylim(box[1], box[3])
+    ax.set_title("Close-up, 600 m round the drill sites' centre, at full detail")
+
+
+# Drill-tailings records this close share one label: the record does not say whether
+# they are one hole (Nevado Sajama and Nevado Sajama2 sit 0.7 m apart).
+DRILL_PLACE_M = 2.0
+
+
+def _drill_places(drilled) -> list[dict]:
+    """Drill-tailings records grouped by place, each {"x", "y", "label"}."""
+    places: list[dict] = []
+    for d in drilled:
+        near = next(
+            (p for p in places if math.dist((p["x"], p["y"]), (d["x"], d["y"])) <= DRILL_PLACE_M),
+            None,
+        )
+        if near is None:
+            near = {"x": d["x"], "y": d["y"], "records": []}
+            places.append(near)
+        near["records"].append(f"{d['name']} (sol {d['sol']})")
+    return [{"x": p["x"], "y": p["y"], "label": ", ".join(p["records"])} for p in places]
+
+
+def _drill_labels(ax, places) -> None:
+    # Each label one line lower than the last, so places metres apart stay readable.
+    for i, p in enumerate(places):
+        ax.annotate(
+            p["label"], (p["x"], p["y"]), color="cyan", fontsize=8,
+            xytext=(8, -4 - 11 * i), textcoords="offset points",
+            arrowprops={"arrowstyle": "-", "color": "cyan", "lw": 0.5},
+        )  # fmt: skip
+
+
+def _targets(ax, targets, ms) -> None:
+    for t in targets:
+        marker = "^" if t["kind"] == "ridge" else "v"
+        ax.plot(t["x"], t["y"], marker, c="lime", ms=ms, mec="black")
+
+
+def _target_handles() -> list:
+    return [
+        plt.Line2D([], [], ls="", marker="^", c="lime", mec="black", label="ridge target"),
+        plt.Line2D([], [], ls="", marker="v", c="lime", mec="black", label="hollow target"),
+    ]
+
+
+def _legend(meta: dict) -> list:
+    return [Patch(color=e["color"], label=e["label"]) for e in meta["legend"]]
+
+
+def _masked(rgba: np.ndarray) -> np.ndarray:
+    """An RGBA tile mosaic as floats, so matplotlib keeps its transparency."""
+    return rgba.astype(np.float32) / 255.0
+
+
+def _track(ax, track) -> None:
+    ax.plot([p[0] for p in track], [p[1] for p in track], "-", c="red", lw=1, label="Curiosity")

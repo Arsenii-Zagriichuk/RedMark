@@ -102,3 +102,21 @@ def test_a_site_without_a_slope_file_plans_on_flat_stub_ground(tmp_path):
 def test_a_slope_file_named_in_the_site_config_must_exist(tmp_path):
     with pytest.raises(FileNotFoundError):
         load_grid(site({"slope": "missing.tif"}), tmp_path, cell_m=4.0)
+
+
+def test_location_quality_keeps_each_planning_cells_worst_metre(tmp_path):
+    write_raster(tmp_path / "slope.tif", np.zeros((8, 8)))
+    quality = np.full((8, 8), 0.75)
+    quality[1, 6] = 0.25
+    quality[5:7, 1:3] = NODATA
+    write_raster(tmp_path / "quality.tif", quality)
+
+    g = load_grid(site({"slope": "slope.tif", "location_quality": "quality.tif"}), tmp_path, 4.0)
+
+    assert g.quality.tolist() == [[0.75, 0.25], [0.0, 0.75]]
+
+
+def test_a_site_without_location_quality_has_none(tmp_path):
+    write_raster(tmp_path / "slope.tif", np.zeros((8, 8)))
+
+    assert load_grid(site({"slope": "slope.tif"}), tmp_path, 4.0).quality is None
