@@ -390,6 +390,7 @@ def test_the_cart_route_has_no_crew_only_limit_checks():
         "distance_from_habitat",
         "planning_speed",
         "walk_time",
+        "hazard_margin",
     ]
 
 
@@ -503,3 +504,33 @@ def test_a_science_route_with_only_unmapped_targets_keeps_its_mode_and_zero_extr
     assert route.total_distance_m == pytest.approx(1000)
     assert route.total_time_s == pytest.approx(1800)
     assert route.extra_time_vs_fastest_s == 0
+
+
+def steep_drop_12_m_south_of_the_line() -> tuple[CostGrid, Point, Point]:
+    slope = np.zeros((41, 101))
+    slope[26, 50] = 30
+    g = grid(slope, cell_m=2.0)
+    return g, centre(g, 20, 0), centre(g, 20, 100)
+
+
+def test_the_route_moves_away_from_a_hazard_as_the_circle_grows():
+    g, start, goal = steep_drop_12_m_south_of_the_line()
+
+    small = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, uncertainty_m=5)
+    large = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, uncertainty_m=25)
+
+    small_margin, large_margin = check(small, "hazard_margin"), check(large, "hazard_margin")
+    # The straight line passes 6 cells of 2 m, 12 m, north of the steep cell.
+    assert (small_margin.value, small_margin.threshold, small_margin.units) == (12, 5, "m")
+    assert max(p.y for p in small.path) == start.y
+    assert large_margin.threshold == 25 and large_margin.value > 25
+    assert max(p.y for p in large.path) > start.y + 10
+    assert small_margin.passed and large_margin.passed
+
+
+def test_no_route_when_the_start_is_already_inside_the_hazard_margin():
+    g, _, goal = steep_drop_12_m_south_of_the_line()
+    start = centre(g, 20, 50)  # 12 m from the steep cell, inside a 15 m circle
+
+    with pytest.raises(NoSafeRoute):
+        plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, uncertainty_m=15)
