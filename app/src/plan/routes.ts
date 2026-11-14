@@ -3,6 +3,7 @@
 import type { RouteMode, RouteRequest } from "@contracts/route_request";
 import type { LimitCheck, RouteResponse } from "@contracts/route_response";
 import type { ScienceTarget, SiteConfig } from "@contracts/site";
+import { ApiError } from "../api/client";
 import { formatDistance } from "../map/geo";
 
 /** The slope limit options: 20° by default (Artemis planning), 15° as the cautious one. */
@@ -40,6 +41,20 @@ export function routeRequests(
     science: walkFrom && request("science", walkFrom, target.position),
     cart: site.habitat && site.base_camp && request("cart", site.habitat, site.base_camp),
   };
+}
+
+/** Why the service refused a route: the engine's reason when it gave one. */
+export function refusal(reason: unknown): string {
+  if (reason instanceof ApiError && reason.body && typeof reason.body === "object") {
+    const detail = (reason.body as { detail?: unknown }).detail;
+    // The screen already says "No safe route:", so drop the engine's own prefix.
+    if (typeof detail === "string") return detail.replace(/^no safe route:\s*/i, "");
+    // A request that breaks the route_request contract: FastAPI lists what is wrong.
+    if (Array.isArray(detail)) {
+      return detail.map((item: { msg?: string }) => item.msg ?? JSON.stringify(item)).join("; ");
+    }
+  }
+  return reason instanceof Error ? reason.message : String(reason);
 }
 
 export function formatDuration(seconds: number): string {

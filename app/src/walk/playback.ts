@@ -91,20 +91,32 @@ export interface FixEvent {
   fraction: number;
   kind: string;
   method: Method | null;
+  /** A fix the buddy's camera took, shared over the short-range radio (camera off). */
+  buddy: boolean;
 }
+
+/** On the timeline: fixes, fix requests, fixes that can't reach the crew, lost mode. */
+const TIMELINE_KINDS = new Set(["fix", "fix_requested", "fix_unavailable", "lost_mode"]);
 
 /** Every fix and fix request in the walk, for the timeline. */
 export function fixEvents(simulation: SimulateResponse): FixEvent[] {
   const end_s = simulation.steps[simulation.steps.length - 1]?.t_s ?? 0;
   return simulation.steps.flatMap((step, index) =>
     step.events
-      .filter((event) => event.kind === "fix" || event.kind === "fix_requested")
+      .filter((event) => TIMELINE_KINDS.has(event.kind))
       .map((event) => ({
         index,
         t_s: step.t_s,
         fraction: end_s > 0 ? step.t_s / end_s : 0,
         kind: event.kind,
         method: event.method ?? null,
+        buddy: event.kind === "fix" && step.events.some((other) => other.kind === "buddy_camera"),
       })),
   );
+}
+
+/** The step at a time into the walk: the last one at or before it, so after a fix there. */
+export function indexAtTime(simulation: SimulateResponse, t_s: number): number {
+  const after = simulation.steps.findIndex((step) => step.t_s > t_s);
+  return after === -1 ? simulation.steps.length - 1 : Math.max(0, after - 1);
 }
