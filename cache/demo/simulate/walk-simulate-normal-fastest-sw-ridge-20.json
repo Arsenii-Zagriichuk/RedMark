@@ -1,0 +1,2493 @@
+{
+  "step": "walk.simulate.normal.fastest.sw-ridge.20",
+  "request": {
+    "method": "POST",
+    "path": "/simulate",
+    "body": {
+      "site": "gale",
+      "path": [
+        {
+          "x": 8142600,
+          "y": -285250
+        },
+        {
+          "x": 8142602,
+          "y": -285252
+        },
+        {
+          "x": 8142598,
+          "y": -285252
+        },
+        {
+          "x": 8142594,
+          "y": -285252
+        },
+        {
+          "x": 8142590,
+          "y": -285248
+        },
+        {
+          "x": 8142586,
+          "y": -285244
+        },
+        {
+          "x": 8142582,
+          "y": -285244
+        },
+        {
+          "x": 8142578,
+          "y": -285240
+        },
+        {
+          "x": 8142574,
+          "y": -285236
+        },
+        {
+          "x": 8142570,
+          "y": -285232
+        },
+        {
+          "x": 8142566,
+          "y": -285228
+        },
+        {
+          "x": 8142562,
+          "y": -285224
+        },
+        {
+          "x": 8142558,
+          "y": -285220
+        },
+        {
+          "x": 8142554,
+          "y": -285216
+        },
+        {
+          "x": 8142550,
+          "y": -285212
+        },
+        {
+          "x": 8142546,
+          "y": -285208
+        },
+        {
+          "x": 8142542,
+          "y": -285204
+        },
+        {
+          "x": 8142538,
+          "y": -285200
+        },
+        {
+          "x": 8142534,
+          "y": -285196
+        },
+        {
+          "x": 8142530,
+          "y": -285192
+        },
+        {
+          "x": 8142526,
+          "y": -285188
+        },
+        {
+          "x": 8142522,
+          "y": -285184
+        },
+        {
+          "x": 8142518,
+          "y": -285180
+        },
+        {
+          "x": 8142514,
+          "y": -285176
+        },
+        {
+          "x": 8142510,
+          "y": -285172
+        },
+        {
+          "x": 8142506,
+          "y": -285168
+        },
+        {
+          "x": 8142502,
+          "y": -285164
+        },
+        {
+          "x": 8142498,
+          "y": -285164
+        },
+        {
+          "x": 8142494,
+          "y": -285160
+        },
+        {
+          "x": 8142490,
+          "y": -285156
+        },
+        {
+          "x": 8142486,
+          "y": -285152
+        },
+        {
+          "x": 8142485.5,
+          "y": -285150.5
+        },
+        {
+          "x": 8142486,
+          "y": -285152
+        },
+        {
+          "x": 8142486,
+          "y": -285156
+        },
+        {
+          "x": 8142486,
+          "y": -285160
+        },
+        {
+          "x": 8142486,
+          "y": -285164
+        },
+        {
+          "x": 8142486,
+          "y": -285168
+        },
+        {
+          "x": 8142486,
+          "y": -285172
+        },
+        {
+          "x": 8142486,
+          "y": -285176
+        },
+        {
+          "x": 8142486,
+          "y": -285180
+        },
+        {
+          "x": 8142486,
+          "y": -285184
+        },
+        {
+          "x": 8142486,
+          "y": -285188
+        },
+        {
+          "x": 8142486,
+          "y": -285192
+        },
+        {
+          "x": 8142486,
+          "y": -285196
+        },
+        {
+          "x": 8142486,
+          "y": -285200
+        },
+        {
+          "x": 8142486,
+          "y": -285204
+        },
+        {
+          "x": 8142482,
+          "y": -285208
+        },
+        {
+          "x": 8142478,
+          "y": -285212
+        },
+        {
+          "x": 8142474,
+          "y": -285216
+        },
+        {
+          "x": 8142470,
+          "y": -285220
+        },
+        {
+          "x": 8142466,
+          "y": -285224
+        },
+        {
+          "x": 8142462,
+          "y": -285228
+        },
+        {
+          "x": 8142458,
+          "y": -285232
+        },
+        {
+          "x": 8142454,
+          "y": -285236
+        },
+        {
+          "x": 8142450,
+          "y": -285240
+        },
+        {
+          "x": 8142446,
+          "y": -285244
+        },
+        {
+          "x": 8142442,
+          "y": -285248
+        },
+        {
+          "x": 8142438,
+          "y": -285252
+        },
+        {
+          "x": 8142434,
+          "y": -285256
+        },
+        {
+          "x": 8142430,
+          "y": -285260
+        },
+        {
+          "x": 8142426,
+          "y": -285264
+        },
+        {
+          "x": 8142426,
+          "y": -285268
+        },
+        {
+          "x": 8142426,
+          "y": -285272
+        },
+        {
+          "x": 8142426,
+          "y": -285276
+        },
+        {
+          "x": 8142426,
+          "y": -285280
+        },
+        {
+          "x": 8142426,
+          "y": -285284
+        },
+        {
+          "x": 8142426,
+          "y": -285288
+        },
+        {
+          "x": 8142426,
+          "y": -285292
+        },
+        {
+          "x": 8142426,
+          "y": -285296
+        },
+        {
+          "x": 8142426,
+          "y": -285300
+        },
+        {
+          "x": 8142426,
+          "y": -285304
+        },
+        {
+          "x": 8142426,
+          "y": -285308
+        },
+        {
+          "x": 8142426,
+          "y": -285312
+        },
+        {
+          "x": 8142426,
+          "y": -285316
+        },
+        {
+          "x": 8142426,
+          "y": -285320
+        },
+        {
+          "x": 8142426,
+          "y": -285324
+        },
+        {
+          "x": 8142426,
+          "y": -285328
+        },
+        {
+          "x": 8142426,
+          "y": -285332
+        },
+        {
+          "x": 8142426,
+          "y": -285336
+        },
+        {
+          "x": 8142426,
+          "y": -285340
+        },
+        {
+          "x": 8142426,
+          "y": -285344
+        },
+        {
+          "x": 8142426,
+          "y": -285348
+        },
+        {
+          "x": 8142426,
+          "y": -285352
+        },
+        {
+          "x": 8142426,
+          "y": -285356
+        },
+        {
+          "x": 8142426,
+          "y": -285360
+        },
+        {
+          "x": 8142426,
+          "y": -285364
+        },
+        {
+          "x": 8142426,
+          "y": -285368
+        },
+        {
+          "x": 8142426,
+          "y": -285372
+        },
+        {
+          "x": 8142426,
+          "y": -285376
+        },
+        {
+          "x": 8142426,
+          "y": -285380
+        },
+        {
+          "x": 8142426,
+          "y": -285384
+        },
+        {
+          "x": 8142426,
+          "y": -285388
+        },
+        {
+          "x": 8142426,
+          "y": -285392
+        },
+        {
+          "x": 8142422,
+          "y": -285396
+        },
+        {
+          "x": 8142422,
+          "y": -285400
+        },
+        {
+          "x": 8142422,
+          "y": -285404
+        },
+        {
+          "x": 8142422,
+          "y": -285408
+        },
+        {
+          "x": 8142422,
+          "y": -285412
+        },
+        {
+          "x": 8142422,
+          "y": -285416
+        },
+        {
+          "x": 8142422,
+          "y": -285420
+        },
+        {
+          "x": 8142422,
+          "y": -285424
+        },
+        {
+          "x": 8142422,
+          "y": -285428
+        },
+        {
+          "x": 8142422,
+          "y": -285432
+        },
+        {
+          "x": 8142422,
+          "y": -285436
+        },
+        {
+          "x": 8142422,
+          "y": -285440
+        },
+        {
+          "x": 8142422,
+          "y": -285444
+        },
+        {
+          "x": 8142418,
+          "y": -285448
+        },
+        {
+          "x": 8142414,
+          "y": -285452
+        },
+        {
+          "x": 8142410,
+          "y": -285456
+        },
+        {
+          "x": 8142409.75,
+          "y": -285455.25
+        }
+      ],
+      "fix_schedule": [
+        {
+          "time_s": 300,
+          "method": "horizon"
+        },
+        {
+          "time_s": 450,
+          "method": "ground"
+        },
+        {
+          "time_s": 600,
+          "method": "drone"
+        }
+      ],
+      "break_it": {
+        "camera_off": false,
+        "radio_off": false,
+        "drone_grounded": false
+      },
+      "seed": 1
+    }
+  },
+  "status": 200,
+  "contract": "simulate_response",
+  "response": {
+    "site": "gale",
+    "simulated": true,
+    "seed": 1,
+    "steps": [
+      {
+        "t_s": 0.0,
+        "true_position": {
+          "x": 8142600.0,
+          "y": -285250.0
+        },
+        "estimated_position": {
+          "x": 8142600.0,
+          "y": -285250.0
+        },
+        "uncertainty_m": 0.5,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 10.0,
+        "true_position": {
+          "x": 8142599.272871569,
+          "y": -285252.0
+        },
+        "estimated_position": {
+          "x": 8142599.318765607,
+          "y": -285252.18099405995
+        },
+        "uncertainty_m": 0.6046288868394348,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 20.0,
+        "true_position": {
+          "x": 8142593.800112236,
+          "y": -285251.8001122363
+        },
+        "estimated_position": {
+          "x": 8142593.971750145,
+          "y": -285251.91910982784
+        },
+        "uncertainty_m": 0.6936513400847635,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 30.0,
+        "true_position": {
+          "x": 8142589.87174123,
+          "y": -285247.8717412297
+        },
+        "estimated_position": {
+          "x": 8142589.9688023,
+          "y": -285247.91002797347
+        },
+        "uncertainty_m": 0.7724818913101344,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 40.0,
+        "true_position": {
+          "x": 8142585.919913402,
+          "y": -285244.0
+        },
+        "estimated_position": {
+          "x": 8142586.067609527,
+          "y": -285243.9974350081
+        },
+        "uncertainty_m": 0.8439812576134473,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 50.0,
+        "true_position": {
+          "x": 8142580.843426341,
+          "y": -285242.8434263413
+        },
+        "estimated_position": {
+          "x": 8142580.99507,
+          "y": -285242.76492899016
+        },
+        "uncertainty_m": 0.9098793623351781,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 60.0,
+        "true_position": {
+          "x": 8142576.915055335,
+          "y": -285238.9150553347
+        },
+        "estimated_position": {
+          "x": 8142576.949016241,
+          "y": -285238.8407924474
+        },
+        "uncertainty_m": 0.9682722852985663,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [
+          {
+            "kind": "radio_ranging_simulated"
+          }
+        ],
+        "mode": "normal"
+      },
+      {
+        "t_s": 70.0,
+        "true_position": {
+          "x": 8142572.986684328,
+          "y": -285234.9866843281
+        },
+        "estimated_position": {
+          "x": 8142573.026162194,
+          "y": -285234.953040434
+        },
+        "uncertainty_m": 1.026219912727288,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 80.0,
+        "true_position": {
+          "x": 8142569.058313321,
+          "y": -285231.0583133215
+        },
+        "estimated_position": {
+          "x": 8142568.98919279,
+          "y": -285231.0603905719
+        },
+        "uncertainty_m": 1.0810658629698269,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 90.0,
+        "true_position": {
+          "x": 8142565.129942315,
+          "y": -285227.12994231493
+        },
+        "estimated_position": {
+          "x": 8142565.061952642,
+          "y": -285227.1702977466
+        },
+        "uncertainty_m": 1.1332605573650705,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 100.0,
+        "true_position": {
+          "x": 8142561.201571308,
+          "y": -285223.2015713083
+        },
+        "estimated_position": {
+          "x": 8142561.3133127205,
+          "y": -285223.1021039184
+        },
+        "uncertainty_m": 1.1831549271672261,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 110.0,
+        "true_position": {
+          "x": 8142557.273200301,
+          "y": -285219.27320030174
+        },
+        "estimated_position": {
+          "x": 8142557.008391369,
+          "y": -285219.43609586265
+        },
+        "uncertainty_m": 1.2310287049783928,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 120.0,
+        "true_position": {
+          "x": 8142553.344829295,
+          "y": -285215.3448292951
+        },
+        "estimated_position": {
+          "x": 8142553.07036671,
+          "y": -285215.55227164226
+        },
+        "uncertainty_m": 1.2702122754493004,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 130.0,
+        "true_position": {
+          "x": 8142549.416458288,
+          "y": -285211.41645828856
+        },
+        "estimated_position": {
+          "x": 8142549.436139976,
+          "y": -285211.7783479638
+        },
+        "uncertainty_m": 1.3149202696372062,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 140.0,
+        "true_position": {
+          "x": 8142545.488087282,
+          "y": -285207.48808728193
+        },
+        "estimated_position": {
+          "x": 8142545.455323829,
+          "y": -285207.5662586784
+        },
+        "uncertainty_m": 1.3581573569743224,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 150.0,
+        "true_position": {
+          "x": 8142541.559716275,
+          "y": -285203.55971627537
+        },
+        "estimated_position": {
+          "x": 8142541.616772683,
+          "y": -285203.5457955368
+        },
+        "uncertainty_m": 1.4000598191163731,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 160.0,
+        "true_position": {
+          "x": 8142537.631345268,
+          "y": -285199.63134526875
+        },
+        "estimated_position": {
+          "x": 8142537.617011903,
+          "y": -285199.8463238594
+        },
+        "uncertainty_m": 1.440744109099484,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 170.0,
+        "true_position": {
+          "x": 8142533.702974262,
+          "y": -285195.7029742622
+        },
+        "estimated_position": {
+          "x": 8142533.711899889,
+          "y": -285195.9028120073
+        },
+        "uncertainty_m": 1.4803106696587578,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 180.0,
+        "true_position": {
+          "x": 8142529.774603256,
+          "y": -285191.77460325556
+        },
+        "estimated_position": {
+          "x": 8142529.610049841,
+          "y": -285192.13651138
+        },
+        "uncertainty_m": 1.5072842011446925,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 190.0,
+        "true_position": {
+          "x": 8142525.846232249,
+          "y": -285187.846232249
+        },
+        "estimated_position": {
+          "x": 8142525.668030228,
+          "y": -285188.19487884187
+        },
+        "uncertainty_m": 1.5451478097001232,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 200.0,
+        "true_position": {
+          "x": 8142521.917861243,
+          "y": -285183.9178612424
+        },
+        "estimated_position": {
+          "x": 8142521.744601754,
+          "y": -285184.33682612114
+        },
+        "uncertainty_m": 1.5821055099524122,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 210.0,
+        "true_position": {
+          "x": 8142517.989490236,
+          "y": -285179.9894902358
+        },
+        "estimated_position": {
+          "x": 8142517.898695757,
+          "y": -285180.2846819265
+        },
+        "uncertainty_m": 1.6182193718474875,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 220.0,
+        "true_position": {
+          "x": 8142514.0611192295,
+          "y": -285176.06111922924
+        },
+        "estimated_position": {
+          "x": 8142514.014887014,
+          "y": -285176.4699540071
+        },
+        "uncertainty_m": 1.653544685281644,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 230.0,
+        "true_position": {
+          "x": 8142510.132748223,
+          "y": -285172.1327482226
+        },
+        "estimated_position": {
+          "x": 8142510.188134381,
+          "y": -285172.61122744746
+        },
+        "uncertainty_m": 1.6881309537544371,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 240.0,
+        "true_position": {
+          "x": 8142506.204377216,
+          "y": -285168.20437721605
+        },
+        "estimated_position": {
+          "x": 8142506.467185784,
+          "y": -285168.82148478064
+        },
+        "uncertainty_m": 1.705226044340935,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 250.0,
+        "true_position": {
+          "x": 8142502.27600621,
+          "y": -285164.27600620943
+        },
+        "estimated_position": {
+          "x": 8142502.365377432,
+          "y": -285164.9367109229
+        },
+        "uncertainty_m": 1.7387846195257552,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 260.0,
+        "true_position": {
+          "x": 8142497.176062328,
+          "y": -285163.1760623276
+        },
+        "estimated_position": {
+          "x": 8142497.272947756,
+          "y": -285163.7988793551
+        },
+        "uncertainty_m": 1.7717076632164857,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 270.0,
+        "true_position": {
+          "x": 8142493.247691321,
+          "y": -285159.247691321
+        },
+        "estimated_position": {
+          "x": 8142493.208161731,
+          "y": -285160.0243101606
+        },
+        "uncertainty_m": 1.8040299705660974,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 280.0,
+        "true_position": {
+          "x": 8142489.319320315,
+          "y": -285155.3193203144
+        },
+        "estimated_position": {
+          "x": 8142489.307510799,
+          "y": -285156.1607654897
+        },
+        "uncertainty_m": 1.8357832730203771,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 290.0,
+        "true_position": {
+          "x": 8142485.72762425,
+          "y": -285151.18287275033
+        },
+        "estimated_position": {
+          "x": 8142485.748523846,
+          "y": -285151.91882910306
+        },
+        "uncertainty_m": 1.8669966031844036,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 300.0,
+        "true_position": {
+          "x": 8142486.0,
+          "y": -285155.25460564444
+        },
+        "estimated_position": {
+          "x": 8142485.940548898,
+          "y": -285155.97370778664
+        },
+        "uncertainty_m": 1.8752871564924272,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 300.0,
+        "true_position": {
+          "x": 8142486.0,
+          "y": -285155.25460564444
+        },
+        "estimated_position": {
+          "x": 8142485.933807008,
+          "y": -285155.9673615073
+        },
+        "uncertainty_m": 1.8751764626966019,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio",
+          "horizon"
+        ],
+        "events": [
+          {
+            "kind": "fix",
+            "method": "horizon"
+          }
+        ],
+        "mode": "normal"
+      },
+      {
+        "t_s": 310.0,
+        "true_position": {
+          "x": 8142486.0,
+          "y": -285160.8101612
+        },
+        "estimated_position": {
+          "x": 8142485.969007913,
+          "y": -285161.3984888586
+        },
+        "uncertainty_m": 1.9057446988125228,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 320.0,
+        "true_position": {
+          "x": 8142486.0,
+          "y": -285166.36571675556
+        },
+        "estimated_position": {
+          "x": 8142485.921061287,
+          "y": -285167.15985250776
+        },
+        "uncertainty_m": 1.9358302993425658,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 330.0,
+        "true_position": {
+          "x": 8142486.0,
+          "y": -285171.9212723111
+        },
+        "estimated_position": {
+          "x": 8142485.905782014,
+          "y": -285172.7773286401
+        },
+        "uncertainty_m": 1.965455427796169,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 340.0,
+        "true_position": {
+          "x": 8142486.0,
+          "y": -285177.4768278667
+        },
+        "estimated_position": {
+          "x": 8142486.013465879,
+          "y": -285178.3059907445
+        },
+        "uncertainty_m": 1.994640601575661,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 350.0,
+        "true_position": {
+          "x": 8142486.0,
+          "y": -285183.0323834222
+        },
+        "estimated_position": {
+          "x": 8142485.786959041,
+          "y": -285184.0275411722
+        },
+        "uncertainty_m": 2.0234048582166673,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 360.0,
+        "true_position": {
+          "x": 8142486.0,
+          "y": -285188.58793897775
+        },
+        "estimated_position": {
+          "x": 8142485.824665292,
+          "y": -285189.46420490317
+        },
+        "uncertainty_m": 2.023527381679994,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 370.0,
+        "true_position": {
+          "x": 8142486.0,
+          "y": -285194.1434945333
+        },
+        "estimated_position": {
+          "x": 8142485.8865505075,
+          "y": -285194.95470430097
+        },
+        "uncertainty_m": 2.0518867305992763,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 380.0,
+        "true_position": {
+          "x": 8142486.0,
+          "y": -285199.6990500889
+        },
+        "estimated_position": {
+          "x": 8142486.008250812,
+          "y": -285200.47463685274
+        },
+        "uncertainty_m": 2.0798594293870147,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 390.0,
+        "true_position": {
+          "x": 8142485.112859841,
+          "y": -285204.8871401589
+        },
+        "estimated_position": {
+          "x": 8142485.107940051,
+          "y": -285205.69867804286
+        },
+        "uncertainty_m": 2.107460874325019,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 400.0,
+        "true_position": {
+          "x": 8142481.184488835,
+          "y": -285208.8155111655
+        },
+        "estimated_position": {
+          "x": 8142481.326199989,
+          "y": -285209.93966769875
+        },
+        "uncertainty_m": 2.1347054662438723,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 410.0,
+        "true_position": {
+          "x": 8142477.256117828,
+          "y": -285212.7438821721
+        },
+        "estimated_position": {
+          "x": 8142477.378571298,
+          "y": -285213.8634553576
+        },
+        "uncertainty_m": 2.1616066983640114,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 420.0,
+        "true_position": {
+          "x": 8142473.327746822,
+          "y": -285216.67225317867
+        },
+        "estimated_position": {
+          "x": 8142473.153703543,
+          "y": -285217.57877829886
+        },
+        "uncertainty_m": 2.154020061118861,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 430.0,
+        "true_position": {
+          "x": 8142469.399375815,
+          "y": -285220.6006241853
+        },
+        "estimated_position": {
+          "x": 8142469.207889192,
+          "y": -285221.4142113554
+        },
+        "uncertainty_m": 2.180683038523296,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 440.0,
+        "true_position": {
+          "x": 8142465.471004808,
+          "y": -285224.52899519185
+        },
+        "estimated_position": {
+          "x": 8142465.4488020195,
+          "y": -285225.28939769766
+        },
+        "uncertainty_m": 2.2070239249504953,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 450.0,
+        "true_position": {
+          "x": 8142461.542633802,
+          "y": -285228.4573661985
+        },
+        "estimated_position": {
+          "x": 8142461.398803077,
+          "y": -285229.42809073644
+        },
+        "uncertainty_m": 2.233054118489873,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 450.0,
+        "true_position": {
+          "x": 8142461.542633802,
+          "y": -285228.4573661985
+        },
+        "estimated_position": {
+          "x": 8142461.987670849,
+          "y": -285228.5738953225
+        },
+        "uncertainty_m": 0.6702751879475733,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "ground"
+        ],
+        "events": [
+          {
+            "kind": "fix",
+            "method": "ground"
+          }
+        ],
+        "mode": "normal"
+      },
+      {
+        "t_s": 460.0,
+        "true_position": {
+          "x": 8142457.614262795,
+          "y": -285232.38573720504
+        },
+        "estimated_position": {
+          "x": 8142457.963665822,
+          "y": -285232.4822306224
+        },
+        "uncertainty_m": 0.7515616530790069,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 470.0,
+        "true_position": {
+          "x": 8142453.685891788,
+          "y": -285236.31410821166
+        },
+        "estimated_position": {
+          "x": 8142454.0087099075,
+          "y": -285236.2922485368
+        },
+        "uncertainty_m": 0.8248763599349568,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 480.0,
+        "true_position": {
+          "x": 8142449.757520782,
+          "y": -285240.2424792182
+        },
+        "estimated_position": {
+          "x": 8142450.06443303,
+          "y": -285240.20642457
+        },
+        "uncertainty_m": 0.8898254700944052,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 490.0,
+        "true_position": {
+          "x": 8142445.829149775,
+          "y": -285244.1708502248
+        },
+        "estimated_position": {
+          "x": 8142445.9924694225,
+          "y": -285244.0423109321
+        },
+        "uncertainty_m": 0.9525573253245301,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 500.0,
+        "true_position": {
+          "x": 8142441.900778769,
+          "y": -285248.0992212314
+        },
+        "estimated_position": {
+          "x": 8142442.275756404,
+          "y": -285248.1824438885
+        },
+        "uncertainty_m": 1.0114057290870544,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 510.0,
+        "true_position": {
+          "x": 8142437.972407762,
+          "y": -285252.027592238
+        },
+        "estimated_position": {
+          "x": 8142438.00485356,
+          "y": -285252.0251372902
+        },
+        "uncertainty_m": 1.0670134205485946,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 520.0,
+        "true_position": {
+          "x": 8142434.044036755,
+          "y": -285255.9559632446
+        },
+        "estimated_position": {
+          "x": 8142434.430357249,
+          "y": -285256.09252563695
+        },
+        "uncertainty_m": 1.1198632641673294,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 530.0,
+        "true_position": {
+          "x": 8142430.115665749,
+          "y": -285259.88433425117
+        },
+        "estimated_position": {
+          "x": 8142430.328278499,
+          "y": -285259.9390954027
+        },
+        "uncertainty_m": 1.1703289371933854,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 540.0,
+        "true_position": {
+          "x": 8142426.187294742,
+          "y": -285263.8127052578
+        },
+        "estimated_position": {
+          "x": 8142426.26510979,
+          "y": -285263.9104029947
+        },
+        "uncertainty_m": 1.212709029569957,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 550.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285269.29068079096
+        },
+        "estimated_position": {
+          "x": 8142426.021523053,
+          "y": -285269.349783689
+        },
+        "uncertainty_m": 1.2594599164726128,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 560.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285274.8462363465
+        },
+        "estimated_position": {
+          "x": 8142425.997004544,
+          "y": -285275.02265467565
+        },
+        "uncertainty_m": 1.3045364586710086,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 570.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285280.4017919021
+        },
+        "estimated_position": {
+          "x": 8142425.95258423,
+          "y": -285280.7102101847
+        },
+        "uncertainty_m": 1.3481066214519495,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 580.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285285.9573474576
+        },
+        "estimated_position": {
+          "x": 8142425.953489089,
+          "y": -285286.4218582718
+        },
+        "uncertainty_m": 1.3903120346178708,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 590.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285291.51290301315
+        },
+        "estimated_position": {
+          "x": 8142425.801698205,
+          "y": -285291.7750580197
+        },
+        "uncertainty_m": 1.4312734345344278,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 600.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285297.0684585687
+        },
+        "estimated_position": {
+          "x": 8142425.833668112,
+          "y": -285297.3642294135
+        },
+        "uncertainty_m": 1.4605813258491254,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 600.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285297.0684585687
+        },
+        "estimated_position": {
+          "x": 8142425.818098067,
+          "y": -285297.3235464546
+        },
+        "uncertainty_m": 1.4463725667827718,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio",
+          "drone"
+        ],
+        "events": [
+          {
+            "kind": "fix",
+            "method": "drone"
+          }
+        ],
+        "mode": "normal"
+      },
+      {
+        "t_s": 610.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285302.6240141243
+        },
+        "estimated_position": {
+          "x": 8142425.85732249,
+          "y": -285303.04011544446
+        },
+        "uncertainty_m": 1.4857892491004494,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 620.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285308.17956967984
+        },
+        "estimated_position": {
+          "x": 8142425.973064518,
+          "y": -285308.67767585325
+        },
+        "uncertainty_m": 1.5241869253943794,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 630.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285313.7351252354
+        },
+        "estimated_position": {
+          "x": 8142425.826386886,
+          "y": -285314.35829739075
+        },
+        "uncertainty_m": 1.5616407635381016,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 640.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285319.29068079096
+        },
+        "estimated_position": {
+          "x": 8142425.772144477,
+          "y": -285319.6878390221
+        },
+        "uncertainty_m": 1.5982171207769482,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 650.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285324.8462363465
+        },
+        "estimated_position": {
+          "x": 8142425.608875602,
+          "y": -285325.2211618148
+        },
+        "uncertainty_m": 1.6339749251274494,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 660.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285330.4017919021
+        },
+        "estimated_position": {
+          "x": 8142425.406632127,
+          "y": -285330.79168951645
+        },
+        "uncertainty_m": 1.6536617679294239,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 670.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285335.9573474576
+        },
+        "estimated_position": {
+          "x": 8142425.319221721,
+          "y": -285336.3150907575
+        },
+        "uncertainty_m": 1.6882456377885775,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 680.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285341.51290301315
+        },
+        "estimated_position": {
+          "x": 8142425.41646502,
+          "y": -285341.77847165044
+        },
+        "uncertainty_m": 1.722135135322677,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 690.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285347.0684585687
+        },
+        "estimated_position": {
+          "x": 8142425.690419721,
+          "y": -285347.3049761682
+        },
+        "uncertainty_m": 1.7553704780226742,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 700.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285352.6240141243
+        },
+        "estimated_position": {
+          "x": 8142425.608140541,
+          "y": -285352.8780288335
+        },
+        "uncertainty_m": 1.7879881447913029,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 710.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285358.17956967984
+        },
+        "estimated_position": {
+          "x": 8142425.598071299,
+          "y": -285358.4184819747
+        },
+        "uncertainty_m": 1.820021345126188,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 720.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285363.7351252354
+        },
+        "estimated_position": {
+          "x": 8142425.416067342,
+          "y": -285363.85225935787
+        },
+        "uncertainty_m": 1.8306703327749265,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 730.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285369.29068079096
+        },
+        "estimated_position": {
+          "x": 8142425.336242444,
+          "y": -285369.5707536213
+        },
+        "uncertainty_m": 1.8619693762527234,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 740.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285374.8462363465
+        },
+        "estimated_position": {
+          "x": 8142425.424818994,
+          "y": -285374.94334723137
+        },
+        "uncertainty_m": 1.8927509209887206,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 750.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285380.4017919021
+        },
+        "estimated_position": {
+          "x": 8142425.493295126,
+          "y": -285380.4765195489
+        },
+        "uncertainty_m": 1.9230398175036167,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 760.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285385.9573474576
+        },
+        "estimated_position": {
+          "x": 8142425.363820083,
+          "y": -285385.6332463075
+        },
+        "uncertainty_m": 1.9528589888942411,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 770.0,
+        "true_position": {
+          "x": 8142426.0,
+          "y": -285391.51290301315
+        },
+        "estimated_position": {
+          "x": 8142425.486078225,
+          "y": -285391.34703723394
+        },
+        "uncertainty_m": 1.9822296338481398,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 780.0,
+        "true_position": {
+          "x": 8142422.416058576,
+          "y": -285395.5839414241
+        },
+        "estimated_position": {
+          "x": 8142421.605815046,
+          "y": -285395.38850441517
+        },
+        "uncertainty_m": 1.9845546191064227,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 790.0,
+        "true_position": {
+          "x": 8142422.0,
+          "y": -285400.9671598748
+        },
+        "estimated_position": {
+          "x": 8142421.125996532,
+          "y": -285400.6014075047
+        },
+        "uncertainty_m": 2.0134629688716235,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 800.0,
+        "true_position": {
+          "x": 8142422.0,
+          "y": -285406.52271543036
+        },
+        "estimated_position": {
+          "x": 8142421.259629124,
+          "y": -285406.53353048215
+        },
+        "uncertainty_m": 2.0419620999954984,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 810.0,
+        "true_position": {
+          "x": 8142422.0,
+          "y": -285412.0782709859
+        },
+        "estimated_position": {
+          "x": 8142421.265421149,
+          "y": -285412.31373430154
+        },
+        "uncertainty_m": 2.0700689139781603,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 820.0,
+        "true_position": {
+          "x": 8142422.0,
+          "y": -285417.6338265415
+        },
+        "estimated_position": {
+          "x": 8142421.419537538,
+          "y": -285417.8459418197
+        },
+        "uncertainty_m": 2.0977991799548916,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 830.0,
+        "true_position": {
+          "x": 8142422.0,
+          "y": -285423.189382097
+        },
+        "estimated_position": {
+          "x": 8142421.495704962,
+          "y": -285423.54943136533
+        },
+        "uncertainty_m": 2.1251676381453084,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 840.0,
+        "true_position": {
+          "x": 8142422.0,
+          "y": -285428.74493765255
+        },
+        "estimated_position": {
+          "x": 8142421.5974694425,
+          "y": -285428.76612248487
+        },
+        "uncertainty_m": 2.119663991773531,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun",
+          "radio"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 850.0,
+        "true_position": {
+          "x": 8142422.0,
+          "y": -285434.3004932081
+        },
+        "estimated_position": {
+          "x": 8142421.503955216,
+          "y": -285434.3249516428
+        },
+        "uncertainty_m": 2.146753718716237,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 860.0,
+        "true_position": {
+          "x": 8142422.0,
+          "y": -285439.8560487637
+        },
+        "estimated_position": {
+          "x": 8142421.328172303,
+          "y": -285439.62118143245
+        },
+        "uncertainty_m": 2.1735058361142454,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 870.0,
+        "true_position": {
+          "x": 8142421.001845013,
+          "y": -285444.9981549865
+        },
+        "estimated_position": {
+          "x": 8142420.195409051,
+          "y": -285444.8044104073
+        },
+        "uncertainty_m": 2.1999326604292646,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 880.0,
+        "true_position": {
+          "x": 8142417.073474007,
+          "y": -285448.9265259931
+        },
+        "estimated_position": {
+          "x": 8142416.3366884515,
+          "y": -285448.82272039703
+        },
+        "uncertainty_m": 2.226045776983051,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 890.0,
+        "true_position": {
+          "x": 8142413.145103,
+          "y": -285452.85489699966
+        },
+        "estimated_position": {
+          "x": 8142412.375079608,
+          "y": -285452.8293747156
+        },
+        "uncertainty_m": 2.2518560993155776,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      },
+      {
+        "t_s": 899.4291501197182,
+        "true_position": {
+          "x": 8142409.75,
+          "y": -285455.25
+        },
+        "estimated_position": {
+          "x": 8142408.962498531,
+          "y": -285455.37777246913
+        },
+        "uncertainty_m": 2.2745578231019885,
+        "confidence_pct": 95.0,
+        "sources": [
+          "visual_odometry",
+          "motion_sensor",
+          "step_count",
+          "sun"
+        ],
+        "events": [],
+        "mode": "normal"
+      }
+    ]
+  }
+}

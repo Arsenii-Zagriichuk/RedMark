@@ -15,10 +15,10 @@
       "units": "",
       "resolution_m": 15.625,
       "bounds": {
-        "min_x": 8141700,
-        "min_y": -284140,
-        "max_x": 8145700,
-        "max_y": -280140
+        "min_x": 8140700,
+        "min_y": -287150,
+        "max_x": 8144700,
+        "max_y": -283150
       },
       "tiles": {
         "path": "tiles/{z}/{x}/{y}.png",
