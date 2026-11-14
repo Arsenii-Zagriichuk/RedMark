@@ -3,7 +3,8 @@
     uv run python -m tools.owners check [--base origin/main]  # CI: one owner per pull request
     uv run python -m tools.owners guard < hook.json            # Claude Code hook: block edits
 
-The folder table is AGENTS.md's. Anything not listed belongs to Person 1, who owns the
+The folder table is AGENTS.md's, plus each producer's results/ subfolder from
+results/README.md. Anything not listed belongs to Person 1, who owns the
 repo root. Shared paths belong to no one owner: any person may change them next to their
 own folders, and CODEOWNERS asks for a review. A pull request that changes a schema in
 contracts/schemas/ is a contract change, which may touch both sides' folders.
@@ -75,7 +76,15 @@ def _git(*args: str, cwd: Path | None = None) -> str:
 
 
 def check(base: str) -> int:
-    changed = _git("diff", "--name-only", "--no-renames", f"{base}...HEAD").splitlines()
+    diff = subprocess.run(
+        ["git", "diff", "--name-only", "--no-renames", f"{base}...HEAD"],
+        capture_output=True,
+        text=True,
+    )
+    if diff.returncode != 0:
+        print(f"owners: cannot diff against {base}: {diff.stderr.strip()}")
+        return 1
+    changed = diff.stdout.splitlines()
     found = problems(changed)
     for line in found:
         print(line)

@@ -36,7 +36,7 @@ fi
 runs_git='(^|[;&|({`[:space:]])git[[:space:]]'
 if [[ "$command" =~ $runs_git ]]; then
   bulk_add='git[[:space:]]+add([[:space:]]+[^;&|]*)?[[:space:]](-A|--all|\.|:/)([[:space:];&|)]|$)'
-  commit_all='git[[:space:]]+commit([[:space:]]+[^;&|]*)?[[:space:]]-[a-zA-Z]*a[a-zA-Z]*([[:space:];&|)]|$)'
+  commit_all='git[[:space:]]+commit([[:space:]]+[^;&|]*)?[[:space:]](-[a-zA-Z]*a[a-zA-Z]*|--all)([[:space:];&|)]|$)'
   if [[ "$command" =~ $bulk_add || "$command" =~ $commit_all ]]; then
     echo "Stage files by name (git add path/to/file ...), not with git add -A, --all, . or git commit -a (AGENTS.md rule 1)." >&2
     exit 2
