@@ -2,14 +2,31 @@
 
 from __future__ import annotations
 
-import yaml
-from fastapi import HTTPException
+import json
 
+import yaml
+
+from contracts.models.conditions import Conditions
 from contracts.models.route_request import RouteRequest
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
 from route.layers import load_grid
 from route.planner import NoSafeRoute, plan_on_grid
+
+# One Mars solar day in SI seconds (Allison & McEwen 2000); an LMST hour is 1/24 of it.
+SOL_S = 88775.244
+
+
+def daylight_s(conditions: dict) -> float:
+    """Seconds from first light (the first step with the sun above the horizon) to sunset."""
+    replayed = Conditions.model_validate(conditions)
+    first_light = next(step.lmst for step in replayed.steps if step.sun_elevation_deg > 0)
+    return (_lmst_h(replayed.sunset_lmst) - _lmst_h(first_light)) * SOL_S / 24
+
+
+def _lmst_h(lmst: str) -> float:
+    hours, minutes = lmst.split(":")
+    return int(hours) + int(minutes) / 60
 
 
 def load_site(site_id: str) -> SiteConfig:
@@ -19,22 +36,29 @@ def load_site(site_id: str) -> SiteConfig:
 
 
 def plan(request: dict) -> dict:
-    """The fastest safe route as a RouteResponse dict.
+    """The fastest, science or cart route as a RouteResponse dict.
 
     Raises NoSafeRoute, which the service returns as a 422 with the reason, when every
-    path breaks a hard limit.
+    path breaks a hard limit. Daylight comes from the replayed sol's conditions file and
+    the science targets from the site config.
     """
     route_request = RouteRequest.model_validate(request)
-    if route_request.mode != "fastest":
-        raise HTTPException(501, f"the {route_request.mode} route comes with P4-04")
     site = load_site(route_request.site)
     if site.habitat is None:
         raise NoSafeRoute(f"the {route_request.site} site has no habitat to walk from")
+    daylight = None
+    if site.replayed_sol is not None:
+        conditions = REPO_ROOT / "conditions" / f"{site.replayed_sol}.json"
+        daylight = daylight_s(json.loads(conditions.read_text()))
+    mode = route_request.mode
     response = plan_on_grid(
         load_grid(site, data_root()),
         route_request.start,
         route_request.goal,
         site.habitat,
         route_request.limits,
+        daylight_s=daylight,
+        cart=mode == "cart",
+        targets=[t.position for t in site.science_targets] if mode == "science" else (),
     )
     return response.model_dump(mode="json")

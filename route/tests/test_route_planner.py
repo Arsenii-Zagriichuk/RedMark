@@ -319,3 +319,106 @@ def test_a_goal_in_the_habitat_cell_keeps_its_direct_walk_home(budget_s, expecte
 
         assert route.total_time_s == pytest.approx(1812.6)
         assert route.walk_back_margin_s == pytest.approx(expected_margin_s)
+
+
+def test_walk_back_and_daylight_show_as_limit_checks_with_their_spare_time():
+    g, start, goal = flat_kilometre()
+
+    route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, daylight_s=10000)
+
+    walk_back = check(route, "walk_back")
+    assert (walk_back.passed, walk_back.threshold, walk_back.units) == (True, 0, "s")
+    assert walk_back.value == pytest.approx(18000)
+    # Back at the habitat 1800 s out + 1800 s home = 3600 s into 10000 s of daylight.
+    daylight = check(route, "daylight")
+    assert (daylight.passed, daylight.threshold, daylight.units) == (True, 0, "s")
+    assert daylight.value == pytest.approx(6400)
+
+
+def test_no_route_when_the_crew_could_not_be_home_before_sunset():
+    g, start, goal = flat_kilometre()
+
+    with pytest.raises(NoSafeRoute, match="sunset"):
+        plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, daylight_s=3000)
+
+
+def ridge_wall_with_gap() -> CostGrid:
+    ridge = np.zeros((7, 7), dtype=bool)
+    ridge[:6, 3] = True
+    return grid(np.zeros((7, 7)), ridge=ridge)
+
+
+def test_walkers_climb_a_ridge_the_cart_drives_round():
+    g = ridge_wall_with_gap()
+    start, goal, habitat = centre(g, 1, 0), centre(g, 1, 6), centre(g, 6, 0)
+
+    walkers = plan_on_grid(g, start, goal, habitat, DEFAULT_LIMITS)
+    cart = plan_on_grid(g, start, goal, habitat, DEFAULT_LIMITS, cart=True)
+
+    assert any(g.ridge[c] for c in cells(g, walkers.path))
+    assert (6, 3) in cells(g, cart.path)
+    assert not any(g.ridge[c] for c in cells(g, cart.path))
+
+
+def test_the_cart_never_slips_through_a_diagonal_ridge():
+    ridge = np.zeros((7, 7), dtype=bool)
+    for row in range(7):
+        ridge[row, 6 - row] = True
+    g = grid(np.zeros((7, 7)), ridge=ridge)
+
+    with pytest.raises(NoSafeRoute):
+        plan_on_grid(
+            g, centre(g, 0, 0), centre(g, 6, 6), centre(g, 0, 0), DEFAULT_LIMITS, cart=True
+        )
+
+
+def test_the_cart_route_has_no_crew_only_limit_checks():
+    g = ridge_wall_with_gap()
+
+    cart = plan_on_grid(
+        g,
+        centre(g, 1, 0),
+        centre(g, 1, 6),
+        centre(g, 6, 0),
+        DEFAULT_LIMITS,
+        cart=True,
+        daylight_s=1e6,
+    )
+
+    assert [c.limit for c in cart.limit_checks] == [
+        "slope",
+        "distance_from_habitat",
+        "planning_speed",
+        "walk_time",
+    ]
+
+
+def test_the_science_route_passes_a_target_and_reports_its_extra_time():
+    g = grid(np.zeros((35, 101)), cell_m=10.0)
+    start, goal, target = centre(g, 31, 0), centre(g, 31, 100), centre(g, 1, 50)
+
+    route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, targets=[target])
+
+    assert route.mode == "science"
+    assert target in route.path
+    # 300 m north and 500 m east of the start on an 8-neighbour grid: 30 diagonal steps and
+    # 20 straight ones, 300 sqrt(2) + 200 = 624.26 m each way, so 1248.53 m at 1.8 s/m,
+    # against 1000 m (1800 s) for the fastest route.
+    assert route.total_time_s == pytest.approx(2247.35, abs=0.05)
+    assert route.extra_time_vs_fastest_s == pytest.approx(447.35, abs=0.05)
+
+
+def test_the_science_route_drops_a_target_the_walk_has_no_time_for():
+    g = grid(np.zeros((35, 121)), cell_m=10.0)
+    start, goal = centre(g, 31, 20), centre(g, 31, 120)
+    near, far = centre(g, 1, 70), centre(g, 31, 0)
+    # Near only: 624.26 m out to it and 624.26 m on, 2247.35 s, plus 1800 s home from the
+    # goal fits 4400 s. Far first as well: 200 + 824.26 + 624.26 m, 2967.35 s, plus 1800 s
+    # does not; dropping far (2247 s left) saves more than dropping near (2520 s left).
+    limits = DEFAULT_LIMITS.model_copy(update={"max_walk_h": 4400 / 3600})
+
+    route = plan_on_grid(g, start, goal, start, limits, targets=[near, far])
+
+    assert near in route.path and far not in route.path
+    assert route.extra_time_vs_fastest_s == pytest.approx(447.35, abs=0.05)
+    assert all(c.passed for c in route.limit_checks)

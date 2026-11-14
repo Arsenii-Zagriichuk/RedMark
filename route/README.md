@@ -4,14 +4,19 @@ Owner: Person 4 (route and simulation).
 
 The route engine behind `POST /route`: cost map, fastest safe, science and cart routes, limit checks.
 
-- `engine.py`: `plan(request: dict) -> dict`, the function the service calls for `POST /route` (RouteRequest in, RouteResponse out). When every path breaks a hard limit it raises `NoSafeRoute`, which the service returns to the app as a 422 with the reason, so no returned route ever breaks a hard limit. Start and goal in the same planning cell, or a site with no habitat, are also a 422; the science and cart modes are a 501 until P4-04.
-- `planner.py`: the cost map (seconds to walk each cell: Tobler's hiking function on slope, loose sand x1.6, ridges x3) and the minimum-cost path (scipy Dijkstra over 8-neighbour steps). `blocked_cells` gives the cells no route may enter: steeper than the slope limit, without slope data, or beyond the distance from the habitat. A diagonal step between two blocked cells that touch at a corner is not allowed, so no path slips through a diagonal wall; the open cells beside it stay walkable.
+- `engine.py`: `plan(request: dict) -> dict`, the function the service calls for `POST /route` (RouteRequest in, RouteResponse out), for all three modes:
+  - **fastest**: the quickest walk that keeps every hard limit.
+  - **science**: the science alternative. It visits every science target in `sites/<site>.yaml` it can reach, in the quickest order; while that breaks a hard limit it drops the target whose visit costs the most time. `extra_time_vs_fastest_s` is its extra time over the fastest route.
+  - **cart**: the cart's own cost map, which cannot cross a ridge on the ridge map. It goes from the request's start to its goal (the app sends the habitat to the base camp). The walk-back rule and daylight are crew rules, so the cart's checks are slope, distance from the habitat, speed and time.
+
+  Daylight runs from first light (the first step of the replayed sol's conditions file with the sun above the horizon) to its sunset, in Mars hours of 88775.244 s / 24. When every path breaks a hard limit, `plan` raises `NoSafeRoute`, which the service returns to the app as a 422 with the reason, so no returned route ever breaks a hard limit. Start and goal in the same planning cell, or a site with no habitat, are also a 422.
+- `planner.py`: the cost map (seconds to walk each cell: Tobler's hiking function on slope, loose sand x1.6, ridges x3) and the minimum-cost path (scipy Dijkstra over 8-neighbour steps, from the habitat, the start and every science target at once). `blocked_cells` gives the cells no route may enter: steeper than the slope limit, without slope data, or beyond the distance from the habitat; for the cart, ridges too. A diagonal step between two blocked cells that touch at a corner is not allowed, so no path slips through a diagonal wall; the open cells beside it stay walkable. Limit checks: slope, distance from the habitat, planning speed, walk time, and for the crew walk-back and daylight (spare seconds, at least 0).
 - `layers.py`: reads the layers onto a 4 m planning grid over the walk area, keeping the worst pixel in each cell; a cell with any pixel of no data has no data.
-- `plot_route.py`: the overlay image, `route/overlays/p4-03-fastest.png`, shading `blocked_cells`.
+- `plot_route.py`: the overlay image, `route/overlays/p4-04-routes.png`: the three routes, the science targets, the base camp and `blocked_cells`.
 
 **Exact endpoints.** The search runs between planning-cell centres, but the route runs from the exact start to the exact goal: the stretch from each exact point (and the habitat) to its cell's centre is walked at that cell's pace and counted in the time, the walk-back margin and the distance from the habitat.
 
-**Walk-back margin.** The least spare time at any point of the route: the walk-time limit minus the time walked so far and the fastest safe walk from that point back to the habitat. Within the habitat's cell, the return leg goes directly to the habitat at that cell's pace, so no return travel is charged after arrival. A route whose margin would go negative is refused with `NoSafeRoute`; the `walk_back` limit check itself comes with P4-04.
+**Walk-back margin.** The least spare time at any point of the route: the walk-time limit minus the time walked so far and the fastest safe walk from that point back to the habitat. Within the habitat's cell, the return leg goes directly to the habitat at that cell's pace, so no return travel is charged after arrival. A route whose margin would go negative is refused with `NoSafeRoute`; the same goes for daylight, counted up to being back at the habitat.
 
 Run `uv run python -m route.plot_route` to redraw the overlay.
 
