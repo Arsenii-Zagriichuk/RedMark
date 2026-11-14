@@ -8,6 +8,10 @@ from pathlib import Path
 import pytest
 
 from contracts.paths import REPO_ROOT
+from layers.location_quality.build import _provenance
+from locate.horizon.base_map import LayerImage
+from locate.horizon.fix import PLACES
+from locate.horizon.sources import FAR_DEM, GALE_DEM
 
 SUMMARY = REPO_ROOT / "layers" / "location_quality" / "layer5-gale.json"
 OWN_FOLDER = "layers/location_quality/"
@@ -39,3 +43,24 @@ def test_the_recorded_commit_holds_the_build_script():
         " the layer: commit the code, then rebuild"
     )
     assert Path(REPO_ROOT / p["script"]).exists()
+
+
+def test_a_data_file_linked_from_elsewhere_is_recorded_by_its_path_in_the_data_folder(tmp_path):
+    # A big terrain file is often a symlink into another disk or folder. Provenance must
+    # name it where the build read it, under REDMARK_DATA, not wherever the link points.
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    (elsewhere / "dem.tif").write_bytes(b"terrain")
+    root = tmp_path / "data"
+    for name in (FAR_DEM, PLACES, "gale/layers/base/layer.json"):
+        (root / name).parent.mkdir(parents=True, exist_ok=True)
+        (root / name).write_bytes(name.encode())
+    (root / GALE_DEM).symlink_to(elsewhere / "dem.tif")
+    base_map = LayerImage("Base", None, (0, 1, 0, 1), (root / "gale/layers/base/layer.json",))
+    route = REPO_ROOT / "cache/demo/route/plan-route-fastest-sw-ridge-20.json"
+
+    inputs = _provenance(root, base_map, "abc1234", route).inputs
+
+    recorded = {i.path: i.sha256 for i in inputs}
+    assert recorded[GALE_DEM] == hashlib.sha256(b"terrain").hexdigest()
+    assert list(recorded)[:4] == [GALE_DEM, FAR_DEM, PLACES, "gale/layers/base/layer.json"]

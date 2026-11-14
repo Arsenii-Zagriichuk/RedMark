@@ -431,10 +431,9 @@ def _height(terrain: Terrain, x: float, y: float) -> float:
 def _provenance(root: Path, base_map: LayerImage, commit: str, route_file: Path) -> Provenance:
     data = [root / GALE_DEM, root / FAR_DEM, root / PLACES, *base_map.files]
     repo = [SITE_CONFIG, LANDMARKS_FILE, HORIZON_TEST, route_file]
-    inputs = [
-        {"path": p.resolve().relative_to(root.resolve()).as_posix(), "sha256": sha256_file(p)}
-        for p in data
-    ] + [{"path": p.relative_to(REPO_ROOT).as_posix(), "sha256": sha256_file(p)} for p in repo]
+    inputs = [{"path": p.relative_to(root).as_posix(), "sha256": sha256_file(p)} for p in data] + [
+        {"path": p.relative_to(REPO_ROOT).as_posix(), "sha256": sha256_file(p)} for p in repo
+    ]
     return Provenance(script="layers/location_quality/build.py", commit=commit, inputs=inputs)
 
 
