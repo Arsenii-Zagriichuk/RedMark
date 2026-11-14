@@ -36,6 +36,8 @@ PLAIN_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 OVERLAY_FOLDERS = ("results", "contracts/stubs/overlays")
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg"}
 STUBS = REPO_ROOT / "contracts" / "stubs"
+# The fix methods in contracts/schemas/common.json: each may have no fix results yet.
+METHODS = {"horizon", "ground", "drone"}
 
 
 @dataclass(frozen=True)
@@ -172,10 +174,9 @@ def create_app(settings: Settings) -> FastAPI:
 
     @app.get("/fixes/{method}")
     def fixes(request: Request, method: str) -> JSONResponse:
-        folder = results / _name(method) / "fixes"
-        if not folder.is_dir():
-            raise HTTPException(404, f"no fix results for {method}")
-        found = _list(folder, "*.json")
+        if method not in METHODS:
+            raise HTTPException(404, f"no fix method {method!r}")
+        found = _list(results / method / "fixes", "*.json")
         return respond(request, None, found, None)
 
     @app.get("/fixes/{method}/{photo_id}")

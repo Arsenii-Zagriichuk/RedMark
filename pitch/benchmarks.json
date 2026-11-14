@@ -1,0 +1,13 @@
+{
+  "jpl_drone": {
+    "label": "JPL benchmark",
+    "description": "JPL's fine-tuned map-based localization placed this share of Ingenuity frames within 5 m and 10 m of their true position.",
+    "within_5m_pct": 89.4,
+    "within_10m_pct": 99.8,
+    "source": {
+      "title": "MARTIAN paper (JPL)",
+      "url": "https://arxiv.org/html/2605.29647"
+    },
+    "cited_in": "docs/project-document.md, The resolution gap"
+  }
+}

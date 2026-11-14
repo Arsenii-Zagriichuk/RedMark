@@ -64,6 +64,10 @@ def test_fix_results_are_listed_by_photo_id_and_served_one_by_one(repo):
     assert client.get("/fixes/horizon/navcam-0002").json() == {"photo_id": "navcam-0002"}
 
 
+def test_a_method_with_no_fix_results_yet_lists_none(repo):
+    assert client_for(repo).get("/fixes/ground").json() == []
+
+
 def test_test_summaries_are_listed_across_methods_and_served_one_by_one(repo):
     client = client_for(repo)
 

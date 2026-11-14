@@ -1,0 +1,11 @@
+{
+  "step": "lab.fixes.ground",
+  "request": {
+    "method": "GET",
+    "path": "/fixes/ground",
+    "body": null
+  },
+  "status": 200,
+  "contract": null,
+  "response": []
+}

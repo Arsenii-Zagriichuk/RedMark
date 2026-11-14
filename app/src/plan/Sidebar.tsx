@@ -21,6 +21,7 @@ interface Props {
   selected: ScienceTarget | undefined;
   onSelect: (id: string | null) => void;
   onDirections: () => void;
+  onOpenLab: () => void;
 }
 
 function fromHabitat(habitat: Point | null, target: Point): string | null {
@@ -150,6 +151,9 @@ export function Sidebar(props: Props) {
             ? latLon(selected.position)
             : conditions && `Sol ${conditions.sol} · sunset ${conditions.sunset_lmst} LMST`}
         </span>
+        <button type="button" className="sidebar__nav" onClick={props.onOpenLab}>
+          Test lab
+        </button>
         <ModeSwitch />
       </div>
     </aside>
