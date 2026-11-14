@@ -5,9 +5,9 @@ Owner: Person 4 (route and simulation).
 The route engine behind `POST /route`: cost map, fastest safe, science and cart routes, limit checks.
 
 - `api.py`: `plan(RouteRequest) -> RouteResponse`, the one call the service makes. Raises `NoSafeRoute` when every path breaks a hard limit, so no returned route ever breaks one.
-- `engine.py`: the cost map (seconds to walk each cell: Tobler's hiking function on slope, loose sand x1.6, ridges x3) and the minimum-cost path (scikit-image `MCP_Geometric`). Cells steeper than the slope limit, without slope data, or beyond the distance from the habitat cannot be entered, and blocked cells touching only at a corner are sealed so a diagonal step can't slip through a wall.
-- `layers.py`: reads the layers onto a 4 m planning grid over the walk area, keeping the worst pixel in each cell.
-- `plot_route.py`: the overlay image, `route/overlays/p4-03-fastest.png`.
+- `engine.py`: the cost map (seconds to walk each cell: Tobler's hiking function on slope, loose sand x1.6, ridges x3) and the minimum-cost path (scipy Dijkstra over 8-neighbour steps). `blocked_cells` gives the cells no route may enter: steeper than the slope limit, without slope data, or beyond the distance from the habitat. A diagonal step between two blocked cells that touch at a corner is not allowed, so no path slips through a diagonal wall; the open cells beside it stay walkable.
+- `layers.py`: reads the layers onto a 4 m planning grid over the walk area, keeping the worst pixel in each cell; a cell with any pixel of no data has no data.
+- `plot_route.py`: the overlay image, `route/overlays/p4-03-fastest.png`, shading `blocked_cells`.
 
 **Walk-back margin.** The least spare time at any point of the route: the walk-time limit minus the time walked so far and the fastest safe walk from that point back to the habitat. A route whose margin would go negative is refused with `NoSafeRoute`; the `walk_back` limit check itself comes with P4-04.
 

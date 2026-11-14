@@ -14,11 +14,13 @@ matplotlib.use("Agg")
 import matplotlib.image as mpimg  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
+from matplotlib.patches import Patch  # noqa: E402
 
 from contracts.models.layer import LayerMeta  # noqa: E402
 from contracts.models.route_request import RouteRequest  # noqa: E402
 from contracts.paths import REPO_ROOT, data_root  # noqa: E402
 from route.api import load_site, plan  # noqa: E402
+from route.engine import blocked_cells  # noqa: E402
 from route.layers import load_grid  # noqa: E402
 
 OUT = REPO_ROOT / "route" / "overlays"
@@ -42,7 +44,7 @@ def main() -> None:
         grid.max_y - rows * grid.cell_m,
         grid.max_y,
     )
-    blocked = ~(grid.slope_deg <= limits.max_slope_deg)
+    blocked = blocked_cells(grid, site.habitat, limits)
     ax.imshow(np.ma.masked_where(~blocked, blocked), extent=grid_extent, cmap="autumn", alpha=0.6)
     ax.add_patch(
         plt.Circle(
@@ -68,7 +70,9 @@ def main() -> None:
     )
     ax.set_xlabel("easting, map metres")
     ax.set_ylabel("northing, map metres")
-    ax.legend(loc="upper right")
+    handles, _ = ax.get_legend_handles_labels()
+    shaded = Patch(color=plt.get_cmap("autumn")(0.0), alpha=0.6, label="no route may enter")
+    ax.legend(handles=[*handles, shaded], loc="upper right")
     OUT.mkdir(parents=True, exist_ok=True)
     fig.savefig(OUT / "p4-03-fastest.png", dpi=120, bbox_inches="tight")
     plt.close(fig)

@@ -245,3 +245,13 @@ def test_no_route_when_the_crew_could_not_walk_home_in_time():
 
     with pytest.raises(NoSafeRoute):
         plan_on_grid(g, start, goal, start, limits)
+
+
+def test_steep_cells_touching_at_a_corner_leave_their_neighbours_walkable():
+    slope = np.zeros((5, 5))
+    slope[1, 1] = slope[2, 2] = 30
+    g = grid(slope)
+
+    route = plan_on_grid(g, centre(g, 1, 2), centre(g, 0, 4), centre(g, 0, 4), DEFAULT_LIMITS)
+
+    assert cells(g, route.path)[0] == (1, 2)

@@ -17,6 +17,7 @@ from contracts.paths import REPO_ROOT
 from route.api import plan
 from route.layers import load_grid
 
+NODATA = -9999.0
 PROJECTION = "+proj=eqc +lat_ts=0 +lon_0=0 +R=3396190 +units=m +no_defs"
 
 
@@ -47,6 +48,7 @@ def write_raster(path, values) -> None:
         dtype="float32",
         crs=PROJECTION,
         transform=from_origin(1000, 2008, 1.0, 1.0),
+        nodata=NODATA,
     ) as dst:
         dst.write(values, 1)
 
@@ -60,6 +62,26 @@ def test_slope_is_read_onto_the_planning_grid_keeping_the_steepest_metre(tmp_pat
 
     assert (g.min_x, g.max_y, g.cell_m) == (1000, 2008, 4.0)
     assert g.slope_deg.tolist() == [[5, 25], [5, 5]]
+
+
+def test_a_planning_cell_with_any_unknown_metre_is_unknown(tmp_path):
+    slope = np.full((8, 8), 5.0)
+    slope[0:2, 0:2] = NODATA
+    write_raster(tmp_path / "slope.tif", slope)
+
+    g = load_grid(site({"slope": "slope.tif"}), tmp_path, cell_m=4.0)
+
+    assert np.isnan(g.slope_deg[0, 0])
+    assert g.slope_deg[0, 1] == 5 and g.slope_deg[1].tolist() == [5, 5]
+
+
+def test_a_planning_cell_the_slope_file_only_half_covers_is_unknown(tmp_path):
+    write_raster(tmp_path / "slope.tif", np.full((6, 8), 5.0))
+
+    g = load_grid(site({"slope": "slope.tif"}), tmp_path, cell_m=4.0)
+
+    assert g.slope_deg[0].tolist() == [5, 5]
+    assert np.isnan(g.slope_deg[1]).all()
 
 
 def test_sand_and_ridge_maps_are_read_as_masks(tmp_path):
