@@ -743,3 +743,36 @@ def test_a_checkpoint_candidate_off_the_map_or_on_steep_ground_is_skipped():
     )
 
     assert [c.id for c in route.checkpoints] == ["A2", "B"]
+
+
+def test_location_aware_routing_gives_way_when_its_detour_would_break_a_hard_limit():
+    g, start, goal = poor_quality_band_across_the_line()
+    # Straight through the band: 1800 s out and 1800 s home fits 3650 s with 50 s to spare;
+    # the 1889.5 s detour round it would not.
+    limits = DEFAULT_LIMITS.model_copy(update={"max_walk_h": 3650 / 3600})
+
+    route = plan_on_grid(g, start, goal, start, limits, location_weight=1.0)
+
+    assert route.total_time_s == pytest.approx(1800)
+    assert check(route, "walk_back").value == pytest.approx(50)
+
+
+def test_a_checkpoint_candidate_cut_off_by_a_wall_does_not_take_a_reachable_ones_place():
+    slope = np.zeros((110, 80))
+    slope[:, 65] = 30  # a wall at x = 655 m from top to bottom
+    g = grid(slope, cell_m=10.0)
+    start, goal = centre(g, 104, 50), centre(g, 4, 50)
+    reachable = CheckpointCandidate("reachable", centre(g, 79, 45), 0.5)
+    cut_off = CheckpointCandidate("cut-off", centre(g, 79, 70), 0.9)
+    assert (start, goal, reachable.position, cut_off.position) == (
+        Point(x=505, y=55),
+        Point(x=505, y=1055),
+        Point(x=455, y=305),
+        Point(x=705, y=305),
+    )
+
+    route = plan_on_grid(
+        g, start, goal, start, DEFAULT_LIMITS, checkpoint_candidates=[reachable, cut_off]
+    )
+
+    assert [c.id for c in route.checkpoints] == ["reachable"]
