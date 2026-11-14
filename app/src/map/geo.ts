@@ -39,8 +39,9 @@ export function distanceAndBearing(from: Point, to: Point) {
   return { metres: Math.hypot(east, north), bearing: (bearing + 360) % 360 };
 }
 
+/** Ground distance: "985 m", "1.21 km", "2 km". */
 export function formatDistance(metres: number): string {
-  return metres < 1000 ? `${Math.round(metres)} m` : `${(metres / 1000).toFixed(2)} km`;
+  return metres < 1000 ? `${Math.round(metres)} m` : `${Number((metres / 1000).toFixed(2))} km`;
 }
 
 export function formatBearing(degrees: number): string {
