@@ -14,13 +14,16 @@ Bounds = tuple[float, float, float, float]  # min_x, min_y, max_x, max_y
 RESOLUTION = 0.25  # metres, the photo map's own scale
 # Source pixels read beyond the asked bounds, so resampling has neighbours.
 _READ_PAD = 8
+# GeoTIFF tag naming the photo map version a crop was cut from.
+SOURCE_TAG = "REDMARK_SOURCE"
 
 
-def crop_to_site_frame(source: str | Path, bounds: Bounds, out: Path) -> None:
+def crop_to_site_frame(source: str | Path, bounds: Bounds, out: Path, source_id: str) -> None:
     """Write `bounds` (site-frame metres) of `source` as a 25 cm GeoTIFF.
 
     `source` may be a local file or a GDAL remote path such as /vsicurl/...;
-    only the rows the crop needs are read.
+    only the rows the crop needs are read. `source_id` names the map version
+    and is stored in the crop. The crop appears at `out` only once complete.
     """
     site_crs = CRS.from_proj4(SITE_PROJ)
     min_x, min_y, max_x, max_y = bounds
@@ -52,7 +55,8 @@ def crop_to_site_frame(source: str | Path, bounds: Bounds, out: Path) -> None:
             "compress": "deflate",
         }
         out.parent.mkdir(parents=True, exist_ok=True)
-        with rasterio.open(out, "w", **profile) as dst:
+        partial = out.with_name(out.name + ".part")
+        with rasterio.open(partial, "w", **profile) as dst:
             reproject(
                 source=data,
                 destination=rasterio.band(dst, 1),
@@ -64,3 +68,22 @@ def crop_to_site_frame(source: str | Path, bounds: Bounds, out: Path) -> None:
                 dst_nodata=src.nodata,
                 resampling=Resampling.bilinear,
             )
+            dst.update_tags(**{SOURCE_TAG: source_id})
+    partial.replace(out)
+
+
+def crop_is_current(crop: Path, bounds: Bounds, source_id: str) -> bool:
+    """`crop` is a finished 25 cm site-frame cut of `bounds` from map version `source_id`."""
+    if not crop.exists():
+        return False
+    with rasterio.open(crop) as src:
+        # The far edges snap to the 25 cm grid, so allow half a pixel.
+        same_bounds = all(
+            abs(a - b) < RESOLUTION / 2 for a, b in zip(src.bounds, bounds, strict=True)
+        )
+        return (
+            same_bounds
+            and src.res == (RESOLUTION, RESOLUTION)
+            and src.crs == CRS.from_proj4(SITE_PROJ)
+            and src.tags().get(SOURCE_TAG) == source_id
+        )

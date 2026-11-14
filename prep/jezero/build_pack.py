@@ -26,12 +26,11 @@ import rasterio
 import truststore
 import yaml
 from PIL import Image, ImageDraw
-from rasterio.crs import CRS
 
 from contracts.models.data_manifest import DataManifest
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
-from prep.jezero.crop import Bounds, crop_to_site_frame
+from prep.jezero.crop import RESOLUTION, Bounds, crop_is_current, crop_to_site_frame
 from prep.jezero.flights import flight_bounds, load_flights
 from prep.jezero.frames import (
     NavcamFrame,
@@ -41,7 +40,7 @@ from prep.jezero.frames import (
     read_label,
 )
 from prep.jezero.pack import manifest_entry, merge_manifest, site_config, stretch_to_8bit
-from prep.jezero.site_frame import SITE_PROJ
+from prep.jezero.site_frame import SITE_LAT_TS
 
 MAP_NAME = "JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first.tif"
 MAP_URL = (
@@ -100,15 +99,6 @@ def _round_out(bounds: Bounds) -> Bounds:
     return (math.floor(min_x), math.floor(min_y), math.ceil(max_x), math.ceil(max_y))
 
 
-def _crop_is_current(crop: Path, bounds: Bounds) -> bool:
-    """A crop from an earlier run already covers exactly these bounds in the site frame."""
-    if not crop.exists():
-        return False
-    with rasterio.open(crop) as src:
-        same_bounds = all(abs(a - b) < 1e-6 for a, b in zip(src.bounds, bounds, strict=True))
-        return same_bounds and src.crs == CRS.from_proj4(SITE_PROJ)
-
-
 def _frames_for_flight(
     flight: int, products: list[NavcamProduct], folder: Path
 ) -> list[NavcamFrame]:
@@ -154,7 +144,7 @@ def _write_overlay(crop: Path, path_xy: list[tuple[float, float]], flight: int, 
     draw.text(
         (10, 10),
         f"Flight {flight}: NASA flight path (red; green take-off, blue landing) "
-        "on the HiRISE 25 cm map, site frame eqc lat_ts=18.4663",
+        f"on the HiRISE {RESOLUTION * 100:g} cm map, site frame eqc lat_ts={SITE_LAT_TS}",
         fill=(255, 255, 0),
     )
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -174,6 +164,7 @@ def build(root: Path) -> None:
 
     map_size, map_etag = _remote_size_and_etag(MAP_URL)
     map_source = _map_source(source / MAP_NAME, map_size)
+    map_id = f"{MAP_NAME} etag {map_etag}"
     print(f"photo map: {map_source}")
 
     rows, crops, manifest = [], {}, []
@@ -220,11 +211,11 @@ def build(root: Path) -> None:
 
         path = flights[flight].path
         bounds = _round_out(flight_bounds(path, config["margin_m"]))
-        if not _crop_is_current(crop, bounds):
+        if not crop_is_current(crop, bounds, map_id):
             with rasterio.Env(
                 GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_CHUNK_SIZE=4 << 20
             ):
-                crop_to_site_frame(map_source, bounds, crop)
+                crop_to_site_frame(map_source, bounds, crop, map_id)
         _write_overlay(crop, path, flight, pack / "overlays" / f"flight-{flight:02d}.png")
         crops[flight] = bounds
         print(f"flight {flight}: crop {bounds}")

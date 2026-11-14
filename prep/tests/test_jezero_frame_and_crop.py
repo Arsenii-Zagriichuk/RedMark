@@ -13,7 +13,7 @@ import pytest
 import rasterio
 from rasterio.transform import from_origin
 
-from prep.jezero.crop import crop_to_site_frame
+from prep.jezero.crop import crop_is_current, crop_to_site_frame
 from prep.jezero.site_frame import SITE_LAT_TS, SOURCE_PROJ, to_site_frame
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -98,7 +98,7 @@ def test_a_known_point_lands_at_its_site_frame_position(source_map: Path, tmp_pa
     bounds = (_site_x(77.441), _north(18.4500), _site_x(77.448), _north(18.4518))
     out = tmp_path / "crop.tif"
 
-    crop_to_site_frame(source_map, bounds, out)
+    crop_to_site_frame(source_map, bounds, out, "test-map v1")
 
     west, _ = _mark_centres(out)
     assert west[0] == pytest.approx(_site_x(77.4425), abs=0.5)
@@ -109,7 +109,7 @@ def test_crop_covers_the_asked_bounds_at_25_cm_in_the_site_frame(source_map: Pat
     bounds = (_site_x(77.441), _north(18.4500), _site_x(77.448), _north(18.4518))
     out = tmp_path / "crop.tif"
 
-    crop_to_site_frame(source_map, bounds, out)
+    crop_to_site_frame(source_map, bounds, out, "test-map v1")
 
     with rasterio.open(out) as src:
         assert src.res == (0.25, 0.25)
@@ -135,7 +135,43 @@ def test_map_metres_in_the_crop_are_ground_metres(source_map: Path, tmp_path: Pa
     out = tmp_path / "crop.tif"
     bounds = (_site_x(77.441), _north(18.4500), _site_x(77.448), _north(18.4518))
 
-    crop_to_site_frame(source_map, bounds, out)
+    crop_to_site_frame(source_map, bounds, out, "test-map v1")
 
     (west_x, _), (east_x, _) = _mark_centres(out)
     assert east_x - west_x == pytest.approx(ground, rel=0.002)
+
+
+def test_a_finished_crop_is_reused_only_for_the_same_bounds_and_map(
+    source_map: Path, tmp_path: Path
+):
+    bounds = (_site_x(77.441), _north(18.4500), _site_x(77.448), _north(18.4518))
+    out = tmp_path / "crop.tif"
+
+    crop_to_site_frame(source_map, bounds, out, "test-map v1")
+
+    assert crop_is_current(out, bounds, "test-map v1")
+    assert not crop_is_current(out, bounds, "test-map v2")
+    assert not crop_is_current(out, (bounds[0] - 1, *bounds[1:]), "test-map v1")
+    assert not list(tmp_path.glob("*.part"))
+
+
+def test_a_raster_with_the_right_bounds_but_no_map_version_is_not_reused(tmp_path: Path):
+    # What an interrupted write leaves behind: the right shape, but unfinished.
+    bounds = (0.0, 0.0, 10.0, 10.0)
+    out = tmp_path / "crop.tif"
+    with rasterio.open(
+        out,
+        "w",
+        driver="GTiff",
+        width=40,
+        height=40,
+        count=1,
+        dtype="uint8",
+        crs=rasterio.crs.CRS.from_proj4(
+            "+proj=eqc +lat_ts=18.4663 +lon_0=0 +R=3396190 +units=m +no_defs"
+        ),
+        transform=from_origin(0.0, 10.0, 0.25, 0.25),
+    ):
+        pass
+
+    assert not crop_is_current(out, bounds, "test-map v1")
