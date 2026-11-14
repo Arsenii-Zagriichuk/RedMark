@@ -1,0 +1,38 @@
+# Curiosity raw images for the Target preview (P1-09), downloaded unmodified by
+# tools/target_pictures.py. Paths are relative to the repo root.
+files:
+- name: Curiosity Mastcam left, sol 4600, 4600ML1079530021803220C00_DXXX
+  path: app/public/targets/4600ML1079530021803220C00_DXXX.jpg
+  size_bytes: 75431
+  source_url: https://mars.nasa.gov/msl-raw-images/msss/04600/mcam/4600ML1079530021803220C00_DXXX.jpg
+  checksum: 1ee5736974d3f3ed6dae23cedd146d4409d3e4b5c633c48f2ae3f9ad7031b25a
+  checksum_algorithm: sha256
+  credit: NASA/JPL-Caltech/MSSS; NASA Mars raw images
+- name: Curiosity Mastcam left, sol 4600, 4600ML1079530181803236C00_DXXX
+  path: app/public/targets/4600ML1079530181803236C00_DXXX.jpg
+  size_bytes: 73034
+  source_url: https://mars.nasa.gov/msl-raw-images/msss/04600/mcam/4600ML1079530181803236C00_DXXX.jpg
+  checksum: c2a837405c0a446dbd91600c2df8ba2dc17483727ee18323c70dad9437ea1960
+  checksum_algorithm: sha256
+  credit: NASA/JPL-Caltech/MSSS; NASA Mars raw images
+- name: Curiosity Navcam left, sol 4605, NLB_806305401EDR_F1172538NCAM00263M_
+  path: app/public/targets/NLB_806305401EDR_F1172538NCAM00263M_.jpg
+  size_bytes: 490261
+  source_url: https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04605/opgs/edr/ncam/NLB_806305401EDR_F1172538NCAM00263M_.JPG
+  checksum: 6e2b5b205c84ad2cf9e2f74373c3ca83b9597e4d98a224b4c8310efd6ef37d64
+  checksum_algorithm: sha256
+  credit: NASA/JPL-Caltech; NASA Mars raw images
+- name: Curiosity Mastcam left, sol 4595, 4595ML1079180031803048C00_DXXX
+  path: app/public/targets/4595ML1079180031803048C00_DXXX.jpg
+  size_bytes: 94815
+  source_url: https://mars.nasa.gov/msl-raw-images/msss/04595/mcam/4595ML1079180031803048C00_DXXX.jpg
+  checksum: 2b4366b815ff8d08171e0217287d74cee28547c603fee1ff26dc6a3fa141781f
+  checksum_algorithm: sha256
+  credit: NASA/JPL-Caltech/MSSS; NASA Mars raw images
+- name: Curiosity Navcam left, sol 4605, NLB_806305401EDR_F1172538NCAM00263M_
+  path: app/public/fallback/target-preview.jpg
+  size_bytes: 490261
+  source_url: https://mars.nasa.gov/msl-raw-images/proj/msl/redops/ods/surface/sol/04605/opgs/edr/ncam/NLB_806305401EDR_F1172538NCAM00263M_.JPG
+  checksum: 6e2b5b205c84ad2cf9e2f74373c3ca83b9597e4d98a224b4c8310efd6ef37d64
+  checksum_algorithm: sha256
+  credit: NASA/JPL-Caltech; NASA Mars raw images
