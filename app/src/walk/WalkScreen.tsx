@@ -10,7 +10,7 @@ import type { SimulateResponse } from "@contracts/simulate_response";
 import { useEffect, useMemo, useState } from "react";
 import { useApi } from "../api/ApiContext";
 import { distanceAndBearing, formatDistance } from "../map/geo";
-import { WalkMap, type Walker } from "../map/WalkMap";
+import { WalkMap, type CrewPosition } from "../map/WalkMap";
 import { formatDuration } from "../plan/routes";
 import { conditionsAt } from "./conditions";
 import { fixEvents, walkStatus } from "./playback";
@@ -79,7 +79,7 @@ export function WalkScreen(props: Props) {
     return distanceAndBearing(route.path[0]!, route.path[1] ?? route.path[0]!).bearing;
   }, [simulation, index, route]);
 
-  const walker = useMemo<Walker | null>(
+  const crew = useMemo<CrewPosition | null>(
     () =>
       status && {
         position: status.position,
@@ -88,7 +88,7 @@ export function WalkScreen(props: Props) {
         chip: `±${Math.round(status.uncertainty_m)} m · ${Math.round(status.confidence_pct)}%`,
         heading,
       },
-    // A new walker only when the step changes, so the map doesn't re-follow on other renders.
+    // A new crew only when the step changes, so the map doesn't re-follow on other renders.
     [simulation, index, heading],
   );
   const mapRoutes = useMemo(
@@ -112,7 +112,7 @@ export function WalkScreen(props: Props) {
         status={error && `Can't load the walk: ${error}`}
         routes={mapRoutes}
         fitTo={null}
-        walker={walker}
+        crew={crew}
       />
 
       {status && (
@@ -166,12 +166,12 @@ export function WalkScreen(props: Props) {
             <span className="walk__condition">
               <span className="label">Radiation</span>
               <span className="walk__value">{now.radiation}</span>
-              <span className="tag">measured</span>
+              <span className="tag" title="Measured by Curiosity's RAD">RAD</span>
             </span>
             <span className="walk__condition">
               <span className="label">Temp</span>
               <span className="walk__value">{now.temperature}</span>
-              <span className="tag">measured</span>
+              <span className="tag" title="Measured by Curiosity's REMS">REMS</span>
             </span>
             <span className="walk__condition">
               <span className="label">Dust</span>

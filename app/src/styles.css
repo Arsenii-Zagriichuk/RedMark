@@ -882,7 +882,7 @@ button {
   padding: 0 12px;
 }
 
-.walker-dot {
+.position-dot {
   width: 26px;
   height: 26px;
   border-radius: 999px;
@@ -891,7 +891,7 @@ button {
   box-shadow: 0 0 0 2px rgba(5, 7, 13, 0.5);
 }
 
-.walker-chip {
+.position-chip {
   position: absolute;
   left: 100%;
   margin-left: 20px;
@@ -906,19 +906,19 @@ button {
   font: 700 20px/26px var(--font-mono);
 }
 
-.walker-chip--sure {
+.position-chip--sure {
   color: var(--signal-ok);
 }
 
-.walker-chip--check {
+.position-chip--check {
   color: var(--signal-warn);
 }
 
-.walker-chip--over {
+.position-chip--over {
   color: var(--nasa-red);
 }
 
-.walker-chip__light {
+.position-chip__light {
   width: 10px;
   height: 10px;
   border-radius: 999px;

@@ -36,8 +36,8 @@ export interface MapRoute {
   chosen: boolean;
 }
 
-/** The walker during a walk: the estimated position and its uncertainty circle. */
-export interface Walker {
+/** The crew during a walk: the estimated position and its uncertainty circle. */
+export interface CrewPosition {
   position: Point;
   uncertainty_m: number;
   level: "sure" | "check" | "over";
@@ -67,8 +67,8 @@ interface Props {
   routes: MapRoute[];
   /** Points the view frames when they change, such as the chosen route. */
   fitTo: Point[] | null;
-  /** During a walk: the view follows the walker until the user pans away. */
-  walker?: Walker | null;
+  /** During a walk: the view follows the crew until the user pans away. */
+  crew?: CrewPosition | null;
 }
 
 const MAP_VIEW = new MapView({ id: "map", repeat: false });
@@ -83,7 +83,7 @@ const ALTERNATIVE_COLOUR: [number, number, number, number] = [154, 166, 191, 210
 const OUTLINE_COLOUR: [number, number, number, number] = [5, 7, 13, 200];
 const FOLLOW_ZOOM = 17.5;
 const FOLLOW_PITCH = 45;
-const LEVEL_COLOURS: Record<Walker["level"], [number, number, number]> = {
+const LEVEL_COLOURS: Record<CrewPosition["level"], [number, number, number]> = {
   sure: [61, 220, 151],
   check: [255, 176, 32],
   over: [252, 61, 33],
@@ -209,12 +209,12 @@ export function WalkMap(props: Props) {
     // Only a new set of points re-frames the view; resizing keeps the user's view.
   }, [fitTo, origin]);
 
-  // Follow the walker, heading up, until the user drags the map; Recenter follows again.
-  const { walker } = props;
+  // Follow the crew, heading up, until the user drags the map; Recenter follows again.
+  const { crew } = props;
   const [following, setFollowing] = useState(true);
   useEffect(() => {
-    if (!walker || !following) return;
-    const [longitude, latitude] = toLngLat(walker.position, origin);
+    if (!crew || !following) return;
+    const [longitude, latitude] = toLngLat(crew.position, origin);
     setViewState(
       (current) =>
         current && {
@@ -223,10 +223,10 @@ export function WalkMap(props: Props) {
           latitude,
           zoom: FOLLOW_ZOOM,
           pitch: FOLLOW_PITCH,
-          bearing: walker.heading,
+          bearing: crew.heading,
         },
     );
-  }, [walker, following, origin]);
+  }, [crew, following, origin]);
 
   const viewport = useMemo(
     () =>
@@ -264,11 +264,11 @@ export function WalkMap(props: Props) {
         ? rasterLayers(colourLayer, site, viewport, origin, props.fileUrl, COLOUR_OPACITY)
         : []),
       ...routeLayers,
-      ...(walker
+      ...(crew
         ? [
-            new ScatterplotLayer<Walker>({
+            new ScatterplotLayer<CrewPosition>({
               id: "uncertainty-circle",
-              data: [walker],
+              data: [crew],
               getPosition: (d) => toLngLat(d.position, origin),
               getRadius: (d) => d.uncertainty_m,
               radiusUnits: "meters",
@@ -281,7 +281,7 @@ export function WalkMap(props: Props) {
           ]
         : []),
     ];
-  }, [viewport, baseLayer, colourLayer, site, origin, props.fileUrl, routes, walker]);
+  }, [viewport, baseLayer, colourLayer, site, origin, props.fileUrl, routes, crew]);
 
   const project = (point: Point) => {
     const [x = 0, y = 0] = viewport?.project(toLngLat(point, origin)) ?? [];
@@ -304,8 +304,10 @@ export function WalkMap(props: Props) {
     }).join(" ");
   }, [viewport, origin]);
 
-  const change = (patch: Partial<MapViewState>) =>
+  const change = (patch: Partial<MapViewState>) => {
+    setFollowing(false);
     setViewState((current) => current && { ...current, ...patch, transitionDuration: 300 });
+  };
 
   return (
     <div className="map" ref={containerRef}>
@@ -393,12 +395,12 @@ export function WalkMap(props: Props) {
               );
             })}
 
-          {walker && (
-            <div className="marker" style={{ ...project(walker.position), zIndex: 10 }}>
-              <span className="walker-dot" />
-              <span className={`walker-chip walker-chip--${walker.level}`}>
-                <span className="walker-chip__light" />
-                {walker.chip}
+          {crew && (
+            <div className="marker" style={{ ...project(crew.position), zIndex: 10 }}>
+              <span className="position-dot" />
+              <span className={`position-chip position-chip--${crew.level}`}>
+                <span className="position-chip__light" />
+                {crew.chip}
               </span>
             </div>
           )}
@@ -412,12 +414,12 @@ export function WalkMap(props: Props) {
       )}
 
       <div className="map__controls">
-        {walker && !following && (
+        {crew && !following && (
           <button type="button" className="control control--wide" onClick={() => setFollowing(true)}>
             Recenter
           </button>
         )}
-        {!walker && (
+        {!crew && (
           <button
             type="button"
             aria-label="Layers"
