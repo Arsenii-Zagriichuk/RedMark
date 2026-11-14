@@ -1,8 +1,10 @@
 // Lost mode (P1-07): when no source can be trusted, the app shows the last known position,
 // a return direction and landmark directions. The way back is planned by the route engine
 // with the uncertainty circle as its hazard margin, so it keeps further from steep ground
-// the less sure the position is. The landmark directions come from layer 5 (Person 3's
-// layers/location_quality/directions.py), never written here.
+// the less sure the position is. The landmark directions use layer 5's data (Person 3's
+// layers/location_quality/directions.py): which landmarks the crew's leg sees and where
+// they are. Layer 5 words them for walking out; walking back turns them round, so this
+// applies Person 3's rule and sentences to the walk back's heading instead.
 import type { RouteRequest } from "@contracts/route_request";
 import type { Point, RouteResponse } from "@contracts/route_response";
 import type { SimulateResponse } from "@contracts/simulate_response";
@@ -54,10 +56,24 @@ export function returnHeading(path: Point[]): number {
   return distanceAndBearing(start, ahead).bearing;
 }
 
-/** Layer 5's directions: the path its legs follow, and each leg's text (null: none in view). */
+// Person 3's rule (layers/location_quality/directions.py): a landmark within 30° of the
+// heading is ahead, 150° or more off is behind; a leg's direction names the first landmark,
+// in landmarks.yaml's order, in view from at least half the leg.
+const AHEAD_DEG = 30;
+const BEHIND_DEG = 150;
+const MIN_SHARE_IN_VIEW = 0.5;
+
+/** Layer 5's directions: the landmarks, the path its legs follow, and what each leg sees. */
 export interface LandmarkDirections {
   path: Point[];
-  legs: { leg: number; start_index: number; end_index: number; text: string | null }[];
+  /** In landmarks.yaml's order; in_sentence is how a direction names it. */
+  landmarks: { id: string; in_sentence: string; points: Point[] }[];
+  legs: {
+    leg: number;
+    start_index: number;
+    end_index: number;
+    landmarks: { id: string; share_of_leg_in_view: number }[];
+  }[];
 }
 
 export type LostDirection =
@@ -79,11 +95,35 @@ function toSegment(point: Point, a: Point, b: Point): number {
   return Math.hypot(point.x - (a.x + t * dx), point.y - (a.y + t * dy));
 }
 
-/** Layer 5's direction for the leg of the walked route nearest a position. */
+/** An angle in degrees, wrapped into (-180, 180]. */
+const wrap = (degrees: number) => -((((-degrees + 180) % 360) + 360) % 360 - 180);
+
+/** The heading from a position to a landmark: the circular mean over its points. */
+function headingTo(position: Point, points: Point[]): number {
+  const radians = points.map((point) => (distanceAndBearing(position, point).bearing * Math.PI) / 180);
+  const mean = Math.atan2(
+    radians.reduce((sum, r) => sum + Math.sin(r), 0),
+    radians.reduce((sum, r) => sum + Math.cos(r), 0),
+  );
+  return (mean * 180) / Math.PI;
+}
+
+function sentence(name: string, relative_deg: number): string {
+  if (Math.abs(relative_deg) <= AHEAD_DEG) return `Walk towards ${name}`;
+  if (Math.abs(relative_deg) >= BEHIND_DEG) return `Keep ${name} behind you`;
+  return `Keep ${name} on your ${relative_deg < 0 ? "left" : "right"}`;
+}
+
+/**
+ * The landmark direction for walking back from a position on the walked route, setting off
+ * on a heading. What is in view comes from layer 5 for the leg nearest the position; the
+ * landmarks are kilometres away, so their side is judged once, from that position.
+ */
 export function landmarkDirection(
   directions: LandmarkDirections | null,
   route: RouteResponse,
   position: Point,
+  heading: number,
 ): LostDirection {
   if (!directions?.legs.length || !samePath(directions.path, route.path)) return { kind: "not-this-route" };
   const distance = (leg: LandmarkDirections["legs"][number]) => {
@@ -95,7 +135,10 @@ export function landmarkDirection(
   };
   const leg = directions.legs.reduce((best, candidate) => (distance(candidate) < distance(best) ? candidate : best));
   const legs = directions.legs.length;
-  return leg.text === null
-    ? { kind: "none-in-view", leg: leg.leg, legs }
-    : { kind: "landmark", leg: leg.leg, legs, text: leg.text };
+  const inView = directions.landmarks.find((landmark) =>
+    leg.landmarks.some((seen) => seen.id === landmark.id && seen.share_of_leg_in_view >= MIN_SHARE_IN_VIEW),
+  );
+  if (!inView) return { kind: "none-in-view", leg: leg.leg, legs };
+  const relative = wrap(headingTo(position, inView.points) - heading);
+  return { kind: "landmark", leg: leg.leg, legs, text: sentence(inView.in_sentence, relative) };
 }

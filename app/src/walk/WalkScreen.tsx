@@ -77,7 +77,10 @@ function eventLetter(event: FixEvent): string {
 function directionText(direction: LostDirection): { text: string; note: string | null } {
   switch (direction.kind) {
     case "landmark":
-      return { text: direction.text, note: `Leg ${direction.leg + 1} of ${direction.legs}, walking out` };
+      return {
+        text: direction.text,
+        note: `Walking back · in view along leg ${direction.leg + 1} of ${direction.legs}`,
+      };
     case "none-in-view":
       return { text: `No landmark in view along leg ${direction.leg + 1} of ${direction.legs}`, note: null };
     case "not-this-route":
@@ -190,8 +193,10 @@ export function WalkScreen(props: Props) {
   const direction = useMemo(
     () =>
       lastKnown &&
-      directionText(landmarkDirection(landmarkDirectionsFor(site.site), route, lastKnown.position)),
-    [lastKnown, route, site.site],
+      directionText(
+        landmarkDirection(landmarkDirectionsFor(site.site), route, lastKnown.position, backHeading),
+      ),
+    [lastKnown, route, site.site, backHeading],
   );
   const hazardMargin = back && limitRows(back).find((row) => row.limit === "hazard_margin");
   const badges = simulation ? walkBadges(simulation, index) : [];

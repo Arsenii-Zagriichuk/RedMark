@@ -176,27 +176,68 @@ describe("returnHeading", () => {
   });
 });
 
-describe("landmarkDirection", () => {
-  const directions = {
+describe("landmarkDirection for the walk back", () => {
+  // From (0, 400) on the first leg: the peak is due east, Texoli due south and the rim's
+  // two points 2.9° either side of due north, so the rim lies due north.
+  const landmarks = [
+    { id: "peak", in_sentence: "the upper Mount Sharp peak", points: [{ x: 10000, y: 400 }] },
+    { id: "texoli", in_sentence: "Texoli", points: [{ x: 0, y: -10000 }] },
+    {
+      id: "rim",
+      in_sentence: "the Gale crater rim",
+      points: [
+        { x: -1000, y: 20000 },
+        { x: 1000, y: 20000 },
+      ],
+    },
+  ];
+  const seen = (peak: number, texoli: number, rim: number) => [
+    { id: "peak", share_of_leg_in_view: peak },
+    { id: "texoli", share_of_leg_in_view: texoli },
+    { id: "rim", share_of_leg_in_view: rim },
+  ];
+  const directions = (first: ReturnType<typeof seen>) => ({
     path: route.path,
+    landmarks,
     legs: [
-      { leg: 0, start_index: 0, end_index: 1, text: "Keep the upper Mount Sharp peak on your right" },
-      { leg: 1, start_index: 1, end_index: 2, text: null },
+      { leg: 0, start_index: 0, end_index: 1, landmarks: first },
+      { leg: 1, start_index: 1, end_index: 2, landmarks: seen(0, 0, 0) },
     ],
-  };
+  });
+  const at = { x: 3, y: 400 };
+  const south = 180;
 
-  it("gives layer 5's direction for the leg holding the last known position", () => {
-    expect(landmarkDirection(directions, route, { x: 3, y: 400 })).toEqual({
+  it("puts the first landmark in view from half the leg on the side it lies walking back", () => {
+    // Walking south, due east is on the left.
+    expect(landmarkDirection(directions(seen(0.5, 1, 1)), route, at, south)).toEqual({
       kind: "landmark",
       leg: 0,
       legs: 2,
-      text: "Keep the upper Mount Sharp peak on your right",
+      text: "Keep the upper Mount Sharp peak on your left",
     });
   });
 
-  it("says no landmark is in view when layer 5 found none along that leg", () => {
+  it("walks towards a landmark ahead, skipping one seen from less than half the leg", () => {
+    expect(landmarkDirection(directions(seen(0.49, 0.9, 1)), route, at, south)).toEqual({
+      kind: "landmark",
+      leg: 0,
+      legs: 2,
+      text: "Walk towards Texoli",
+    });
+  });
+
+  it("keeps a landmark of several points behind, at the mean of their headings", () => {
+    expect(landmarkDirection(directions(seen(0, 0, 0.6)), route, at, south)).toEqual({
+      kind: "landmark",
+      leg: 0,
+      legs: 2,
+      text: "Keep the Gale crater rim behind you",
+    });
+  });
+
+  it("says no landmark is in view when layer 5 saw none from half the leg", () => {
     // 5 m north of the second leg, nearer it than the first.
-    expect(landmarkDirection(directions, route, { x: 600, y: 905 })).toEqual({
+    expect(landmarkDirection(directions(seen(1, 1, 1)), route, { x: 600, y: 905 }, 270)).toEqual({
       kind: "none-in-view",
       leg: 1,
       legs: 2,
@@ -204,9 +245,9 @@ describe("landmarkDirection", () => {
   });
 
   it("says layer 5 has no directions when its legs follow another route", () => {
-    const other = { ...directions, path: [{ x: 0, y: 0 }, { x: 0, y: 900 }, { x: 900, y: 901 }] };
+    const other = { ...directions(seen(1, 1, 1)), path: [{ x: 0, y: 0 }, { x: 0, y: 900 }, { x: 900, y: 901 }] };
 
-    expect(landmarkDirection(other, route, { x: 3, y: 400 })).toEqual({ kind: "not-this-route" });
-    expect(landmarkDirection(null, route, { x: 3, y: 400 })).toEqual({ kind: "not-this-route" });
+    expect(landmarkDirection(other, route, at, south)).toEqual({ kind: "not-this-route" });
+    expect(landmarkDirection(null, route, at, south)).toEqual({ kind: "not-this-route" });
   });
 });
