@@ -55,6 +55,12 @@ jobs:
       - name: Typecheck the app
         run: npm run typecheck --prefix app
 
+      - name: Lint the app (fetch only in src/api/client.ts)
+        run: npm run lint --prefix app
+
+      - name: Test the app
+        run: npm test --prefix app
+
       - name: Build the app
         run: npm run build --prefix app
 
