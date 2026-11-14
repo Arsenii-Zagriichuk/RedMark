@@ -80,16 +80,17 @@ def plan_on_grid(
     habitat: Point,
     limits: Limits,
     *,
+    mode: str = "fastest",
     daylight_s: float | None = None,
-    cart: bool = False,
     targets: Sequence[Point] = (),
 ) -> RouteResponse:
-    """The fastest safe route for the crew; the science alternative when targets are given;
-    or the cart's route when cart is set.
+    """The crew's fastest safe route, the science alternative through targets, or the cart's
+    route, by mode.
 
     daylight_s is the time from the walk's start to sunset. The cart cannot cross a ridge,
     and the walk-back rule and daylight limit are crew rules, so they don't apply to it.
     """
+    cart = mode == "cart"
     blocked = blocked_cells(grid, habitat, limits)
     if cart:
         blocked |= grid.ridge
@@ -99,7 +100,7 @@ def plan_on_grid(
     field = _Field(grid, walk_s, blocked, [habitat, start, *targets])
     rules = _Rules(habitat, limits, daylight_s, cart)
     fastest = _respond(grid, rules, _route(field, [start, goal]), "cart" if cart else "fastest")
-    if not targets:
+    if mode != "science":
         return fastest
 
     # Walking times between every pair of waypoints, worked out once (indexes into stops).
@@ -115,16 +116,21 @@ def plan_on_grid(
         visits = [0, *order, len(stops) - 1]
         return sum(hop_s[a, b] for a, b in zip(visits, visits[1:], strict=False))
 
-    chosen = [i for i in range(1, len(stops) - 1) if math.isfinite(tour_s([i]))]
+    def keeps_limits(waypoints: Sequence[Point]) -> RouteResponse | None:
+        try:
+            return _respond(grid, rules, _route(field, waypoints), "science")
+        except NoSafeRoute:
+            return None
+
+    # Only a target the crew could visit on its own, within every hard limit, is a candidate.
+    chosen = [i for i in range(1, len(stops) - 1) if keeps_limits([start, stops[i], goal])]
     while chosen:
         order = min(itertools.permutations(chosen), key=tour_s)
-        waypoints = [start, *(stops[i] for i in order), goal]
-        try:
-            science = _respond(grid, rules, _route(field, waypoints), "science")
+        science = keeps_limits([start, *(stops[i] for i in order), goal])
+        if science is not None:
             break
-        except NoSafeRoute:
-            # Drop the target whose visit costs the most time, then try again.
-            chosen.remove(min(order, key=lambda t: tour_s([i for i in order if i != t])))
+        # Drop the target whose visit costs the most time, then try again.
+        chosen.remove(min(order, key=lambda t: tour_s([i for i in order if i != t])))
     else:
         science = fastest.model_copy(update={"mode": "science"})
     return science.model_copy(
@@ -188,11 +194,7 @@ class _Field:
         set_off_s = walked_s + self._to_centre_s(origin, self.cells[i])
         cells = _trace(self.previous[i], cell, self.shape)
         centres = [(self.grid.centre(*c), set_off_s + self.seconds[i][c]) for c in cells]
-        return [
-            (origin, walked_s),
-            *centres,
-            (p, set_off_s + self.seconds[i][cell] + self._to_centre_s(p, cell)),
-        ]
+        return [(origin, walked_s), *centres, (p, walked_s + self.time(origin, p))]
 
 
 def _route(field: _Field, waypoints: Sequence[Point]) -> list[_Stop]:
@@ -219,7 +221,7 @@ def _respond(grid: CostGrid, rules: _Rules, stops: list[_Stop], mode: str) -> Ro
         raise NoSafeRoute(f"the fastest safe path takes {total_s / 3600:.1f} h")
     if not all(math.isfinite(stop.home_s) for stop in stops):
         raise NoSafeRoute("part of the route has no safe path back to the habitat")
-    walk_back_margin_s = min(max_walk_s - stop.walked_s - stop.home_s for stop in stops)
+    walk_back_margin_s = _spare_s(max_walk_s, stops)
     checks = []
     if not rules.cart:
         if walk_back_margin_s < 0:
@@ -228,7 +230,7 @@ def _respond(grid: CostGrid, rules: _Rules, stops: list[_Stop], mode: str) -> Ro
             )
         checks.append(_check("walk_back", walk_back_margin_s, 0, "s", at_least=True))
         if rules.daylight_s is not None:
-            daylight_margin_s = min(rules.daylight_s - s.walked_s - s.home_s for s in stops)
+            daylight_margin_s = _spare_s(rules.daylight_s, stops)
             if daylight_margin_s < 0:
                 raise NoSafeRoute("the crew could not be back at the habitat before sunset")
             checks.append(_check("daylight", daylight_margin_s, 0, "s", at_least=True))
@@ -268,6 +270,11 @@ class _Stop:
     point: Point
     walked_s: float
     home_s: float
+
+
+def _spare_s(budget_s: float, stops: list[_Stop]) -> float:
+    """The least time left in a budget if the crew turned for home at any stop."""
+    return min(budget_s - stop.walked_s - stop.home_s for stop in stops)
 
 
 def _metres(a: Point, b: Point) -> float:

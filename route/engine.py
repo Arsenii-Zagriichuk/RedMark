@@ -60,8 +60,8 @@ def plan(request: dict) -> dict:
         route_request.goal,
         site.habitat,
         route_request.limits,
+        mode=mode,
         daylight_s=daylight,
-        cart=mode == "cart",
         targets=[t.position for t in site.science_targets] if mode == "science" else (),
     )
     return response.model_dump(mode="json")
