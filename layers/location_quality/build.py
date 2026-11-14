@@ -97,6 +97,7 @@ CHECKPOINT_SQUARE_M = 500.0
 CHECKPOINT_NEIGHBOURHOOD_M = 10.0
 """A tie between candidates goes to the better mean score within this distance."""
 DIRECTION_STEP_M = 10.0
+OVERLAY_CANDIDATES = 12
 SOURCES = [
     (
         "MSL Gale DEM mosaic, 1 m, v3 (USGS Astrogeology)",
@@ -512,7 +513,7 @@ def draw_final_overlay(
     on the base map; then the directions each leg of the route gets."""
     step = max(1, round(score.shape[1] / 1000))
     extent = (cells.left, cells.right, cells.bottom, cells.top)
-    fig, axes = plt.subplots(1, 3, figsize=(27, 9.5))
+    fig, axes = plt.subplots(1, 3, figsize=(32, 11), width_ratios=[1, 1.15, 0.9])
 
     ax = axes[0]
     ax.imshow(base_map.image, extent=base_map.extent)
@@ -570,16 +571,23 @@ def draw_final_overlay(
         lines.append(f'    "{leg["text"]}"')
         lines.append(f"    in view: {seen or 'none'}")
     lines.append("")
-    lines.append("Checkpoint candidates (score, expected error, landmarks in view):")
-    for c in summary["checkpoint_candidates"]:
+    shown = summary["checkpoint_candidates"][:OVERLAY_CANDIDATES]
+    lines.append(
+        f"Best {len(shown)} of {len(summary['checkpoint_candidates'])} checkpoint candidates"
+        " (score, expected error, landmarks in view);"
+    )
+    lines.append("the rest are in layer5-gale.json:")
+    for c in shown:
         view = ", ".join(f"{v['id']} {v['heading_deg']:.0f}°" for v in c["landmarks_in_view"])
         lines.append(
             f"  {c['id'].split('-')[-1]}: {c['score']:.2f}, {c['expected_error_m']:.0f} m,"
             f" {c['terrain_type']}; {view}"
         )
-    ax.text(0, 1, "\n".join(lines), va="top", family="monospace", fontsize=9.5)
-    fig.suptitle("P3-06 layer 5 final at Gale: error map, score, checkpoints, directions")
-    fig.tight_layout()
+    ax.text(0, 1, "\n".join(lines), va="top", family="monospace", fontsize=10)
+    fig.suptitle(
+        "P3-06 layer 5 final at Gale: error map, score, checkpoints, directions", fontsize=16
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=70)
     plt.close(fig)
