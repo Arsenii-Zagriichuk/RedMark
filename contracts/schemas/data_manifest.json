@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DataManifest",
+  "description": "Every external data file one owner uses, in <owner folder>/data-manifest.yaml. The project page's References field is built from these.",
+  "type": "object",
+  "properties": {
+    "files": {
+      "type": "array",
+      "items": {
+        "title": "ManifestFile",
+        "description": "One data file.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "What the file is."
+          },
+          "path": {
+            "type": "string",
+            "description": "Path relative to REDMARK_DATA.",
+            "minLength": 1
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "source_url": {
+            "type": "string",
+            "description": "Where it was downloaded from.",
+            "format": "uri"
+          },
+          "checksum": {
+            "type": "string",
+            "description": "The checksum value.",
+            "minLength": 1
+          },
+          "checksum_algorithm": {
+            "type": "string",
+            "description": "e.g. sha256, or md5-s3-multipart for a USGS S3 ETag.",
+            "minLength": 1
+          },
+          "credit": {
+            "type": "string",
+            "description": "Citation or licence for References, if the source asks for one."
+          }
+        },
+        "required": [
+          "name",
+          "path",
+          "size_bytes",
+          "source_url",
+          "checksum",
+          "checksum_algorithm"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "files"
+  ],
+  "additionalProperties": false
+}

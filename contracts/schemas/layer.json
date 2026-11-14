@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LayerMeta",
+  "description": "Metadata for one map layer, in $REDMARK_DATA/<site>/layers/<name>/layer.json, next to its tiles. Owners: Person 2 (layer groups 1 to 3), Person 3 (group 5).",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Same as the layer's folder name.",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "title": {
+      "type": "string",
+      "description": "Display name."
+    },
+    "group": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Layer group: 1 base, 2 walkability, 3 science, 4 conditions, 5 location quality."
+    },
+    "units": {
+      "type": "string",
+      "description": "Units of the values the colours stand for; empty for a photo."
+    },
+    "resolution_m": {
+      "type": "number",
+      "description": "Ground size of one full-resolution pixel, in metres. The app shows it in the legend.",
+      "exclusiveMinimum": 0
+    },
+    "bounds": {
+      "$ref": "common.json#/$defs/bounds"
+    },
+    "tiles": {
+      "title": "Tiles",
+      "description": "Image tiles in map metres. At max_zoom one pixel is resolution_m; each lower zoom halves the resolution. Tile (x, y) counts from the north-west corner of bounds.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Tile path template relative to the layer folder, e.g. tiles/{z}/{x}/{y}.png.",
+          "pattern": "\\{z\\}.*\\{x\\}.*\\{y\\}"
+        },
+        "tile_size": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Tile width and height in pixels."
+        },
+        "min_zoom": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_zoom": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "path",
+        "tile_size",
+        "min_zoom",
+        "max_zoom"
+      ],
+      "additionalProperties": false
+    },
+    "legend": {
+      "type": "array",
+      "items": {
+        "title": "LegendEntry",
+        "description": "One legend row.",
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Text shown."
+          },
+          "color": {
+            "type": "string",
+            "description": "Hex colour.",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "value": {
+            "type": "number",
+            "description": "The value this colour stands for, if the layer is continuous."
+          }
+        },
+        "required": [
+          "label",
+          "color"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "source": {
+      "type": "array",
+      "items": {
+        "title": "LayerSource",
+        "description": "A data set the layer was made from; also listed in a data manifest.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the data set."
+          },
+          "url": {
+            "type": "string",
+            "description": "Where it came from.",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "name",
+          "url"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "name",
+    "title",
+    "group",
+    "units",
+    "resolution_m",
+    "bounds",
+    "tiles",
+    "legend",
+    "source"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,16 @@
+# Where each contract's files live. The smoke test (tools/check_contracts.py)
+# checks that every contract has at least one file and that each file matches
+# contracts/schemas/<contract>.json. Patterns starting with "$DATA/" are under
+# REDMARK_DATA; the rest are from the repo root. Every JSON file under results/
+# and cache/ must match one of these patterns.
+site: ["sites/*.yaml"]
+layer: ["$DATA/*/layers/*/layer.json"]
+route_request: ["contracts/stubs/route/request.json"]
+route_response: ["contracts/stubs/route/response.json"]
+fix_result: ["results/*/fixes/*.json"]
+test_summary: ["results/*/*.json"]
+simulate_request: ["contracts/stubs/simulate/request.json"]
+simulate_response: ["contracts/stubs/simulate/response.json"]
+conditions: ["conditions/*.json"]
+demo_cache: ["cache/demo/*/*.json"]
+data_manifest: ["*/data-manifest.yaml", "*/*/data-manifest.yaml"]

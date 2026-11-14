@@ -1,0 +1,40 @@
+{
+  "test": "horizon-gale",
+  "site": "gale",
+  "method": "horizon",
+  "simulated": false,
+  "overall": {
+    "n": 2,
+    "median_error_m": 5,
+    "within_1m_pct": 10,
+    "within_5m_pct": 50,
+    "within_10m_pct": 90,
+    "median_heading_error_deg": 2,
+    "median_time_per_fix_s": 2.5
+  },
+  "groups": {
+    "textured": {
+      "n": 1,
+      "median_error_m": 5,
+      "within_1m_pct": 10,
+      "within_5m_pct": 50,
+      "within_10m_pct": 90,
+      "median_heading_error_deg": 2,
+      "median_time_per_fix_s": 2.5
+    },
+    "plain": {
+      "n": 1,
+      "median_error_m": 5,
+      "within_1m_pct": 10,
+      "within_5m_pct": 50,
+      "within_10m_pct": 90,
+      "median_heading_error_deg": 2,
+      "median_time_per_fix_s": 2.5
+    }
+  },
+  "provenance": {
+    "script": "stub",
+    "commit": "",
+    "inputs": []
+  }
+}

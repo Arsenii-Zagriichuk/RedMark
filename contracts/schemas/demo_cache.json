@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DemoCacheEntry",
+  "description": "One saved response for one step of the 3-minute demo, in cache/demo/<producer>/<step>.json. Demo mode answers from these and never touches the network.",
+  "type": "object",
+  "properties": {
+    "step": {
+      "type": "string",
+      "description": "Demo step id, e.g. planning.route.fastest.",
+      "minLength": 1
+    },
+    "request": {
+      "title": "CachedRequest",
+      "description": "The request that produced the response.",
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "POST"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "description": "Service path, e.g. /route.",
+          "pattern": "^/"
+        },
+        "body": {
+          "description": "Request body; null for GET.",
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "required": [
+        "method",
+        "path",
+        "body"
+      ],
+      "additionalProperties": false
+    },
+    "status": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 599
+    },
+    "contract": {
+      "description": "Name of the schema in contracts/schemas the response matches (e.g. route_response); null if none.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "response": {
+      "description": "The saved response body."
+    }
+  },
+  "required": [
+    "step",
+    "request",
+    "status",
+    "contract",
+    "response"
+  ],
+  "additionalProperties": false
+}

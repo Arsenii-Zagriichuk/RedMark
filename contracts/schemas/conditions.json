@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Conditions",
+  "description": "Conditions on the replayed sol, in conditions/<sol>.json. Producer: Person 4.",
+  "type": "object",
+  "properties": {
+    "site": {
+      "$ref": "common.json#/$defs/site_id"
+    },
+    "sol": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "radiation_ugy_per_day": {
+      "type": "number",
+      "description": "Daily radiation dose from RAD, µGy/day.",
+      "minimum": 0
+    },
+    "dust": {
+      "title": "Dust",
+      "description": "Dust optical depth, labelled measured or estimated.",
+      "type": "object",
+      "properties": {
+        "optical_depth": {
+          "type": "number",
+          "description": "Atmospheric optical depth (tau).",
+          "minimum": 0
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "measured",
+            "estimated"
+          ]
+        }
+      },
+      "required": [
+        "optical_depth",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "sunset_lmst": {
+      "type": "string",
+      "description": "Sunset, local mean solar time, HH:MM.",
+      "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "title": "ConditionsStep",
+        "description": "Conditions at one local time.",
+        "type": "object",
+        "properties": {
+          "lmst": {
+            "type": "string",
+            "description": "Local mean solar time, HH:MM.",
+            "pattern": "^[0-2][0-9]:[0-5][0-9]$"
+          },
+          "temperature_c": {
+            "type": "number",
+            "description": "Air temperature from REMS."
+          },
+          "pressure_pa": {
+            "type": "number",
+            "description": "Pressure from REMS.",
+            "minimum": 0
+          },
+          "sun_azimuth_deg": {
+            "type": "number",
+            "description": "Sun direction from map north.",
+            "minimum": 0,
+            "exclusiveMaximum": 360
+          },
+          "sun_elevation_deg": {
+            "type": "number",
+            "description": "Sun elevation.",
+            "minimum": -90,
+            "maximum": 90
+          }
+        },
+        "required": [
+          "lmst",
+          "temperature_c",
+          "pressure_pa",
+          "sun_azimuth_deg",
+          "sun_elevation_deg"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "provenance": {
+      "$ref": "common.json#/$defs/provenance"
+    }
+  },
+  "required": [
+    "site",
+    "sol",
+    "radiation_ugy_per_day",
+    "dust",
+    "sunset_lmst",
+    "steps",
+    "provenance"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,30 @@
+{
+  "photo_id": "stub-navcam-0001",
+  "site": "gale",
+  "method": "horizon",
+  "position": {
+    "x": 8143903,
+    "y": -281896
+  },
+  "heading_deg": 92,
+  "uncertainty_m": 10,
+  "confidence_pct": 90,
+  "time_per_fix_s": 2.5,
+  "terrain_type": "textured",
+  "simulated": false,
+  "overlay": "contracts/stubs/overlays/stub-overlay.png",
+  "truth": {
+    "position": {
+      "x": 8143900,
+      "y": -281900
+    },
+    "heading_deg": 90,
+    "position_error_m": 5,
+    "heading_error_deg": 2
+  },
+  "provenance": {
+    "script": "stub",
+    "commit": "",
+    "inputs": []
+  }
+}

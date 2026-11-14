@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Common",
+  "description": "Definitions shared by every RedMark contract. All positions are metres in the site map's own projection, the same frame as Curiosity's recorded positions. Errors and distances are ground metres.",
+  "$defs": {
+    "point": {
+      "title": "Point",
+      "description": "A position in map metres in the site's projection.",
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number",
+          "description": "Easting, map metres."
+        },
+        "y": {
+          "type": "number",
+          "description": "Northing, map metres."
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "additionalProperties": false
+    },
+    "bounds": {
+      "title": "Bounds",
+      "description": "A rectangle in map metres.",
+      "type": "object",
+      "properties": {
+        "min_x": {
+          "type": "number",
+          "description": "West edge."
+        },
+        "min_y": {
+          "type": "number",
+          "description": "South edge."
+        },
+        "max_x": {
+          "type": "number",
+          "description": "East edge."
+        },
+        "max_y": {
+          "type": "number",
+          "description": "North edge."
+        }
+      },
+      "required": [
+        "min_x",
+        "min_y",
+        "max_x",
+        "max_y"
+      ],
+      "additionalProperties": false
+    },
+    "site_id": {
+      "title": "SiteId",
+      "description": "Gale (the walk) or Jezero (the drone test).",
+      "type": "string",
+      "enum": [
+        "gale",
+        "jezero"
+      ]
+    },
+    "method": {
+      "title": "Method",
+      "description": "How a fix was made.",
+      "type": "string",
+      "enum": [
+        "horizon",
+        "ground",
+        "drone"
+      ]
+    },
+    "terrain_type": {
+      "title": "TerrainType",
+      "description": "The class every test result is split by: textured (ridges, rock) or plain (sand).",
+      "type": "string",
+      "enum": [
+        "textured",
+        "plain"
+      ]
+    },
+    "provenance": {
+      "title": "Provenance",
+      "description": "Which script, commit and inputs wrote a results file. Required on every results file. A hand-made stub has script \"stub\", and nothing may show a stub's numbers as real.",
+      "type": "object",
+      "properties": {
+        "script": {
+          "type": "string",
+          "description": "Repo path of the script that wrote the file, or \"stub\".",
+          "minLength": 1
+        },
+        "commit": {
+          "type": "string",
+          "description": "Git commit the script ran at."
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "title": "ProvenanceInput",
+            "description": "One input file and its checksum.",
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Path of the input file."
+              },
+              "sha256": {
+                "type": "string",
+                "description": "SHA-256 of the input file.",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Every input file the script read."
+        }
+      },
+      "required": [
+        "script",
+        "commit",
+        "inputs"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

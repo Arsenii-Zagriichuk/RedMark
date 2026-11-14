@@ -1,0 +1,3 @@
+# Data files Person 2 uses (P2-01 fills this in). Persons 3 and 4 keep their
+# own data-manifest.yaml in their folders. Schema: contracts/schemas/data_manifest.json.
+files: []

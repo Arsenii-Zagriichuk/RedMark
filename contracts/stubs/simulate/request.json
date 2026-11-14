@@ -1,0 +1,29 @@
+{
+  "site": "gale",
+  "path": [
+    {
+      "x": 8143300,
+      "y": -282400
+    },
+    {
+      "x": 8143900,
+      "y": -281900
+    },
+    {
+      "x": 8144500,
+      "y": -281500
+    }
+  ],
+  "fix_schedule": [
+    {
+      "time_s": 1400,
+      "method": "horizon"
+    }
+  ],
+  "break_it": {
+    "camera_off": false,
+    "radio_off": false,
+    "drone_grounded": false
+  },
+  "seed": 1
+}

@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FixResult",
+  "description": "One fix from one method at one moment. Producers: Person 2 (drone), Person 3 (horizon, ground). Path: results/<method>/fixes/<photo_id>.json.",
+  "type": "object",
+  "properties": {
+    "photo_id": {
+      "type": "string",
+      "description": "The photo's id in its archive.",
+      "minLength": 1
+    },
+    "site": {
+      "$ref": "common.json#/$defs/site_id"
+    },
+    "method": {
+      "$ref": "common.json#/$defs/method"
+    },
+    "position": {
+      "$ref": "common.json#/$defs/point",
+      "description": "Estimated position."
+    },
+    "heading_deg": {
+      "type": "number",
+      "description": "Estimated heading from map north.",
+      "minimum": 0,
+      "exclusiveMaximum": 360
+    },
+    "uncertainty_m": {
+      "type": "number",
+      "description": "Uncertainty circle radius in ground metres. PROPOSED, confirm at H0: the 95% radius.",
+      "exclusiveMinimum": 0
+    },
+    "confidence_pct": {
+      "type": "number",
+      "description": "PROPOSED, confirm at H0: the share of tested fixes, for this method and terrain type, whose true position fell inside their circle.",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "time_per_fix_s": {
+      "type": "number",
+      "description": "Seconds the fix took to compute.",
+      "minimum": 0
+    },
+    "terrain_type": {
+      "$ref": "common.json#/$defs/terrain_type"
+    },
+    "simulated": {
+      "type": "boolean",
+      "description": "True for any result not measured on real photos. Required, no default; the app shows a label whenever it is true."
+    },
+    "overlay": {
+      "type": "string",
+      "description": "Repo-relative path of the overlay image that draws this fix on the base map.",
+      "minLength": 1
+    },
+    "truth": {
+      "description": "Answer-key values for a tested photo; null for a fix on the demo walk.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "title": "Truth",
+          "description": "Answer-key values. Only tested photos have them.",
+          "type": "object",
+          "properties": {
+            "position": {
+              "$ref": "common.json#/$defs/point"
+            },
+            "heading_deg": {
+              "type": "number",
+              "description": "True heading from map north.",
+              "minimum": 0,
+              "exclusiveMaximum": 360
+            },
+            "position_error_m": {
+              "type": "number",
+              "description": "Error in ground metres, from the shared scorer.",
+              "minimum": 0
+            },
+            "heading_error_deg": {
+              "type": "number",
+              "description": "Heading error from the shared scorer; wraps at 360°, so 0 to 180.",
+              "minimum": 0,
+              "maximum": 180
+            }
+          },
+          "required": [
+            "position",
+            "heading_deg",
+            "position_error_m",
+            "heading_error_deg"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "provenance": {
+      "$ref": "common.json#/$defs/provenance"
+    }
+  },
+  "required": [
+    "photo_id",
+    "site",
+    "method",
+    "position",
+    "heading_deg",
+    "uncertainty_m",
+    "confidence_pct",
+    "time_per_fix_s",
+    "terrain_type",
+    "simulated",
+    "overlay",
+    "truth",
+    "provenance"
+  ],
+  "additionalProperties": false
+}

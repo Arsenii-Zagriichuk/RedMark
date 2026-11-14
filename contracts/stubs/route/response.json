@@ -1,0 +1,89 @@
+{
+  "site": "gale",
+  "mode": "fastest",
+  "path": [
+    {
+      "x": 8143300,
+      "y": -282400
+    },
+    {
+      "x": 8143900,
+      "y": -281900
+    },
+    {
+      "x": 8144500,
+      "y": -281500
+    }
+  ],
+  "legs": [
+    {
+      "start_index": 0,
+      "end_index": 1,
+      "distance_m": 781,
+      "time_s": 1406
+    },
+    {
+      "start_index": 1,
+      "end_index": 2,
+      "distance_m": 721,
+      "time_s": 1298
+    }
+  ],
+  "total_distance_m": 1502,
+  "total_time_s": 2704,
+  "walk_back_margin_s": 9000,
+  "extra_time_vs_fastest_s": null,
+  "limit_checks": [
+    {
+      "limit": "slope",
+      "passed": true,
+      "value": 12,
+      "threshold": 20,
+      "units": "deg"
+    },
+    {
+      "limit": "distance_from_habitat",
+      "passed": true,
+      "value": 1000,
+      "threshold": 2000,
+      "units": "m"
+    },
+    {
+      "limit": "walk_time",
+      "passed": true,
+      "value": 0.75,
+      "threshold": 6,
+      "units": "h"
+    },
+    {
+      "limit": "walk_back",
+      "passed": true,
+      "value": 9000,
+      "threshold": 0,
+      "units": "s"
+    },
+    {
+      "limit": "daylight",
+      "passed": true,
+      "value": 7200,
+      "threshold": 0,
+      "units": "s"
+    },
+    {
+      "limit": "hazard_margin",
+      "passed": true,
+      "value": 25,
+      "threshold": 10,
+      "units": "m"
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "cp-1",
+      "position": {
+        "x": 8143900,
+        "y": -281900
+      }
+    }
+  ]
+}

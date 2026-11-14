@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SimulateRequest",
+  "description": "Body of POST /simulate. Engine: Person 4.",
+  "type": "object",
+  "properties": {
+    "site": {
+      "$ref": "common.json#/$defs/site_id"
+    },
+    "path": {
+      "type": "array",
+      "items": {
+        "$ref": "common.json#/$defs/point"
+      },
+      "minItems": 2,
+      "description": "Ordered positions along the path."
+    },
+    "fix_schedule": {
+      "type": "array",
+      "items": {
+        "title": "ScheduledFix",
+        "description": "A fix planned at a time into the walk.",
+        "type": "object",
+        "properties": {
+          "time_s": {
+            "type": "number",
+            "description": "Seconds from the start.",
+            "minimum": 0
+          },
+          "method": {
+            "$ref": "common.json#/$defs/method"
+          }
+        },
+        "required": [
+          "time_s",
+          "method"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "break_it": {
+      "title": "BreakIt",
+      "description": "Break-it scenario flags; all true is everything at once (lost mode).",
+      "type": "object",
+      "properties": {
+        "camera_off": {
+          "type": "boolean"
+        },
+        "radio_off": {
+          "type": "boolean"
+        },
+        "drone_grounded": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "camera_off",
+        "radio_off",
+        "drone_grounded"
+      ],
+      "additionalProperties": false
+    },
+    "seed": {
+      "type": "integer",
+      "description": "The same seed and inputs replay the same walk."
+    }
+  },
+  "required": [
+    "site",
+    "path",
+    "fix_schedule",
+    "break_it",
+    "seed"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SiteConfig",
+  "description": "One site's config, in sites/<site>.yaml. Owner: Person 2 (replayed sol from Person 4).",
+  "type": "object",
+  "properties": {
+    "site": {
+      "$ref": "common.json#/$defs/site_id"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name."
+    },
+    "projection": {
+      "type": "string",
+      "description": "The site map's projection as a PROJ string. Jezero is reprojected so map metres are ground metres.",
+      "minLength": 1
+    },
+    "bounds": {
+      "$ref": "common.json#/$defs/bounds",
+      "description": "Walk area bounds (Gale) or crop bounds (Jezero)."
+    },
+    "habitat": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "common.json#/$defs/point"
+        }
+      ]
+    },
+    "base_camp": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "common.json#/$defs/point"
+        }
+      ]
+    },
+    "science_targets": {
+      "type": "array",
+      "items": {
+        "title": "ScienceTarget",
+        "description": "A spot the crew samples: a ridge centre or a hollow Curiosity did not reach.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id, used in other files.",
+            "minLength": 1
+          },
+          "position": {
+            "$ref": "common.json#/$defs/point"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name."
+          }
+        },
+        "required": [
+          "id",
+          "position",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "description": "Empty at Jezero."
+    },
+    "checkpoints": {
+      "type": "array",
+      "items": {
+        "title": "Checkpoint",
+        "description": "A spot on the route where the crew stops to take a fix.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id, used in other files.",
+            "minLength": 1
+          },
+          "position": {
+            "$ref": "common.json#/$defs/point"
+          }
+        },
+        "required": [
+          "id",
+          "position"
+        ],
+        "additionalProperties": false
+      },
+      "description": "Empty at Jezero."
+    },
+    "files": {
+      "type": "object",
+      "description": "Named data files, each a path relative to REDMARK_DATA.",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "replayed_sol": {
+      "description": "The real sol whose conditions play during the walk (4600 to 4709 by the team plan); null at Jezero.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer",
+          "minimum": 0
+        }
+      ]
+    }
+  },
+  "required": [
+    "site",
+    "name",
+    "projection",
+    "bounds",
+    "habitat",
+    "base_camp",
+    "science_targets",
+    "checkpoints",
+    "files",
+    "replayed_sol"
+  ],
+  "additionalProperties": false
+}

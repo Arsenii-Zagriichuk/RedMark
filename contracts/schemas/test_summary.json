@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TestSummary",
+  "description": "The measured results of one test, written only through the shared scorer in contracts/scoring/. Path: results/<method>/<test>.json.",
+  "type": "object",
+  "properties": {
+    "test": {
+      "type": "string",
+      "description": "Test id, e.g. drone-jezero or horizon-gale.",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "site": {
+      "$ref": "common.json#/$defs/site_id"
+    },
+    "method": {
+      "$ref": "common.json#/$defs/method"
+    },
+    "simulated": {
+      "type": "boolean",
+      "description": "True for a simulated error model (e.g. stage 2 if the real attempt fails). The Test lab never shows these."
+    },
+    "overall": {
+      "$ref": "#/$defs/metrics"
+    },
+    "groups": {
+      "type": "object",
+      "description": "The same numbers split by terrain type (textured, plain), plus any extra split such as hard_mode.",
+      "properties": {
+        "textured": {
+          "$ref": "#/$defs/metrics"
+        },
+        "plain": {
+          "$ref": "#/$defs/metrics"
+        }
+      },
+      "required": [
+        "textured",
+        "plain"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/metrics"
+      }
+    },
+    "provenance": {
+      "$ref": "common.json#/$defs/provenance"
+    }
+  },
+  "required": [
+    "test",
+    "site",
+    "method",
+    "simulated",
+    "overall",
+    "groups",
+    "provenance"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "metrics": {
+      "title": "TestMetrics",
+      "description": "Measured numbers for one group of fixes, all from the shared scorer.",
+      "type": "object",
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of fixes."
+        },
+        "median_error_m": {
+          "type": "number",
+          "description": "Median position error, ground metres.",
+          "minimum": 0
+        },
+        "within_1m_pct": {
+          "type": "number",
+          "description": "Share of fixes with error ≤ 1 m.",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "within_5m_pct": {
+          "type": "number",
+          "description": "Share of fixes with error ≤ 5 m.",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "within_10m_pct": {
+          "type": "number",
+          "description": "Share of fixes with error ≤ 10 m.",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "median_heading_error_deg": {
+          "description": "Median heading error; null when the method gives no heading to score.",
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 180
+            }
+          ]
+        },
+        "median_time_per_fix_s": {
+          "description": "Median seconds per fix; null for a simulated error model.",
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number",
+              "minimum": 0
+            }
+          ]
+        }
+      },
+      "required": [
+        "n",
+        "median_error_m",
+        "within_1m_pct",
+        "within_5m_pct",
+        "within_10m_pct",
+        "median_heading_error_deg",
+        "median_time_per_fix_s"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

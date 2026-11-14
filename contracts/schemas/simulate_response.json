@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SimulateResponse",
+  "description": "Response of POST /simulate: one step per time tick.",
+  "type": "object",
+  "properties": {
+    "site": {
+      "$ref": "common.json#/$defs/site_id"
+    },
+    "simulated": {
+      "const": true,
+      "description": "A walk simulation is always simulated; the app labels it."
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "title": "SimStep",
+        "description": "The walk at one time tick.",
+        "type": "object",
+        "properties": {
+          "t_s": {
+            "type": "number",
+            "description": "Seconds from the start.",
+            "minimum": 0
+          },
+          "true_position": {
+            "$ref": "common.json#/$defs/point"
+          },
+          "estimated_position": {
+            "$ref": "common.json#/$defs/point"
+          },
+          "uncertainty_m": {
+            "type": "number",
+            "description": "Uncertainty circle radius, ground metres.",
+            "exclusiveMinimum": 0
+          },
+          "confidence_pct": {
+            "type": "number",
+            "description": "Confidence shown with the estimate.",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "visual_odometry",
+                "motion_sensor",
+                "step_count",
+                "sun",
+                "horizon",
+                "ground",
+                "drone",
+                "radio"
+              ]
+            },
+            "uniqueItems": true,
+            "description": "Sources active at this tick."
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "title": "SimEvent",
+              "description": "Something that happened at this tick, e.g. a fix, a fix request, a source lost.",
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "description": "What happened.",
+                  "minLength": 1
+                },
+                "method": {
+                  "$ref": "common.json#/$defs/method"
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "offline",
+              "lost"
+            ]
+          }
+        },
+        "required": [
+          "t_s",
+          "true_position",
+          "estimated_position",
+          "uncertainty_m",
+          "confidence_pct",
+          "sources",
+          "events",
+          "mode"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "site",
+    "simulated",
+    "seed",
+    "steps"
+  ],
+  "additionalProperties": false
+}

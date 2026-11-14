@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RouteResponse",
+  "description": "Response of POST /route.",
+  "type": "object",
+  "properties": {
+    "site": {
+      "$ref": "common.json#/$defs/site_id"
+    },
+    "mode": {
+      "title": "RouteMode",
+      "type": "string",
+      "enum": [
+        "fastest",
+        "science",
+        "cart"
+      ],
+      "description": "fastest safe route, science alternative, or the cart's route to base camp."
+    },
+    "path": {
+      "type": "array",
+      "items": {
+        "$ref": "common.json#/$defs/point"
+      },
+      "minItems": 2,
+      "description": "Ordered positions along the path."
+    },
+    "legs": {
+      "type": "array",
+      "items": {
+        "title": "RouteLeg",
+        "description": "One leg of the path, between two path indexes.",
+        "type": "object",
+        "properties": {
+          "start_index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "end_index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "distance_m": {
+            "type": "number",
+            "description": "Ground metres.",
+            "minimum": 0
+          },
+          "time_s": {
+            "type": "number",
+            "description": "Walking time.",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "start_index",
+          "end_index",
+          "distance_m",
+          "time_s"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "total_distance_m": {
+      "type": "number",
+      "description": "Ground metres.",
+      "minimum": 0
+    },
+    "total_time_s": {
+      "type": "number",
+      "description": "Walking time.",
+      "minimum": 0
+    },
+    "walk_back_margin_s": {
+      "type": "number",
+      "description": "Spare time under the walk-back rule at the worst point; negative means the rule fails."
+    },
+    "extra_time_vs_fastest_s": {
+      "description": "For the science route: extra time compared with the fastest route. Null for other modes.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "number"
+        }
+      ]
+    },
+    "limit_checks": {
+      "type": "array",
+      "items": {
+        "title": "LimitCheck",
+        "description": "One hard limit, checked against this route.",
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "string",
+            "enum": [
+              "slope",
+              "distance_from_habitat",
+              "planning_speed",
+              "walk_time",
+              "walk_back",
+              "daylight",
+              "hazard_margin"
+            ]
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": "number",
+            "description": "The route's value for this limit."
+          },
+          "threshold": {
+            "type": "number",
+            "description": "The limit it was checked against."
+          },
+          "units": {
+            "type": "string",
+            "description": "Units of value and threshold."
+          }
+        },
+        "required": [
+          "limit",
+          "passed",
+          "value",
+          "threshold",
+          "units"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "description": "Every hard limit, each pass or fail."
+    },
+    "checkpoints": {
+      "type": "array",
+      "items": {
+        "title": "RouteCheckpoint",
+        "description": "A checkpoint on this route.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable id, used in other files.",
+            "minLength": 1
+          },
+          "position": {
+            "$ref": "common.json#/$defs/point"
+          }
+        },
+        "required": [
+          "id",
+          "position"
+        ],
+        "additionalProperties": false
+      },
+      "description": "Checkpoints along the route, in walking order."
+    }
+  },
+  "required": [
+    "site",
+    "mode",
+    "path",
+    "legs",
+    "total_distance_m",
+    "total_time_s",
+    "walk_back_margin_s",
+    "extra_time_vs_fastest_s",
+    "limit_checks",
+    "checkpoints"
+  ],
+  "additionalProperties": false
+}

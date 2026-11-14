@@ -1,0 +1,26 @@
+# Map data never goes into git. Its location comes from REDMARK_DATA.
+/data/
+*.tif
+*.tiff
+*.cub
+*.img
+*.jp2
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node / app
+node_modules/
+app/dist/
+
+# Local settings and secrets
+.env
+.env.*
+.claude/settings.local.json
+
+# OS
+.DS_Store

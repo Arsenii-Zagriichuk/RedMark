@@ -1,0 +1,31 @@
+{
+  "site": "gale",
+  "sol": 4600,
+  "radiation_ugy_per_day": 200,
+  "dust": {
+    "optical_depth": 0.5,
+    "source": "estimated"
+  },
+  "sunset_lmst": "18:00",
+  "steps": [
+    {
+      "lmst": "09:00",
+      "temperature_c": -40,
+      "pressure_pa": 750,
+      "sun_azimuth_deg": 90,
+      "sun_elevation_deg": 30
+    },
+    {
+      "lmst": "12:00",
+      "temperature_c": -10,
+      "pressure_pa": 740,
+      "sun_azimuth_deg": 0,
+      "sun_elevation_deg": 80
+    }
+  ],
+  "provenance": {
+    "script": "stub",
+    "commit": "",
+    "inputs": []
+  }
+}
