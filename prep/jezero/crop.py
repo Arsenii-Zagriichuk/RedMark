@@ -1,5 +1,6 @@
 """Cut a piece of the Jezero photo map and reproject it into the site frame."""
 
+import uuid
 from pathlib import Path
 
 import rasterio
@@ -55,7 +56,8 @@ def crop_to_site_frame(source: str | Path, bounds: Bounds, out: Path, source_id:
             "compress": "deflate",
         }
         out.parent.mkdir(parents=True, exist_ok=True)
-        partial = out.with_name(out.name + ".part")
+        # One temporary file per writer, so two builds never share it.
+        partial = out.with_name(f"{out.name}.{uuid.uuid4().hex}.part")
         with rasterio.open(partial, "w", **profile) as dst:
             reproject(
                 source=data,

@@ -39,6 +39,38 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+_MIB = 1024 * 1024
+
+
+def multipart_part_size(size: int, parts: int) -> int:
+    """The whole-MiB part size that splits `size` bytes into exactly `parts` parts."""
+    for mib in range(1, 5 * 1024 + 1):  # S3 allows parts up to 5 GiB
+        if -(-size // (mib * _MIB)) == parts:
+            return mib * _MIB
+    raise ValueError(f"no whole-MiB part size splits {size} bytes into {parts} parts")
+
+
+def s3_multipart_etag(path: Path, part_size: int) -> str:
+    """S3's ETag for `path` uploaded in `part_size` parts: MD5 of the parts' MD5s."""
+    digests = []
+    with path.open("rb") as f:
+        for part in iter(lambda: f.read(part_size), b""):
+            digests.append(hashlib.md5(part).digest())
+    return f"{hashlib.md5(b''.join(digests)).hexdigest()}-{len(digests)}"
+
+
+def label_index(data_root: Path, labels: list[Path]) -> list[dict]:
+    """One row per label read: path under REDMARK_DATA, size and SHA-256."""
+    return [
+        {
+            "path": label.relative_to(data_root).as_posix(),
+            "size_bytes": label.stat().st_size,
+            "sha256": _sha256(label),
+        }
+        for label in sorted(labels)
+    ]
+
+
 def manifest_entry(
     data_root: Path, rel_path: str, name: str, source_url: str, credit: str | None = None
 ) -> dict:

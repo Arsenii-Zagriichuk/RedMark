@@ -15,6 +15,7 @@ otherwise straight from USGS's S3 bucket (only the rows each crop needs).
 """
 
 import csv
+import hashlib
 import math
 import os
 import sys
@@ -33,13 +34,22 @@ from contracts.paths import REPO_ROOT, data_root
 from prep.jezero.crop import RESOLUTION, Bounds, crop_is_current, crop_to_site_frame
 from prep.jezero.flights import flight_bounds, load_flights
 from prep.jezero.frames import (
+    HELICAM_DATA,
     NavcamFrame,
     NavcamProduct,
     choose_frames,
     navcam_products,
     read_label,
 )
-from prep.jezero.pack import manifest_entry, merge_manifest, site_config, stretch_to_8bit
+from prep.jezero.pack import (
+    label_index,
+    manifest_entry,
+    merge_manifest,
+    multipart_part_size,
+    s3_multipart_etag,
+    site_config,
+    stretch_to_8bit,
+)
 from prep.jezero.site_frame import SITE_LAT_TS
 
 MAP_NAME = "JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first.tif"
@@ -60,7 +70,7 @@ NASA_JSON = {
     "m20_heli_waypoints.json": "Ingenuity flight waypoints (NASA Mars 2020 MMGIS)",
 }
 INVENTORY = "collection_data_inventory.csv"
-INVENTORY_URL = f"https://pds-imaging.jpl.nasa.gov/data/mars2020/mars2020_helicam/data/{INVENTORY}"
+INVENTORY_URL = f"{HELICAM_DATA}/{INVENTORY}"
 HELICAM_CREDIT = "Mars 2020 Helicopter Camera bundle, NASA PDS Imaging Node, NASA/JPL-Caltech"
 USER_AGENT = "redmark-prep/0.1"
 OVERLAY_MAX_PX = 2000
@@ -87,9 +97,17 @@ def _remote_size_and_etag(url: str) -> tuple[int, str]:
         return int(response.headers["Content-Length"]), response.headers["ETag"].strip('"')
 
 
-def _map_source(local: Path, size: int) -> str:
+def _map_source(local: Path, size: int, etag: str) -> str:
+    """The local map if it is byte-for-byte USGS's current file, else the remote one."""
     if local.exists() and local.stat().st_size == size:
-        return str(local)
+        if "-" in etag:  # multipart upload
+            parts = int(etag.rpartition("-")[2])
+            local_etag = s3_multipart_etag(local, multipart_part_size(size, parts))
+        else:  # single upload: the ETag is the file's MD5
+            local_etag = hashlib.md5(local.read_bytes()).hexdigest()
+        if local_etag == etag:
+            return str(local)
+        print(f"warning: {local} does not match USGS's ETag {etag}; reading the remote map")
     return f"/vsicurl/{MAP_URL}"
 
 
@@ -163,11 +181,11 @@ def build(root: Path) -> None:
     flights = load_flights(source / "nasa" / "m20_heli_flight_path.json")
 
     map_size, map_etag = _remote_size_and_etag(MAP_URL)
-    map_source = _map_source(source / MAP_NAME, map_size)
+    map_source = _map_source(source / MAP_NAME, map_size, map_etag)
     map_id = f"{MAP_NAME} etag {map_etag}"
     print(f"photo map: {map_source}")
 
-    rows, crops, manifest = [], {}, []
+    rows, crops, manifest, labels_read = [], {}, [], []
     for spec in config["flights"]:
         flight, sol = spec["flight"], flights[spec["flight"]].sol
         products = navcam_products(inventory, sol)
@@ -176,6 +194,7 @@ def build(root: Path) -> None:
         url_dir = products[0].url_dir
         folder = source / "helicam" / f"sol-{sol:05d}"
         frames = _frames_for_flight(flight, products, folder)
+        labels_read += [folder / f"{p.file_stem}.xml" for p in products]
         picked = choose_frames(frames, config["frames_per_flight"], config["min_altitude_ratio"])
         print(f"flight {flight} (sol {sol}): {len(frames)} frames, {len(picked)} picked")
         crop = pack / "crops" / f"flight-{flight:02d}.tif"
@@ -270,6 +289,23 @@ def build(root: Path) -> None:
             f"jezero/source/helicam/{INVENTORY}",
             name="Helicam bundle inventory",
             source_url=INVENTORY_URL,
+            credit=HELICAM_CREDIT,
+        )
+    )
+    # Every label the frame choice read, checksummed in one index file, so the
+    # References stay short but each label's bytes are on record.
+    index = source / "helicam" / "labels-index.csv"
+    with index.open("w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["path", "size_bytes", "sha256"])
+        writer.writeheader()
+        writer.writerows(label_index(root, labels_read))
+    manifest.append(
+        manifest_entry(
+            root,
+            index.relative_to(root).as_posix(),
+            name=f"Index of the {len(labels_read)} Navcam labels read to choose frames "
+            "(path, size, SHA-256; each label is in the Helicam bundle under sol/)",
+            source_url=f"{HELICAM_DATA}/sol/",
             credit=HELICAM_CREDIT,
         )
     )
