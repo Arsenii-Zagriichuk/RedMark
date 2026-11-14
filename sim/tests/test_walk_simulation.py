@@ -114,3 +114,15 @@ def test_the_stub_request_gives_a_simulated_run_that_matches_the_contract():
     Draft202012Validator(schema, registry=registry).validate(run)
     assert run["simulated"] is True and run["seed"] == request["seed"]
     assert any({"kind": "fix", "method": "horizon"} in s["events"] for s in run["steps"])
+
+
+def test_a_test_summary_with_no_error_still_leaves_a_circle(tmp_path):
+    summary = json.loads((RESULTS / "horizon" / "horizon-gale.json").read_text())
+    summary["overall"]["median_error_m"] = 0
+    (tmp_path / "horizon").mkdir()
+    (tmp_path / "horizon" / "horizon-gale.json").write_text(json.dumps(summary))
+
+    run = simulate(walk([(0, 0), (500, 0)], fixes=[(300, "horizon")]), results_root=tmp_path)
+
+    fix, _ = step_at(run, 300)
+    assert 0 < fix["uncertainty_m"] < 0.1

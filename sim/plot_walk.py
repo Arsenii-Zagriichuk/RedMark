@@ -68,7 +68,7 @@ def main() -> None:
     chart.axhline(FIX_REQUEST_OPEN_GROUND_M, c="tab:red", ls="--", label="fix request, open ground")
     chart.set_xlabel("minutes into the walk")
     chart.set_ylabel("circle radius, ground metres (95%)")
-    chart.set_ylim(0, FIX_REQUEST_OPEN_GROUND_M * 1.2)
+    chart.set_ylim(0, 1.2 * max(FIX_REQUEST_OPEN_GROUND_M, *(s["uncertainty_m"] for s in steps)))
     chart.legend(loc="upper left")
     chart.set_title(f"SIMULATED: circle grows between fixes, shrinks at a fix (seed {run['seed']})")
     OUT.mkdir(parents=True, exist_ok=True)

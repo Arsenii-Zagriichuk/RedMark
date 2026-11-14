@@ -39,6 +39,9 @@ DRIFT_PER_M = 0.025
 # 3 m near-hazard limits need the ridge and slope layers, which the sim doesn't read yet.
 FIX_REQUEST_OPEN_GROUND_M = 10.0
 
+# No fix is better than a centimetre, so a test summary reporting no error still leaves a circle.
+MIN_FIX_SIGMA_M = 0.01
+
 # Radius of the 95% circle for a 2D normal error with standard deviation 1 per axis.
 _CIRCLE_PER_SIGMA = math.sqrt(-2 * math.log(1 - CIRCLE_COVERAGE))
 
@@ -49,9 +52,9 @@ def simulate(request: dict, results_root: Path = REPO_ROOT / "results") -> dict:
     if broken:
         raise NotImplementedError(f"break-it scenarios ({', '.join(broken)}) come with P4-06")
     corners = np.array([[p.x, p.y] for p in walk.path], dtype=float)
-    along = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(corners, axis=0), axis=1))])
+    along_m = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(corners, axis=0), axis=1))])
     speed_m_s = PLANNING_SPEED_KMH / 3.6
-    end_s = along[-1] / speed_m_s
+    end_s = along_m[-1] / speed_m_s
     late = [f.time_s for f in walk.fix_schedule if f.time_s > end_s]
     if late:
         raise ValueError(f"a fix at {late[0]:.0f} s is after the walk ends at {end_s:.0f} s")
@@ -67,10 +70,8 @@ def simulate(request: dict, results_root: Path = REPO_ROOT / "results") -> dict:
     steps = []
     circle_m = START_CIRCLE_M
     for t in ticks:
-        d = min(t * speed_m_s, along[-1])
-        moved_to = np.array(
-            [np.interp(d, along, corners[:, 0]), np.interp(d, along, corners[:, 1])]
-        )
+        walked_m = min(t * speed_m_s, along_m[-1])
+        moved_to = np.array([np.interp(walked_m, along_m, corners[:, i]) for i in (0, 1)])
         step_m = float(np.linalg.norm(moved_to - true))
         drift_sigma = DRIFT_PER_M * step_m
         estimate = estimate + (moved_to - true) + rng.normal(0.0, drift_sigma, 2)
@@ -85,8 +86,8 @@ def simulate(request: dict, results_root: Path = REPO_ROOT / "results") -> dict:
             variance *= 1 - gain
             sources.append(method)
             events.append({"kind": "fix", "method": method})
-        was_m, circle_m = circle_m, _CIRCLE_PER_SIGMA * math.sqrt(variance)
-        if was_m <= FIX_REQUEST_OPEN_GROUND_M < circle_m:
+        previous_circle_m, circle_m = circle_m, _CIRCLE_PER_SIGMA * math.sqrt(variance)
+        if previous_circle_m <= FIX_REQUEST_OPEN_GROUND_M < circle_m:
             events.append({"kind": "fix_requested"})
         steps.append(
             {
@@ -107,7 +108,7 @@ def simulate(request: dict, results_root: Path = REPO_ROOT / "results") -> dict:
 def _fix_sigma_m(summary: Path) -> float:
     """Per-axis error of one fix: a 2D normal error's median radius is sigma * sqrt(2 ln 2)."""
     median_m = TestSummary.model_validate(json.loads(summary.read_text())).overall.median_error_m
-    return median_m / math.sqrt(2 * math.log(2))
+    return max(median_m / math.sqrt(2 * math.log(2)), MIN_FIX_SIGMA_M)
 
 
 def _point(p: np.ndarray) -> dict:
