@@ -161,11 +161,30 @@ def horizon_fix(
     fix = score_fix(fix, Point(x=rover_x + east, y=rover_y + north), reference)
 
     draw_overlay(overlay, fix, match, grid, frames, photo, base_map)
-    FIXES.mkdir(parents=True, exist_ok=True)
-    (FIXES / f"{photo_id}.json").write_text(
-        json.dumps(fix.model_dump(mode="json"), indent=2) + "\n"
-    )
+    write_fix(fix)
     return fix
+
+
+def write_fix(fix: FixResult) -> Path:
+    """Write a fix result where the service looks it up: results/horizon/fixes/<photo id>.json."""
+    FIXES.mkdir(parents=True, exist_ok=True)
+    path = FIXES / f"{fix.photo_id}.json"
+    path.write_text(json.dumps(fix.model_dump(mode="json"), indent=2) + "\n")
+    return path
+
+
+def frame_fix(ring_fix: FixResult, photo_id: str, label_heading_deg: float) -> FixResult:
+    """The fix result for one frame of a ring, taken from the ring's fix.
+
+    Same position, circle and overlay as the ring; the heading is the ring's,
+    turned by how far this frame points from the ring's reference frame (from
+    their labels), and scored against this frame's own pointing.
+    """
+    turn = label_heading_deg - ring_fix.truth.heading_deg
+    frame = ring_fix.model_copy(
+        update={"photo_id": photo_id, "heading_deg": (ring_fix.heading_deg + turn) % 360.0}
+    )
+    return score_fix(frame, ring_fix.truth.position, label_heading_deg)
 
 
 @dataclass(frozen=True)

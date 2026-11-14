@@ -5,8 +5,11 @@ its horizon ring, made exactly as the first fix (P3-02) makes one, with no
 setting changed after looking at these frames. That is one fix per stop, not
 per frame: one 45° frame alone is too little skyline, as the first fix showed.
 Each fix is scored against PLACES through the shared scorer and written with
-its overlay, and the test summary (results/horizon/horizon-gale.json) is written through the scorer
-too: median position error, heading error and time per fix, overall, by
+its overlay. Every other frame of the ring gets a fix result too (frame_fix:
+the ring's fix, turned to that frame's pointing, sharing its overlay), so the
+Test lab can look up any hidden frame; the run fails if one has none. The
+test summary (results/horizon/horizon-gale.json) still counts one fix per
+stop, written through the scorer: median position error, heading error and time per fix, overall, by
 terrain type, and for hollows against ridge tops and open ground. Both splits
 come from the 1 m terrain at the rover's position (locate.horizon.stop_terrain).
 
@@ -21,15 +24,19 @@ from contracts.models.common import TerrainType
 from contracts.paths import data_root
 from contracts.scoring import write_test_summary
 from locate.horizon.fix import (
+    FIXES,
     GRID,
     PLACES,
     SITE_CONFIG,
+    frame_fix,
     horizon_fix,
     load_grid,
     read_base_map,
     rover_position,
+    write_fix,
 )
 from locate.horizon.hidden_pile import HIDDEN_PILE
+from locate.horizon.navcam import label_pointing
 from locate.horizon.sources import GALE_DEM
 from locate.horizon.stop_terrain import classify_stop
 
@@ -65,6 +72,11 @@ def main() -> None:
             script=SCRIPT,
             extra_inputs=(root / GALE_DEM, root / INDEX),
         )
+        if fix.photo_id != labels[0].stem:
+            raise SystemExit(f"{labels[0].name} names photo {fix.photo_id}")
+        for label in labels[1:]:
+            heading, _ = label_pointing(label.read_text(errors="ignore"))
+            write_fix(frame_fix(fix, label.stem, heading))
         fixes.append(fix)
         (hollow if stop.hollow else open_ground).append(fix.photo_id)
         frames += [path for label in labels for path in (label, label.with_suffix(".IMG"))]
@@ -94,6 +106,15 @@ def main() -> None:
         extra_groups=groups,
     )
     print(f"wrote {summary}")
+    missing = frames_without_fix([label for labels in rings.values() for label in labels], FIXES)
+    if missing:
+        raise SystemExit(f"{len(missing)} hidden frames have no fix result: {missing[:3]}")
+    print(f"every one of the {sum(map(len, rings.values()))} hidden frames has its fix result")
+
+
+def frames_without_fix(labels: list[Path], fixes: Path) -> list[str]:
+    """The frames the service would answer 404 for: no results/horizon/fixes/<photo id>.json."""
+    return [label.stem for label in labels if not (fixes / f"{label.stem}.json").exists()]
 
 
 def hidden_rings(index: Path) -> dict[tuple[int, int], list[Path]]:
