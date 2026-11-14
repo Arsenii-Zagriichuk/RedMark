@@ -27,6 +27,20 @@ def test_twelve_level_frames_round_the_stop_are_its_ring():
     assert horizon_ring(ring) == ring
 
 
+def test_seven_frames_30_degrees_apart_are_a_ring():
+    # 6 × 30° + 45° = 225° of skyline, over the 200° a ring needs.
+    pan = _frames("NCAM00297", range(280, 490, 30), elevation=-17.0)
+
+    assert horizon_ring(pan) == pan
+
+
+def test_four_frames_side_by_side_are_not_a_ring():
+    # 4 × 45° = 180° of skyline, under 200°.
+    pan = _frames("NCAM00297", range(0, 180, 45))
+
+    assert horizon_ring(pan) == []
+
+
 def test_frames_all_looking_one_way_are_not_a_ring():
     sky_movie = _frames("NCAM00575", [102.7] * 15, elevation=6.4)
 

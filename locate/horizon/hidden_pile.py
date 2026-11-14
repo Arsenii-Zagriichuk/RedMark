@@ -31,9 +31,10 @@ from locate.horizon.sources import sha256_file
 ARCHIVE = "https://planetarydata.jpl.nasa.gov/img/data/msl/MSLNAV_1XXX/DATA"
 STRETCHES = 20
 MAX_DOWNLOAD_BYTES = 350_000_000
-# Right Navcam reduced frames: full (F), subframe (S) or downsampled (D); not thumbnails.
-FRAME = re.compile(r"NRB_\d{9}ILT_[FSD](\d{3})(\d{4})(NCAM\d{5})M1\.LBL")
-MIN_RING_FRAMES = 7  # 300° of skyline needs at least 7 frames 45° wide
+# Left or right Navcam reduced frames: full (F), subframe (S) or downsampled (D); not
+# thumbnails. A stereo pan's two cameras count as two sequences, so a ring never holds both.
+FRAME = re.compile(r"(N[LR]B)_\d{9}ILT_[FSD](\d{3})(\d{4})(NCAM\d{5})M1\.LBL")
+MIN_RING_FRAMES = 5  # 200° of skyline needs at least 5 frames 45° wide
 
 TUNING_SITES = range(96, 101)
 HIDDEN_PILE = "hidden/horizon"
@@ -42,7 +43,7 @@ tuning frames can reach it. Only the scoring scripts name it."""
 HORIZON_ELEVATION_DEG = 20.0
 """A frame sees the horizon when it points within this of level (Navcam is 45° tall)."""
 FRAME_WIDTH_DEG = 45.0
-RING_COVERAGE_DEG = 300.0
+RING_COVERAGE_DEG = 200.0
 """A stop's frames are a ring when together they see at least this much skyline."""
 
 
@@ -168,16 +169,17 @@ def _first_ring(stretch: list[Stop], folder: Path) -> tuple[Stop, list[Pointing]
 
 
 def _pointings(stop: Stop, folder: Path) -> list[Pointing]:
-    """Where every reduced right-Navcam frame taken at the stop on its sol looks."""
+    """Where every reduced Navcam frame taken at the stop on its sol looks."""
     listing = folder / "listings" / f"SOL{stop.sol:05d}.html"
     if not listing.exists() or 0 < listing.stat().st_size < 5_000:  # the archive can truncate
         _fetch(f"{ARCHIVE}/SOL{stop.sol:05d}/", listing)
     names: dict[str, list[str]] = {}
     for match in FRAME.finditer(listing.read_text(errors="ignore")):
-        if (int(match[1]), int(match[2])) == (stop.site, stop.drive):
-            names.setdefault(match[3], [])
-            if match[0] not in names[match[3]]:
-                names[match[3]].append(match[0])
+        if (int(match[2]), int(match[3])) == (stop.site, stop.drive):
+            sequence = f"{match[1]} {match[4]}"
+            names.setdefault(sequence, [])
+            if match[0] not in names[sequence]:
+                names[sequence].append(match[0])
     pointings = []
     for sequence, labels in names.items():
         if len(labels) < MIN_RING_FRAMES:
