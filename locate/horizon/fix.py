@@ -90,6 +90,7 @@ def read_site_config() -> SiteConfig:
 
 
 def main() -> None:
+    commit = horizon_commit()
     root = data_root()
     grid = load_grid(root)
     ring_labels = sorted(root.glob(RING_GLOB))
@@ -97,13 +98,19 @@ def main() -> None:
         raise SystemExit(f"expected the 12 ring frames in {root / 'navcam'}")
     base_map = read_base_map(root)
     for labels in ([path for path in ring_labels if path.stem == SINGLE], ring_labels):
-        fix = horizon_fix(labels, grid, root, base_map)
+        fix = horizon_fix(labels, grid, root, base_map, commit=commit)
         print(
             f"{fix.photo_id} ({len(labels)} frames): {fix.truth.position_error_m:.0f} m, "
             f"heading error "
             f"{fix.truth.heading_error_deg:.2f}°, circle {fix.uncertainty_m:.0f} m, "
             f"{fix.time_per_fix_s:.1f} s"
         )
+
+
+def horizon_commit() -> str:
+    """The commit for a horizon fix's provenance, read before any fix is written. The
+    horizon code, the shared scorer and the site config must be committed (git_commit)."""
+    return git_commit("locate/horizon/*.py", "contracts/scoring", SITE_CONFIG)
 
 
 def read_base_map(root: Path) -> LayerImage:
@@ -117,6 +124,7 @@ def horizon_fix(
     root: Path,
     base_map: LayerImage,
     *,
+    commit: str,
     terrain: TerrainType = TERRAIN,
     overlay_prefix: str = "p3-02",
     script: str = "locate/horizon/fix.py",
@@ -152,7 +160,13 @@ def horizon_fix(
         overlay=overlay.relative_to(REPO_ROOT).as_posix(),
         truth=None,
         provenance=fix_provenance(
-            labels, root, SITE_CONFIG, base_map, script=script, extra_inputs=extra_inputs
+            labels,
+            root,
+            SITE_CONFIG,
+            base_map,
+            commit=commit,
+            script=script,
+            extra_inputs=extra_inputs,
         ),
     )
     first = frames[0]
@@ -336,6 +350,7 @@ def fix_provenance(
     site_config: Path,
     base_map: LayerImage,
     *,
+    commit: str,
     script: str = "locate/horizon/fix.py",
     extra_inputs: tuple[Path, ...] = (),
 ) -> Provenance:
@@ -348,7 +363,7 @@ def fix_provenance(
     inputs += [site_config, *base_map.files, *extra_inputs]
     return Provenance(
         script=script,
-        commit=git_commit(),
+        commit=commit,
         inputs=[{"path": _recorded(path, root), "sha256": sha256_file(path)} for path in inputs],
     )
 

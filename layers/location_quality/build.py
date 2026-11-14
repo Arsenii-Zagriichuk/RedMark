@@ -93,6 +93,12 @@ def main() -> None:
     missing = [name for name in (GALE_DEM, FAR_DEM, PLACES) if not (root / name).exists()]
     if missing:
         sys.exit(f"{', '.join(missing)} not in {root}: set REDMARK_DATA to the data folder")
+    # Before anything is written: layer 5 code, the horizon terrain code it uses, the
+    # landmarks and the site config must be committed, or the recorded commit can't
+    # reproduce the layers.
+    commit = git_commit(
+        "layers/location_quality/*.py", "locate/horizon/*.py", LANDMARKS_FILE, SITE_CONFIG
+    )
     started = time.perf_counter()
     gale = load_gale_terrain(root, site.bounds, root / "gale" / "horizon" / "cache")
     landmarks = load_landmarks(gale.terrain, site.bounds, root / PLACES)
@@ -169,7 +175,7 @@ def main() -> None:
         "score_raster": SCORE_RASTER,
         "terrain_load_s": round(loaded - started, 1),
         "compute_s": round(computed - loaded, 1),
-        "provenance": _provenance(root, base_map).model_dump(mode="json"),
+        "provenance": _provenance(root, base_map, commit).model_dump(mode="json"),
     }
     SUMMARY.write_text(json.dumps(summary, indent=2) + "\n")
     draw_overlay(OVERLAY, gale.terrain, landmarks, masks, score, relief, cells, base_map, spot)
@@ -218,14 +224,14 @@ def _height(terrain: Terrain, x: float, y: float) -> float:
     return terrain.height(np.array([x]), np.array([y]), np.array([np.inf]))[0]
 
 
-def _provenance(root: Path, base_map: LayerImage) -> Provenance:
+def _provenance(root: Path, base_map: LayerImage, commit: str) -> Provenance:
     data = [root / GALE_DEM, root / FAR_DEM, root / PLACES, *base_map.files]
     repo = [SITE_CONFIG, LANDMARKS_FILE]
     inputs = [
         {"path": p.resolve().relative_to(root.resolve()).as_posix(), "sha256": sha256_file(p)}
         for p in data
     ] + [{"path": p.relative_to(REPO_ROOT).as_posix(), "sha256": sha256_file(p)} for p in repo]
-    return Provenance(script="layers/location_quality/build.py", commit=git_commit(), inputs=inputs)
+    return Provenance(script="layers/location_quality/build.py", commit=commit, inputs=inputs)
 
 
 def draw_overlay(
