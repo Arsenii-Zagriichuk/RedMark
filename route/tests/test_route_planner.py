@@ -776,3 +776,51 @@ def test_a_checkpoint_candidate_cut_off_by_a_wall_does_not_take_a_reachable_ones
     )
 
     assert [c.id for c in route.checkpoints] == ["reachable"]
+
+
+def test_science_retries_walking_time_before_dropping_a_feasible_target():
+    g, start, goal = poor_quality_band_across_the_line()
+    target = centre(g, 6, 50)
+    limits = DEFAULT_LIMITS.model_copy(update={"max_walk_h": 3700 / 3600})
+
+    route = plan_on_grid(
+        g, start, goal, start, limits, mode=Mode.science, targets=[target], location_weight=1
+    )
+
+    # Through (505, 145): 2*(460+40*sqrt(2)) m at 1.8 s/m, plus 1800 s home.
+    # The preferred fastest route takes 1889.470129 s, so this visit saves 29.823376 s.
+    assert target in route.path
+    assert route.total_time_s == pytest.approx(1859.646753, abs=0.000001)
+    assert route.walk_back_margin_s == pytest.approx(40.353247, abs=0.000001)
+    assert route.extra_time_vs_fastest_s == pytest.approx(-29.823376, abs=0.000001)
+    assert all(c.passed for c in route.limit_checks)
+
+
+@pytest.mark.parametrize(
+    ("row", "budget_s", "checkpoint_ids", "walk_s", "margin_s"),
+    [
+        (6, 3700, ["fix"], 1859.646753, 40.353247),
+        (6, 4000, ["fix"], 1919.293506, 280.706494),
+        (0, 3700, [], 1889.470129, 10.529871),
+    ],
+)
+def test_checkpoint_retry_keeps_feasible_visits_and_preserves_the_preference(
+    row, budget_s, checkpoint_ids, walk_s, margin_s
+):
+    g, start, goal = poor_quality_band_across_the_line()
+    candidate = CheckpointCandidate("fix", centre(g, row, 50), 0.75)
+    limits = DEFAULT_LIMITS.model_copy(update={"max_walk_h": budget_s / 3600})
+
+    route = plan_on_grid(
+        g, start, goal, start, limits, checkpoint_candidates=[candidate], location_weight=1
+    )
+
+    # Row 6's plain/preferred walks: 2*(460+40*sqrt(2)) / (840+160*sqrt(2)) m.
+    # Row 0 needs at least 2*(400+100*sqrt(2)) m: 1949.116882 s + 1800 s home,
+    # so drop it at 3700 s, keeping the 1889.470129 s preferred route without it.
+    assert [c.id for c in route.checkpoints] == checkpoint_ids
+    if checkpoint_ids:
+        assert candidate.position in route.path
+    assert route.total_time_s == pytest.approx(walk_s, abs=0.000001)
+    assert route.walk_back_margin_s == pytest.approx(margin_s, abs=0.000001)
+    assert all(c.passed for c in route.limit_checks)

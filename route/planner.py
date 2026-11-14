@@ -185,6 +185,26 @@ def plan_on_grid(
             ResponseMode.cart if cart else ResponseMode.fastest,
         )
 
+        walking_fields: dict[_Field, _Field] = {}
+
+        def route_through(
+            visits: _Field, waypoints: Sequence[Point], response_mode: ResponseMode
+        ) -> RouteResponse:
+            try:
+                return _respond(grid, rules, _route(visits, home, waypoints), response_mode)
+            except NoSafeRoute:
+                if search_graph is walk_graph:
+                    raise
+                # Reuse the unweighted search while trying subsets of the same visits.
+                if visits not in walking_fields:
+                    walking_fields[visits] = _Field(grid, walk_s, walk_graph, visits.origins, rules)
+                return _respond(
+                    grid,
+                    rules,
+                    _route(walking_fields[visits], home, waypoints),
+                    response_mode,
+                )
+
         def visit_checkpoints(route: RouteResponse, waypoints: list[Point]) -> RouteResponse:
             if cart or not usable_candidates:
                 return route
@@ -225,8 +245,9 @@ def plan_on_grid(
             checkpoints = [c for c, _ in chosen]
             while checkpoints:
                 try:
-                    stops = _route(visits, home, [start, *in_walking_order(checkpoints), goal])
-                    visited = _respond(grid, rules, stops, route.mode)
+                    visited = route_through(
+                        visits, [start, *in_walking_order(checkpoints), goal], route.mode
+                    )
                 except NoSafeRoute:
                     # Drop the checkpoint that costs the most to visit (in search cost: walking
                     # time weighted by location quality), then try again.
@@ -267,7 +288,7 @@ def plan_on_grid(
 
         def keeps_limits(waypoints: Sequence[Point]) -> RouteResponse | None:
             try:
-                return _respond(grid, rules, _route(field, home, waypoints), ResponseMode.science)
+                return route_through(field, waypoints, ResponseMode.science)
             except NoSafeRoute:
                 return None
 
