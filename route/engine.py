@@ -6,12 +6,13 @@ import json
 
 import yaml
 
+from contracts.models.common import Point
 from contracts.models.conditions import Conditions
 from contracts.models.route_request import Mode, RouteRequest
 from contracts.models.site import SiteConfig
 from contracts.paths import REPO_ROOT, data_root
 from route.layers import load_grid
-from route.planner import NoSafeRoute, plan_on_grid
+from route.planner import CheckpointCandidate, NoSafeRoute, plan_on_grid
 
 # One Mars solar day in SI seconds (Allison & McEwen 2000); an LMST hour is 1/24 of it.
 SOL_S = 88775.244
@@ -30,6 +31,17 @@ def daylight_s(conditions: dict) -> float:
 def _lmst_h(lmst: str) -> float:
     hours, minutes = lmst.split(":")
     return int(hours) + int(minutes) / 60
+
+
+def checkpoint_candidates(site_id: str) -> list[CheckpointCandidate]:
+    """Person 3's checkpoint candidates for a site, from layer 5; none if it has no layer 5."""
+    path = REPO_ROOT / "layers" / "location_quality" / f"layer5-{site_id}.json"
+    if not path.is_file():
+        return []
+    return [
+        CheckpointCandidate(c["id"], Point.model_validate(c["position"]), c["score"])
+        for c in json.loads(path.read_text())["checkpoint_candidates"]
+    ]
 
 
 def load_site(site_id: str) -> SiteConfig:
@@ -64,5 +76,6 @@ def plan(request: dict) -> dict:
         daylight_s=daylight,
         uncertainty_m=route_request.uncertainty_m,
         targets=[t.position for t in site.science_targets] if mode == Mode.science else (),
+        checkpoint_candidates=checkpoint_candidates(route_request.site),
     )
     return response.model_dump(mode="json")
