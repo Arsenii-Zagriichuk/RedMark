@@ -1,5 +1,7 @@
 """The route engine on tiny made-up grids: the best path and every hard limit."""
 
+import math
+
 import numpy as np
 import pytest
 from fastapi import HTTPException
@@ -545,3 +547,52 @@ def test_a_goal_inside_the_circle_of_a_hazard_is_refused_though_its_cell_centre_
 
     with pytest.raises(NoSafeRoute, match="hazard"):
         plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, uncertainty_m=11.5)
+
+
+def two_steep_cells_4_m_grid(*hazard_cells) -> CostGrid:
+    slope = np.zeros((10, 10))
+    for cell in hazard_cells:
+        slope[cell] = 30
+    return grid(slope, cell_m=4.0)
+
+
+def closest_approach_m(path, hazard: Point) -> float:
+    """Shortest distance from a hazard centre to any stretch of the path, by plain geometry."""
+    best = math.inf
+    for a, b in zip(path, path[1:], strict=False):
+        dx, dy = b.x - a.x, b.y - a.y
+        t = ((hazard.x - a.x) * dx + (hazard.y - a.y) * dy) / (dx * dx + dy * dy)
+        t = min(max(t, 0.0), 1.0)
+        best = min(best, math.hypot(a.x + t * dx - hazard.x, a.y + t * dy - hazard.y))
+    return best
+
+
+def test_an_off_centre_start_is_checked_against_the_hazard_truly_nearest_it():
+    # Hazard centres at (14, 22) and (22, 22); the start's cell centre (18, 22) is 4 m from
+    # both, but the start itself is 2.1 m from the second, inside a 3 m circle.
+    g = two_steep_cells_4_m_grid((4, 3), (4, 5))
+
+    with pytest.raises(NoSafeRoute, match="start is within the 3 m circle of a hazard"):
+        plan_on_grid(
+            g,
+            Point(x=19.9, y=22),
+            centre(g, 9, 9),
+            centre(g, 9, 9),
+            DEFAULT_LIMITS,
+            uncertainty_m=3,
+        )
+
+
+def test_a_diagonal_step_past_the_corner_of_a_hazard_keeps_the_whole_circle_off_it():
+    g = two_steep_cells_4_m_grid((4, 5))
+    hazard, start, goal = centre(g, 4, 5), centre(g, 4, 4), centre(g, 3, 5)
+    assert (hazard, start, goal) == (Point(x=22, y=22), Point(x=18, y=22), Point(x=22, y=26))
+
+    route = plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, uncertainty_m=3)
+
+    # The direct diagonal passes the hazard's corner at (20, 24), 2.83 m away; the route goes
+    # round it instead, and its reported clearance is what the geometry says.
+    assert closest_approach_m(route.path, hazard) > 3
+    assert check(route, "hazard_margin").value == pytest.approx(
+        closest_approach_m(route.path, hazard)
+    )
