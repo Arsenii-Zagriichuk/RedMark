@@ -10,7 +10,7 @@ from rasterio.transform import from_origin
 
 from contracts.paths import REPO_ROOT
 from prep.jezero.site_frame import SITE_PROJ
-from route.answer_key import KeyFrame, draw_overlay
+from route.answer_key import FrameSource, KeyFrame, draw_overlay
 from route.tie_points import fit_tie_points
 
 
@@ -47,15 +47,17 @@ def main() -> None:
         ) as output:
             output.write(base, 1)
         frame = KeyFrame(
-            photo_id="p4-01-generated-example",
-            flight=9,
-            projection=SITE_PROJ,
+            source=FrameSource(
+                photo_id="p4-01-generated-example",
+                flight=9,
+                projection=SITE_PROJ,
+                crop=crop,
+                inputs=(),
+            ),
             image=photo,
             valid=np.ones(photo.shape, dtype=bool),
             reference_px=(60, 50),
             heading_deg=0,
-            crop=crop,
-            inputs=(),
         )
         fit = fit_tie_points(photo_points, map_points, frame.reference_px, frame.heading_deg)
         figure = Figure(figsize=(15, 5), layout="constrained")

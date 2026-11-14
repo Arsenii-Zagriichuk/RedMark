@@ -74,7 +74,15 @@ Without `REDMARK_DATA`, the command refuses to write keys into stub data.
    and tick **overlay checked** before **Save key**. A fit residual measures
    agreement between the clicked pairs, not position error against an answer key.
 4. Saving advances to the next unkeyed frame. **Skip** advances without a key;
-   closing the main window ends the session. Existing keys are never overwritten.
+   closing the main window ends the session. Existing valid keys are never overwritten.
+
+Saves stage and flush both complete payloads before publishing the overlay, then
+the key JSON as the commit point. Restarting validates the JSON and PNG rather
+than just checking whether the key filename exists. Incomplete keys, corrupt
+overlays and orphan overlays are preserved under
+`answer-key/incomplete/<photo_id>-<unique id>/`; the frame is then offered again.
+Recovery does not delete those files. Read errors are reported, not treated as
+corruption, and a frame being saved by another process is left alone.
 
 Outputs stay separate from the pack and tuning inputs, under
 `$REDMARK_DATA/jezero/answer-key/`:

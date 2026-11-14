@@ -12,7 +12,9 @@ from matplotlib.widgets import Button, CheckButtons, RadioButtons
 from contracts.paths import data_root
 from route.answer_key import (
     KeyFrame,
+    answer_is_saved,
     draw_overlay,
+    draw_tie_point,
     load_key_frame,
     read_crop,
     read_pack,
@@ -48,7 +50,7 @@ class KeyingWindow:
             ax.set_autoscale_on(False)
         label = "SIMULATED fixture" if simulated else "Human tie-point answer key"
         self.figure.suptitle(
-            f"P4-01: {label}\n{frame.photo_id}, flight {frame.flight}", fontsize=11
+            f"P4-01: {label}\n{frame.source.photo_id}, flight {frame.source.flight}", fontsize=11
         )
         self.terrain = RadioButtons(
             self.figure.add_axes((0.05, 0.065, 0.16, 0.14)),
@@ -123,12 +125,7 @@ class KeyingWindow:
             zip(self.photo_points, self.map_points, strict=True), 1
         ):
             for ax, point in ((self.photo_ax, photo), (self.map_ax, position)):
-                self.marks.extend(ax.plot(*point, "o", mfc="none", mec="lime", ms=9))
-                self.marks.append(
-                    ax.annotate(
-                        str(index), point, xytext=(5, 5), textcoords="offset points", color="lime"
-                    )
-                )
+                self.marks.extend(draw_tie_point(ax, point, index))
         if self.pending is not None:
             self.marks.extend(self.photo_ax.plot(*self.pending, "yo", mfc="none", ms=10))
         action = "click its map feature" if self.pending else "select another pair or preview"
@@ -220,12 +217,11 @@ def main() -> None:
     try:
         frames = read_pack(root)
         if args.photo_id:
-            frames = [frame for frame in frames if frame.photo_id == args.photo_id]
+            frames = [frame for frame in frames if frame.source.photo_id == args.photo_id]
             if not frames:
                 raise ValueError(f"photo id {args.photo_id!r} is not in the Jezero pack")
         for frame in frames:
-            key = root / "jezero" / "answer-key" / "keys" / f"{frame.photo_id}.json"
-            if key.exists():
+            if answer_is_saved(root, frame.source.photo_id):
                 continue
             window = KeyingWindow(
                 root, load_key_frame(frame), hard_mode=frame.hard_mode, simulated=args.simulated

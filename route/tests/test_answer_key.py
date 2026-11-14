@@ -1,5 +1,6 @@
 import csv
 import json
+import os
 import shutil
 from dataclasses import replace
 from pathlib import Path
@@ -12,7 +13,7 @@ from PIL import Image
 from rasterio.transform import from_origin
 
 from contracts.models.common import Provenance
-from route.answer_key import KeyFrame, save_answer
+from route.answer_key import FrameSource, KeyFrame, save_answer
 
 PROJECTION = "+proj=eqc +lat_ts=18.4663 +lon_0=0 +R=3396190 +units=m +no_defs"
 PHOTO_PAIRS = [[10, 10], [110, 10], [110, 90], [10, 90]]
@@ -47,15 +48,17 @@ def frame(tmp_path):
     ) as dst:
         dst.write(np.full((150, 150), 100, dtype=np.uint8), 1)
     return KeyFrame(
-        photo_id="frame-09",
-        flight=9,
-        projection=PROJECTION,
+        source=FrameSource(
+            photo_id="frame-09",
+            flight=9,
+            projection=PROJECTION,
+            crop=crop,
+            inputs=(photo_path, source),
+        ),
         image=photo,
         valid=np.ones(photo.shape, dtype=bool),
         reference_px=(60, 50),
         heading_deg=0,
-        crop=crop,
-        inputs=(photo_path, source),
     )
 
 
@@ -165,7 +168,11 @@ def test_an_existing_key_is_never_replaced_and_every_keyed_flight_is_excluded(tm
     with pytest.raises(FileExistsError, match="nothing was replaced"):
         save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags)
     save_answer(
-        tmp_path, replace(frame, photo_id="frame-10", flight=10), PHOTO_PAIRS, MAP_PAIRS, **tags
+        tmp_path,
+        replace(frame, source=replace(frame.source, photo_id="frame-10", flight=10)),
+        PHOTO_PAIRS,
+        MAP_PAIRS,
+        **tags,
     )
 
     assert first.read_bytes() == original
@@ -174,18 +181,25 @@ def test_an_existing_key_is_never_replaced_and_every_keyed_flight_is_excluded(tm
     assert flights["photo_ids"] == ["frame-09", "frame-10"]
 
 
-def test_a_failed_key_write_leaves_no_overlay_that_would_block_retry(tmp_path, frame, monkeypatch):
+@pytest.mark.parametrize("failure", [OSError, KeyboardInterrupt])
+@pytest.mark.parametrize("partial", [False, True])
+def test_a_failed_key_write_leaves_no_overlay_that_would_block_retry(
+    tmp_path, frame, monkeypatch, failure, partial
+):
     original_open = Path.open
     tags = {"terrain_type": "plain", "hard_mode": True, "reviewed": True, "simulated": True}
 
     def failed_open(path, mode="r", *args, **kwargs):
-        if path.parent.name == "keys" and "x" in mode:
-            raise OSError("simulated write failure")
+        if path.name == "frame-09.json" and "x" in mode:
+            if partial:
+                with original_open(path, mode, *args, **kwargs) as output:
+                    output.write(b'{"photo_id":')
+            raise failure("simulated write failure")
         return original_open(path, mode, *args, **kwargs)
 
     with monkeypatch.context() as patch:
         patch.setattr(Path, "open", failed_open)
-        with pytest.raises(OSError, match="simulated write failure"):
+        with pytest.raises(failure, match="simulated write failure"):
             save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags)
 
     folder = tmp_path / "jezero" / "answer-key"
@@ -194,8 +208,138 @@ def test_a_failed_key_write_leaves_no_overlay_that_would_block_retry(tmp_path, f
     assert save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags).is_file()
 
 
+@pytest.mark.parametrize(
+    "damage", ["truncated", "empty_record", "orphan_overlay", "missing_overlay", "corrupt_overlay"]
+)
+def test_resuming_preserves_incomplete_outputs_and_allows_rekeying(tmp_path, frame, damage):
+    from route.answer_key import answer_is_saved
+
+    tags = {"terrain_type": "plain", "hard_mode": True, "reviewed": True, "simulated": True}
+    path = save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags)
+    overlay = tmp_path / "jezero" / "answer-key" / "overlays" / "frame-09.png"
+    if damage == "truncated":
+        path.write_bytes(b'{"photo_id":')
+    elif damage == "empty_record":
+        path.write_bytes(b"{}")
+    elif damage == "orphan_overlay":
+        path.unlink()
+    elif damage == "missing_overlay":
+        overlay.unlink()
+    else:
+        overlay.write_bytes(b"not a PNG")
+    damaged = {p.name: p.read_bytes() for p in (path, overlay) if p.exists()}
+
+    with pytest.warns(UserWarning, match="incomplete"):
+        assert not answer_is_saved(tmp_path, frame.source.photo_id)
+
+    recovered = path.parent.parent / "incomplete"
+    assert {p.name: p.read_bytes() for p in recovered.glob("*/*")} == damaged
+    assert not path.exists() and not overlay.exists()
+    saved = save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags)
+    before = saved.read_bytes()
+    assert answer_is_saved(tmp_path, frame.source.photo_id)
+    assert saved.read_bytes() == before
+
+
+def test_a_read_error_never_quarantines_a_valid_key(tmp_path, frame, monkeypatch):
+    from route.answer_key import answer_is_saved
+
+    tags = {"terrain_type": "plain", "hard_mode": True, "reviewed": True, "simulated": True}
+    key = save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags)
+    before = key.read_bytes()
+    original_open = Path.open
+
+    def unreadable(path, mode="r", *args, **kwargs):
+        if path == key and "r" in mode:
+            raise OSError("temporary read failure")
+        return original_open(path, mode, *args, **kwargs)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, "open", unreadable)
+        with pytest.raises(OSError, match="temporary read failure"):
+            answer_is_saved(tmp_path, frame.source.photo_id)
+
+    assert key.read_bytes() == before
+    assert not (key.parent.parent / "incomplete").exists()
+
+
+def test_resuming_never_moves_another_writers_in_progress_overlay(tmp_path, frame, monkeypatch):
+    from route.answer_key import answer_is_saved
+
+    publish = Path.rename if os.name == "nt" else os.link
+
+    def resume_during_publish(source, destination):
+        result = publish(source, destination)
+        if Path(destination).parent.name == "overlays":
+            with pytest.raises(OSError):
+                answer_is_saved(tmp_path, frame.source.photo_id)
+        return result
+
+    if os.name == "nt":
+        monkeypatch.setattr(Path, "rename", resume_during_publish)
+    else:
+        monkeypatch.setattr(os, "link", resume_during_publish)
+    key = save_answer(
+        tmp_path,
+        frame,
+        PHOTO_PAIRS,
+        MAP_PAIRS,
+        terrain_type="plain",
+        hard_mode=True,
+        reviewed=True,
+        simulated=True,
+    )
+
+    assert answer_is_saved(tmp_path, frame.source.photo_id)
+    assert not (key.parent.parent / "incomplete").exists()
+
+
+@pytest.mark.parametrize("destination_folder", ["overlays", "keys"])
+@pytest.mark.parametrize("after", [False, True])
+def test_interrupting_publication_never_commits_partial_json_or_overwrites_a_saved_key(
+    tmp_path, frame, monkeypatch, destination_folder, after
+):
+    from route.answer_key import answer_is_saved
+
+    publish = Path.rename if os.name == "nt" else os.link
+
+    def interrupted(source, destination):
+        selected = Path(destination).parent.name == destination_folder
+        if selected and not after:
+            raise KeyboardInterrupt("publication interrupted")
+        result = publish(source, destination)
+        if selected and after:
+            raise KeyboardInterrupt("publication interrupted")
+        return result
+
+    tags = {"terrain_type": "plain", "hard_mode": True, "reviewed": True, "simulated": True}
+    with monkeypatch.context() as patch:
+        if os.name == "nt":
+            patch.setattr(Path, "rename", interrupted)
+        else:
+            patch.setattr(os, "link", interrupted)
+        with pytest.raises(KeyboardInterrupt, match="publication interrupted"):
+            save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags)
+
+    committed = destination_folder == "keys" and after
+    assert answer_is_saved(tmp_path, frame.source.photo_id) == committed
+    if committed:
+        path = tmp_path / "jezero" / "answer-key" / "keys" / "frame-09.json"
+        before = path.read_bytes()
+        with pytest.raises(FileExistsError, match="nothing was replaced"):
+            save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags)
+        assert path.read_bytes() == before
+    else:
+        path = save_answer(tmp_path, frame, PHOTO_PAIRS, MAP_PAIRS, **tags)
+    assert json.loads(path.read_text())["true_position"] == {
+        "x": pytest.approx(4353940),
+        "y": pytest.approx(1092120),
+    }
+    assert answer_is_saved(tmp_path, frame.source.photo_id)
+
+
 def test_no_data_on_the_map_cannot_be_a_tie_point(tmp_path, frame):
-    with rasterio.open(frame.crop, "r+") as crop:
+    with rasterio.open(frame.source.crop, "r+") as crop:
         values = crop.read(1)
         values[40, 110] = 0
         crop.nodata = 0
@@ -241,7 +385,7 @@ def test_the_delivered_pack_loads_a_rectified_view_and_preserves_its_source_file
                 "sol": 152,
                 "frame_png": f"{label_name}.png",
                 "product": f"{label_name}.IMG",
-                "crop": frame.crop.name,
+                "crop": frame.source.crop.name,
                 "hard_mode": "True",
             }
         )
@@ -264,7 +408,7 @@ def test_the_delivered_pack_loads_a_rectified_view_and_preserves_its_source_file
                 "checkpoints": [],
                 "files": {
                     "frame_list": "jezero/pack/frames.csv",
-                    "crop_flight_10": frame.crop.relative_to(tmp_path).as_posix(),
+                    "crop_flight_10": frame.source.crop.relative_to(tmp_path).as_posix(),
                 },
                 "replayed_sol": None,
             }
@@ -275,12 +419,16 @@ def test_the_delivered_pack_loads_a_rectified_view_and_preserves_its_source_file
     loaded = load_key_frame(choices[0])
 
     assert len(choices) == 1
-    assert (loaded.photo_id, loaded.flight, choices[0].hard_mode) == (label_name, 10, True)
+    assert (loaded.source.photo_id, loaded.source.flight, choices[0].hard_mode) == (
+        label_name,
+        10,
+        True,
+    )
     assert loaded.reference_px == (127.5, 127.5)
     assert loaded.image.shape == loaded.valid.shape == (256, 256)
     assert loaded.valid.any() and not loaded.valid.all()
-    assert loaded.projection == PROJECTION
-    assert set(loaded.inputs) == {
+    assert loaded.source.projection == PROJECTION
+    assert set(loaded.source.inputs) == {
         frames / f"{label_name}.png",
         labels / f"{label_name}.xml",
         pack / "frames.csv",
