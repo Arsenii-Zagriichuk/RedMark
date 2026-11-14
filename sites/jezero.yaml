@@ -1,12 +1,21 @@
-# STUB from P1-01. Every value is a placeholder until P2-04 writes the real
-# config. Jezero crops are reprojected to true scale at about 18.4°N.
+# Written by prep/jezero/build_pack.py (P2-04). Do not edit by hand: change
+# prep/jezero/pack.yaml and rerun. Map metres are ground metres at Jezero.
 site: jezero
-name: Jezero drone test (stub)
-projection: "+proj=eqc +lat_ts=18.4 +lon_0=77.45 +R=3396190 +units=m +no_defs"
-bounds: {min_x: -2000, min_y: 1091000, max_x: 2000, max_y: 1095000}
+name: Jezero drone test
+projection: +proj=eqc +lat_ts=18.4663 +lon_0=0 +R=3396190 +units=m +no_defs
+bounds:
+  min_x: 4353614
+  min_y: 1092072
+  max_x: 4354689
+  max_y: 1093063
 habitat: null
 base_camp: null
 science_targets: []
 checkpoints: []
-files: {}
+files:
+  frame_list: jezero/pack/frames.csv
+  crop_flight_09: jezero/pack/crops/flight-09.tif
+  crop_flight_10: jezero/pack/crops/flight-10.tif
+  crop_flight_11: jezero/pack/crops/flight-11.tif
+  crop_flight_15: jezero/pack/crops/flight-15.tif
 replayed_sol: null
