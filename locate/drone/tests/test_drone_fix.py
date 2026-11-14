@@ -136,3 +136,17 @@ def test_too_few_matches_is_no_fix():
     ground, window = _views()
     with pytest.raises(ValueError, match="no fix"):
         locate_on_map(ground, window, ExactMatcher(0, 1, outlier_share=0.97))
+
+
+class CollapsingMatcher:
+    """Pairs every ground-view point with one and the same map pixel: a fit of
+    scale zero, which every pair agrees with."""
+
+    def __call__(self, query: np.ndarray, reference: np.ndarray) -> Matches:
+        return Matches(query_xy=GRID.copy(), reference_xy=np.tile([50.0, 60.0], (len(GRID), 1)))
+
+
+def test_matches_collapsing_onto_one_map_point_are_no_fix():
+    ground, window = _views()
+    with pytest.raises(ValueError, match="no fix"):
+        locate_on_map(ground, window, CollapsingMatcher())

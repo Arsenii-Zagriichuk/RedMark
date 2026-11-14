@@ -1,12 +1,16 @@
 """One Ingenuity frame placed on the Jezero photo map, end to end (P2-05).
 
     REDMARK_DATA=~/redmark-data uv run --group gpu python -m locate.drone.first_fix \\
-        HNM_0152_0680432606_392FDR_N0100001HELI02756_0000LUJ05 [--matcher lightglue]
+        HNM_0152_0680432606_392FDR_N0100001HELI02756_0000LUJ05 \\
+        [--previous <frame fixed before it>] [--matcher lightglue]
 
 Straightens the frame onto the ground at the map's 25 cm, searches a window
-of the flight's map crop around the drone's onboard position, matches,
-and fits the fix. Writes the overlay to results/drone/overlays/<frame>-<matcher>.png.
-LoFTR is the matcher of record, so only its fix is written to
+of the flight's map crop around the previous photo's fix (moved as the drone
+moved since), or around the drone's onboard position for a flight's first
+fix, matches, and fits the fix. Nothing is written unless the code that makes
+the fix is committed, so the recorded commit traces it. Writes the overlay
+to results/drone/overlays/<frame>-<matcher>.png. LoFTR is the matcher of
+record, so only its fix is written to
 results/drone/fixes/<frame>.json; the LightGlue fallback's fix is printed
 for comparison. Reads the Jezero pack (prep/jezero/build_pack.py) and JPL's
 weights under REDMARK_DATA.
@@ -28,9 +32,8 @@ from PIL import Image, ImageDraw
 
 from contracts.models.common import Provenance, TerrainType
 from contracts.paths import REPO_ROOT, data_root
-from locate.drone.fix import DroneFix, GroundView, MapWindow, build_fix_result, locate_on_map
-from locate.drone.ground import HALF_SIZE_M, read_map_window, straighten
-from locate.drone.label import onboard_position, read_drone_frame, takeoff_position
+from locate.drone.fix import DroneFix, GroundView, MapWindow, build_fix_result
+from locate.drone.label import DroneFrame, onboard_position, read_drone_frame, takeoff_position
 from locate.drone.matchers import (
     JPL_LOFTR_WEIGHTS,
     TORCH_HUB,
@@ -38,11 +41,10 @@ from locate.drone.matchers import (
     loftr_matcher,
     pick_device,
 )
+from locate.drone.pipeline import PreviousPhoto, fix_frame, search_centre
 
-RESOLUTION = 0.25  # the photo map's scale, metres per pixel
-# How far from the drone's onboard position the search reaches, metres. Its track
-# can be about 20 m off; the window is wider to leave room.
-SEARCH_RADIUS_M = 60.0
+# The code a drone fix depends on; uncommitted changes here stop the run.
+FIX_CODE = ["locate/drone", "prep", "contracts", "pyproject.toml", "uv.lock"]
 RESULTS = REPO_ROOT / "results" / "drone"
 OVERLAY_SCALE = 2  # overlay pixels per map pixel
 CHECKER_M = 4.0  # side of the overlay's photo/map checkerboard squares, metres
@@ -67,7 +69,7 @@ def _recorded(path: Path) -> str:
 def _provenance(inputs: list[Path]) -> Provenance:
     # The commit only traces the numbers if the code that made them is in it.
     changed = subprocess.run(
-        ["git", "status", "--porcelain", "--untracked-files=no", "--", ".", ":!results"],
+        ["git", "status", "--porcelain", "--untracked-files=no", "--", *FIX_CODE],
         capture_output=True,
         text=True,
         cwd=REPO_ROOT,
@@ -166,15 +168,43 @@ def _draw_overlay(
     sheet.save(out)
 
 
-def run(stem: str, matcher_name: str) -> None:
+def _label(jezero: Path, row: dict) -> Path:
+    stem = row["product"].removesuffix(".IMG")
+    return jezero / "source" / "helicam" / f"sol-{int(row['sol']):05d}" / f"{stem}.xml"
+
+
+def _onboard(frame: DroneFrame, row: dict, waypoints: Path) -> tuple[float, float]:
+    return onboard_position(
+        frame, takeoff_position(json.loads(waypoints.read_text()), int(row["flight"]))
+    )
+
+
+def run(stem: str, matcher_name: str, previous_stem: str | None) -> None:
     root = data_root()
     jezero = root / "jezero"
-    row = _frame_row(jezero / "pack" / "frames.csv", stem)
-    flight, sol = int(row["flight"]), int(row["sol"])
-    label = jezero / "source" / "helicam" / f"sol-{sol:05d}" / f"{stem}.xml"
-    image = label.with_suffix(".IMG")
+    frames_csv = jezero / "pack" / "frames.csv"
+    row = _frame_row(frames_csv, stem)
+    flight = int(row["flight"])
+    label = _label(jezero, row)
     crop = jezero / "pack" / "crops" / row["crop"]
     waypoints = jezero / "source" / "nasa" / "m20_heli_waypoints.json"
+    inputs = [label, label.with_suffix(".IMG"), crop, waypoints, frames_csv]
+
+    previous = None
+    if previous_stem:
+        previous_fix = RESULTS / "fixes" / f"{previous_stem}.json"
+        previous_label = _label(jezero, _frame_row(frames_csv, previous_stem))
+        position = json.loads(previous_fix.read_text())["position"]
+        previous = PreviousPhoto(
+            fix=(position["x"], position["y"]),
+            onboard=_onboard(
+                read_drone_frame(previous_label.read_text()),
+                _frame_row(frames_csv, previous_stem),
+                waypoints,
+            ),
+        )
+        inputs += [previous_fix, previous_label]
+
     device = pick_device()
     if matcher_name == "loftr":
         weights = [root / JPL_LOFTR_WEIGHTS]
@@ -187,39 +217,42 @@ def run(stem: str, matcher_name: str) -> None:
     frame = read_drone_frame(label.read_text())
     with rasterio.open(label) as src:
         raw = src.read(1)
-    onboard = onboard_position(frame, takeoff_position(json.loads(waypoints.read_text()), flight))
-    ground = straighten(raw, frame, RESOLUTION)
-    window = read_map_window(crop, onboard, SEARCH_RADIUS_M + HALF_SIZE_M)
-    estimate = locate_on_map(ground, window, matcher)
+    onboard = _onboard(frame, row, waypoints)
+    centre = search_centre(onboard, previous)
+    ground, window, drone_fix = fix_frame(raw, frame, crop, centre, matcher)
     seconds = time.perf_counter() - started
+    # Before anything is written: refuse uncommitted fix code, checksum the inputs.
+    provenance = _provenance(inputs + weights)
 
     overlay = RESULTS / "overlays" / f"{stem}-{matcher_name}.png"
-    shift = np.hypot(estimate.position[0] - onboard[0], estimate.position[1] - onboard[1])
+    shift = np.hypot(drone_fix.position[0] - onboard[0], drone_fix.position[1] - onboard[1])
+    searched = (
+        f"around the fix of {previous_stem}" if previous_stem else "around the onboard position"
+    )
     title = "\n".join(
         [
             f"Drone fix, flight {flight}, {stem}"
-            f" ({matcher_name} on {device.type}, {seconds:.1f} s)",
+            f" ({matcher_name} on {device.type}, {seconds:.1f} s), searched {searched}",
             "Left: the frame straightened to the HiRISE 25 cm map, north up. Right: the search"
             f" window, the frame laid on it by the fit in {CHECKER_M:g} m squares",
-            f"(photo and map alternate), its outline (red), {estimate.inliers} of"
-            f" {estimate.matches} matches agreeing (cyan), the onboard position (yellow x),",
+            f"(photo and map alternate), its outline (red), {drone_fix.inliers} of"
+            f" {drone_fix.matches} matches agreeing (cyan), the onboard position (yellow x),",
             f"the fix (green, with heading), {shift:.1f} m from the onboard position;"
-            f" turn {estimate.rotation_deg:+.1f}°, scale {estimate.scale:.3f}."
+            f" turn {drone_fix.rotation_deg:+.1f}°, scale {drone_fix.scale:.3f}."
             " Not yet scored: the answer key is P4-01.",
         ]
     )
-    _draw_overlay(window, ground, estimate, onboard, title, overlay)
+    _draw_overlay(window, ground, drone_fix, onboard, title, overlay)
     hard_mode = row["hard_mode"] == "True"
-    inputs = [label, image, crop, waypoints, jezero / "pack" / "frames.csv"]
     fix = build_fix_result(
         photo_id=stem,
-        estimate=estimate,
+        estimate=drone_fix,
         time_per_fix_s=round(seconds, 2),
         # The pack's hard-mode flights are over sand ripples; P4-01 tags each
         # keyed frame by eye, and P2-06 uses those tags.
         terrain_type=TerrainType.plain if hard_mode else TerrainType.textured,
         overlay=_recorded(overlay),
-        provenance=_provenance(inputs + weights),
+        provenance=provenance,
     )
     text = json.dumps(fix.model_dump(mode="json"), indent=2) + "\n"
     if matcher_name == "loftr":
@@ -230,7 +263,7 @@ def run(stem: str, matcher_name: str) -> None:
     else:
         print(text)
     print(
-        f"wrote {_recorded(overlay)}; {estimate.inliers}/{estimate.matches} matches agree, "
+        f"wrote {_recorded(overlay)}; {drone_fix.inliers}/{drone_fix.matches} matches agree, "
         f"{shift:.1f} m from the onboard position, {seconds:.1f} s"
     )
 
@@ -240,10 +273,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "frame", help="Navcam product name without .IMG, from the pack's frames.csv"
     )
+    parser.add_argument(
+        "--previous", help="the frame fixed just before this one; omit for a flight's first fix"
+    )
     parser.add_argument("--matcher", choices=["loftr", "lightglue"], default="loftr")
     args = parser.parse_args()
     if not os.environ.get("REDMARK_DATA"):
         sys.exit(
             "set REDMARK_DATA to the shared data folder with the Jezero pack and JPL's weights"
         )
-    run(args.frame, args.matcher)
+    run(args.frame, args.matcher, args.previous)

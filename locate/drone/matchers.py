@@ -50,7 +50,7 @@ def loftr_matcher(weights: Path, device) -> Matcher:
     from kornia.feature.loftr.loftr import default_cfg
 
     model = LoFTR(pretrained=None, config=default_cfg)
-    checkpoint = torch.load(weights, map_location="cpu", weights_only=False)
+    checkpoint = torch.load(weights, map_location="cpu", weights_only=True)
     model.load_state_dict(checkpoint["models"]["matcher"], strict=True)
     model = model.eval().to(device)
 

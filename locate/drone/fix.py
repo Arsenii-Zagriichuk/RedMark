@@ -34,6 +34,10 @@ EDGE_PX = 2
 INLIER_PX = 2.0
 MIN_INLIERS = 15
 RANSAC_ROUNDS = 2000
+# The view is drawn at the map's scale, so a true fit scales it by about 1:
+# the drone's height and the ground's relief are off by a few percent, not by
+# a quarter. Fits outside these bounds (such as many points onto one) are refused.
+MIN_SCALE, MAX_SCALE = 0.8, 1.25
 
 
 @dataclass(frozen=True)
@@ -107,9 +111,10 @@ def locate_on_map(ground: GroundView, window: MapWindow, matcher: Matcher) -> Dr
     keep = _inside(ground.valid, found.query_xy)
     matches = Matches(found.query_xy[keep], found.reference_xy[keep])
     a, b, inliers = _fit_similarity(matches.query_xy, matches.reference_xy)
-    if inliers.sum() < MIN_INLIERS:
+    if not MIN_SCALE <= abs(a) <= MAX_SCALE or inliers.sum() < MIN_INLIERS:
         raise ValueError(
-            f"no fix: {inliers.sum()} of {len(inliers)} matches agree, {MIN_INLIERS} needed"
+            f"no fix: {inliers.sum()} of {len(inliers)} matches agree ({MIN_INLIERS} needed)"
+            f" at scale {abs(a):.2f} ({MIN_SCALE} to {MAX_SCALE} allowed)"
         )
 
     def carry(px: np.ndarray) -> np.ndarray:
@@ -187,7 +192,8 @@ def _fit_similarity(
     """reference ≈ a * query + b in complex pixels, by RANSAC then least squares.
 
     A complex a is a turn and a scale with no mirroring, so the fit cannot
-    flip the photo.
+    flip the photo. Candidates scaled outside MIN_SCALE to MAX_SCALE are
+    skipped, and the returned agreeing matches are those of the final fit.
     """
     q, r = _complex(query), _complex(reference)
     best = np.zeros(len(q), dtype=bool)
@@ -198,6 +204,8 @@ def _fit_similarity(
             if abs(q[j] - q[i]) < 1e-9:
                 continue
             a = (r[j] - r[i]) / (q[j] - q[i])
+            if not MIN_SCALE <= abs(a) <= MAX_SCALE:
+                continue
             agree = np.abs(a * q + (r[i] - a * q[i]) - r) < INLIER_PX
             if agree.sum() > best.sum():
                 best = agree
@@ -206,7 +214,7 @@ def _fit_similarity(
     qc, rc = q[best] - q[best].mean(), r[best] - r[best].mean()
     a = (rc * qc.conj()).sum() / (np.abs(qc) ** 2).sum()
     b = r[best].mean() - a * q[best].mean()
-    return complex(a), complex(b), best
+    return complex(a), complex(b), np.abs(a * q + b - r) < INLIER_PX
 
 
 def build_fix_result(
