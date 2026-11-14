@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [react()],
-  // The demo cache (cache/demo/) and the cited benchmarks (pitch/) live outside app/.
-  server: { fs: { allow: [".", "../cache", "../pitch"] } },
+  // The demo cache (cache/demo/), the cited benchmarks (pitch/) and layer 5's landmark
+  // directions (layers/location_quality/) live outside app/.
+  server: { fs: { allow: [".", "../cache", "../pitch", "../layers/location_quality"] } },
 });
