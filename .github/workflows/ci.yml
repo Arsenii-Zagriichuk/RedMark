@@ -1,0 +1,62 @@
+# CI for every pull request to main (P1-15). Branch protection requires the "checks" job.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # The merge commit of the PR into main: HEAD^1 is main, so HEAD^1...HEAD is the PR's change.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install
+        run: |
+          uv sync --locked
+          npm ci --prefix app
+
+      - name: One owner per pull request
+        run: uv run python -m tools.owners check --base HEAD^1
+
+      - name: No file over 5 MB
+        run: uv run python -m tools.check_file_sizes
+
+      - name: Ruff
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Contract files match their schemas
+        run: uv run python -m tools.check_contracts
+
+      - name: Generated models and types are up to date
+        run: uv run python -m tools.gen_contracts --check
+
+      - name: Typecheck the app
+        run: npm run typecheck --prefix app
+
+      - name: Build the app
+        run: npm run build --prefix app
+
+      - name: Tests, including the smoke test
+        run: uv run pytest
