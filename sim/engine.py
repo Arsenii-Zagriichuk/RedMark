@@ -21,7 +21,7 @@ from contracts.models.test_summary import TestSummary
 from contracts.paths import REPO_ROOT, data_root
 from route.engine import load_site
 from route.layers import load_grid
-from route.planner import NoSafeRoute, hazard_distance_m
+from route.planner import Hazards, NoSafeRoute
 
 # Each fix method's error size comes from its test summary: horizon from Person 3's test,
 # ground from Person 3's stage 2 result, drone from Person 2's Jezero test.
@@ -84,7 +84,7 @@ def simulate(
     tracking = ["motion_sensor", "step_count", "sun"]
     if not broken.camera_off:
         tracking.insert(0, "visual_odometry")
-    lost_at_start = [{"kind": name} for name, on in broken.model_dump().items() if on]
+    broken_source_events = [{"kind": name} for name, on in broken.model_dump().items() if on]
     mode = "offline" if broken.radio_off else "normal"
     no_fix_can_reach = not any(_reachable(m, broken) for m in (*PHOTO_METHODS, "drone"))
     corners = np.array([[p.x, p.y] for p in walk.path], dtype=float)
@@ -97,6 +97,7 @@ def simulate(
     fix_sigma = {
         m: _fix_sigma_m(results_root / TEST_SUMMARIES[m])
         for m in {f.method.value for f in walk.fix_schedule}
+        if _reachable(m, broken)
     }
     ticks = sorted({*np.arange(0.0, end_s, TICK_S), end_s, *(f.time_s for f in walk.fix_schedule)})
     rng = np.random.default_rng(walk.seed)
@@ -118,7 +119,7 @@ def simulate(
         variance += drift_sigma**2
         true = moved_to
         sources = list(tracking)
-        events = list(lost_at_start) if t == 0 else []
+        events = list(broken_source_events) if t == 0 else []
         if not broken.radio_off and t > 0 and t % RADIO_EVERY_S == 0:
             estimate, variance = _update(estimate, variance, true, RADIO_SIGMA_M, rng)
             sources.append("radio")
@@ -160,12 +161,11 @@ def simulate(
 
 def _site_hazard_distance(site_id: str) -> Callable[[float, float], float]:
     """Ground metres to the nearest hazard on the site's slope layer."""
-    grid = load_grid(load_site(site_id), data_root())
-    field = hazard_distance_m(grid, HAZARD_SLOPE_DEG)
+    hazards = Hazards(load_grid(load_site(site_id), data_root()), HAZARD_SLOPE_DEG)
 
     def at(x: float, y: float) -> float:
         try:
-            return float(field[grid.cell(Point(x=x, y=y))])
+            return hazards.metres_from(Point(x=float(x), y=float(y)))
         except NoSafeRoute:  # off the map
             return math.inf
 

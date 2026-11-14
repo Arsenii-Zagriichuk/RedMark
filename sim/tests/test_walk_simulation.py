@@ -256,3 +256,14 @@ def test_near_a_hazard_a_circle_over_three_metres_says_stop_and_take_a_fix():
     assert stops[0]["uncertainty_m"] > 3
     assert 490 < stops[0]["true_position"]["x"] < 505
     assert not any({"kind": "stop_for_fix"} in s["events"] for s in far["steps"])
+
+
+def test_a_fix_that_cannot_reach_the_crew_needs_no_test_summary(tmp_path):
+    write_horizon_summary(tmp_path, 5)  # no drone summary at all
+
+    run = simulate(
+        walk([(0, 0), (500, 0)], fixes=[(100, "horizon"), (200, "drone")], drone_grounded=True),
+        results_root=tmp_path,
+    )
+
+    assert {"kind": "fix_unavailable", "method": "drone"} in step_at(run, 200)["events"]

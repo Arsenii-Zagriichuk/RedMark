@@ -102,8 +102,14 @@ def plan_on_grid(
     and the walk-back rule and daylight limit are crew rules, so they don't apply to it.
     """
     cart = mode == Mode.cart
-    to_hazard_m = hazard_distance_m(grid, limits.max_slope_deg)
-    blocked = blocked_cells(grid, habitat, limits) | (to_hazard_m <= uncertainty_m)
+    hazards = Hazards(grid, limits.max_slope_deg)
+    for name, point in (("start", start), ("goal", goal)):
+        if hazards.metres_from(point) <= uncertainty_m:
+            raise NoSafeRoute(
+                f"the {name} is within the {uncertainty_m:g} m circle of a hazard: "
+                "stop and take a fix"
+            )
+    blocked = blocked_cells(grid, habitat, limits) | (hazards.cell_metres <= uncertainty_m)
     if cart:
         blocked |= grid.ridge
     if grid.cell(start) == grid.cell(goal):
@@ -118,7 +124,7 @@ def plan_on_grid(
     targets = mapped_targets
     walk_s = _walk_seconds_per_cell(grid, limits.planning_speed_kmh)
     field = _Field(grid, walk_s, blocked, [habitat, start, *targets])
-    rules = _Rules(habitat, limits, daylight_s, cart, uncertainty_m, to_hazard_m)
+    rules = _Rules(habitat, limits, daylight_s, cart, uncertainty_m, hazards)
     fastest = _respond(
         grid,
         rules,
@@ -172,7 +178,7 @@ class _Rules:
     daylight_s: float | None
     cart: bool
     uncertainty_m: float
-    to_hazard_m: np.ndarray
+    hazards: Hazards
 
 
 class _Field:
@@ -268,10 +274,14 @@ def _respond(
         raise NoSafeRoute(f"the route reaches {furthest_m:.0f} m from the habitat")
     steepest = max(grid.slope_deg[grid.cell(stop.point)] for stop in stops)
     # With no hazard on the map, the nearest is no closer than across the whole walk area.
-    walk_area_m = math.hypot(*rules.to_hazard_m.shape) * grid.cell_m
-    nearest_hazard_m = min(
-        min(rules.to_hazard_m[grid.cell(stop.point)] for stop in stops), walk_area_m
-    )
+    nearest_hazard_m = min(rules.hazards.metres_from(stop.point) for stop in stops)
+    if nearest_hazard_m <= rules.uncertainty_m:
+        raise NoSafeRoute(
+            f"the route comes within {nearest_hazard_m:.1f} m of a hazard, inside the "
+            f"{rules.uncertainty_m:g} m circle"
+        )
+    walk_area_m = math.hypot(*rules.hazards.cell_metres.shape) * grid.cell_m
+    nearest_hazard_m = min(nearest_hazard_m, walk_area_m)
     return RouteResponse(
         site=grid.site,
         mode=mode,
@@ -347,13 +357,24 @@ def _walk_seconds_per_cell(grid: CostGrid, planning_speed_kmh: float) -> np.ndar
     return np.where(grid.ridge, seconds * RIDGE_TIME_FACTOR, seconds)
 
 
-def hazard_distance_m(grid: CostGrid, max_slope_deg: float) -> np.ndarray:
-    """Ground metres from every cell centre to the nearest hazard: a cell steeper than the
-    slope limit or with no slope data. Infinite when the map has no hazard."""
-    hazard = ~(grid.slope_deg <= max_slope_deg)
-    if not hazard.any():
-        return np.full(hazard.shape, np.inf)
-    return distance_transform_edt(~hazard) * grid.cell_m
+class Hazards:
+    """The hazards on a grid: cells steeper than the slope limit or with no slope data."""
+
+    def __init__(self, grid: CostGrid, max_slope_deg: float):
+        hazard = ~(grid.slope_deg <= max_slope_deg)
+        self.grid, self.found = grid, bool(hazard.any())
+        if self.found:
+            cells, self._nearest = distance_transform_edt(~hazard, return_indices=True)
+            self.cell_metres = cells * grid.cell_m
+        else:
+            self.cell_metres = np.full(hazard.shape, np.inf)
+
+    def metres_from(self, p: Point) -> float:
+        """Ground metres from an exact point to the nearest hazard; infinite with none."""
+        if not self.found:
+            return math.inf
+        row, col = self.grid.cell(p)
+        return _metres(p, self.grid.centre(*self._nearest[:, row, col]))
 
 
 def blocked_cells(grid: CostGrid, habitat: Point, limits: Limits) -> np.ndarray:

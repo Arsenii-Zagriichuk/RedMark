@@ -532,5 +532,16 @@ def test_no_route_when_the_start_is_already_inside_the_hazard_margin():
     g, _, goal = steep_drop_12_m_south_of_the_line()
     start = centre(g, 20, 50)  # 12 m from the steep cell, inside a 15 m circle
 
-    with pytest.raises(NoSafeRoute):
+    with pytest.raises(NoSafeRoute, match="start is within the 15 m circle of a hazard"):
         plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, uncertainty_m=15)
+
+
+def test_a_goal_inside_the_circle_of_a_hazard_is_refused_though_its_cell_centre_is_outside():
+    g, start, _ = steep_drop_12_m_south_of_the_line()
+    # The goal cell's centre is 12 m north of the steep cell, outside an 11.5 m circle, but
+    # the exact goal 0.9 m south of that centre is 11.1 m away, inside it.
+    centre_above = centre(g, 20, 50)
+    goal = Point(x=centre_above.x, y=centre_above.y - 0.9)
+
+    with pytest.raises(NoSafeRoute, match="hazard"):
+        plan_on_grid(g, start, goal, start, DEFAULT_LIMITS, uncertainty_m=11.5)
