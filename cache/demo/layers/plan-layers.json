@@ -10,32 +10,245 @@
   "response": [
     {
       "name": "base",
-      "title": "Base map (stub)",
+      "title": "HiRISE photo map",
       "group": 1,
       "units": "",
-      "resolution_m": 15.625,
+      "resolution_m": 0.25,
       "bounds": {
-        "min_x": 8140700,
-        "min_y": -287150,
-        "max_x": 8144700,
-        "max_y": -283150
+        "min_x": 8140700.0,
+        "min_y": -287150.0,
+        "max_x": 8144700.0,
+        "max_y": -283150.0
+      },
+      "tiles": {
+        "path": "tiles/{z}/{x}/{y}.jpg",
+        "tile_size": 250,
+        "min_zoom": 0,
+        "max_zoom": 6
+      },
+      "legend": [
+        {
+          "label": "HiRISE photo, 25 cm",
+          "color": "#808080"
+        }
+      ],
+      "source": [
+        {
+          "name": "MSL Gale orthophoto mosaic, 25 cm, v3 (the base map)",
+          "url": "https://asc-pds-services.s3.us-west-2.amazonaws.com/mosaic/MSL_Gale_Orthophoto_Mosaic_25cm_v3.tif"
+        }
+      ]
+    },
+    {
+      "name": "chemistry",
+      "title": "Curiosity chemistry (APXS)",
+      "group": 3,
+      "units": "SO3 wt%",
+      "resolution_m": 1.0,
+      "bounds": {
+        "min_x": 8140700.0,
+        "min_y": -287150.0,
+        "max_x": 8144700.0,
+        "max_y": -283150.0
       },
       "tiles": {
         "path": "tiles/{z}/{x}/{y}.png",
-        "tile_size": 256,
+        "tile_size": 250,
+        "min_zoom": 0,
+        "max_zoom": 4
+      },
+      "legend": [
+        {
+          "label": "APXS SO3 0\u201310 wt%",
+          "color": "#fcc5c0"
+        },
+        {
+          "label": "APXS SO3 10\u201315 wt%",
+          "color": "#f768a1"
+        },
+        {
+          "label": "APXS SO3 15\u201320 wt%",
+          "color": "#ae017e"
+        },
+        {
+          "label": "APXS SO3 20 wt% and over",
+          "color": "#49006a"
+        },
+        {
+          "label": "Drill site (APXS on drill tailings)",
+          "color": "#00d8ff"
+        }
+      ],
+      "source": [
+        {
+          "name": "MSL APXS RDR concentrations (MSL APXS RDR (MSL-M-APXS-4/5-RDR-V1.0), NASA/JPL-Caltech, PDS Geosciences Node)",
+          "url": "https://pds-geosciences.wustl.edu/msl/msl-m-apxs-4_5-rdr-v1/mslapx_1xxx/extras/"
+        }
+      ]
+    },
+    {
+      "name": "minerals",
+      "title": "Mineral highlights (CRISM)",
+      "group": 3,
+      "units": "",
+      "resolution_m": 18.0,
+      "bounds": {
+        "min_x": 8140698.0,
+        "min_y": -287150.0,
+        "max_x": 8144712.0,
+        "max_y": -283136.0
+      },
+      "tiles": {
+        "path": "tiles/{z}/{x}/{y}.png",
+        "tile_size": 250,
         "min_zoom": 0,
         "max_zoom": 0
       },
       "legend": [
         {
-          "label": "Stub tile",
-          "color": "#965a3c"
+          "label": "Hydrated minerals (BD1900R2 in the walk area's top 5%)",
+          "color": "#4f8fd6"
+        },
+        {
+          "label": "Fe/Mg clay (D2300 in the walk area's top 5%)",
+          "color": "#2ca25f"
+        },
+        {
+          "label": "Monohydrated sulfate (BD2100_2 in the walk area's top 5%)",
+          "color": "#f2b134"
+        },
+        {
+          "label": "Polyhydrated sulfate (SINDEX2 in the walk area's top 5%)",
+          "color": "#d6408f"
         }
       ],
       "source": [
         {
-          "name": "Stub from P1-01",
-          "url": "https://github.com/Maksym926/RedMark"
+          "name": "CRISM MTRDR refined spectral summary parameters, FRT0000B6F1, 18 m",
+          "url": "https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/mtrdr/2008/2008_191/frt0000b6f1/"
+        }
+      ]
+    },
+    {
+      "name": "ridges",
+      "title": "Boxwork ridges",
+      "group": 2,
+      "units": "",
+      "resolution_m": 0.5,
+      "bounds": {
+        "min_x": 8140700.0,
+        "min_y": -287150.0,
+        "max_x": 8144700.0,
+        "max_y": -283150.0
+      },
+      "tiles": {
+        "path": "tiles/{z}/{x}/{y}.png",
+        "tile_size": 250,
+        "min_zoom": 0,
+        "max_zoom": 5
+      },
+      "legend": [
+        {
+          "label": "Boxwork ridge (mapped in boxwork zones only)",
+          "color": "#e8341c"
+        }
+      ],
+      "source": [
+        {
+          "name": "MSL Gale orthophoto mosaic, 25 cm, v3 (the base map)",
+          "url": "https://asc-pds-services.s3.us-west-2.amazonaws.com/mosaic/MSL_Gale_Orthophoto_Mosaic_25cm_v3.tif"
+        }
+      ]
+    },
+    {
+      "name": "sand",
+      "title": "Loose sand",
+      "group": 2,
+      "units": "",
+      "resolution_m": 100.0,
+      "bounds": {
+        "min_x": 8140700.0,
+        "min_y": -287200.0,
+        "max_x": 8144700.0,
+        "max_y": -283100.0
+      },
+      "tiles": {
+        "path": "tiles/{z}/{x}/{y}.png",
+        "tile_size": 250,
+        "min_zoom": 0,
+        "max_zoom": 0
+      },
+      "legend": [
+        {
+          "label": "Loose sand (THEMIS thermal inertia below 350)",
+          "color": "#e0a43a"
+        },
+        {
+          "label": "Firm ground (thermal inertia 350 and over)",
+          "color": "#7a8c99"
+        }
+      ],
+      "source": [
+        {
+          "name": "THEMIS quantitative thermal inertia mosaic, 30S120E tile, 100 m",
+          "url": "https://astrogeology.usgs.gov/search/map/themis_thermal_inertia_mosaic_quantitative_30s120e_100mpp"
+        }
+      ]
+    },
+    {
+      "name": "slope",
+      "title": "Slope",
+      "group": 1,
+      "units": "\u00b0",
+      "resolution_m": 1.0,
+      "bounds": {
+        "min_x": 8140700.0,
+        "min_y": -287150.0,
+        "max_x": 8144700.0,
+        "max_y": -283150.0
+      },
+      "tiles": {
+        "path": "tiles/{z}/{x}/{y}.png",
+        "tile_size": 250,
+        "min_zoom": 0,
+        "max_zoom": 4
+      },
+      "legend": [
+        {
+          "label": "0\u20135\u00b0",
+          "color": "#1a9850",
+          "value": 0.0
+        },
+        {
+          "label": "5\u201310\u00b0",
+          "color": "#91cf60",
+          "value": 5.0
+        },
+        {
+          "label": "10\u201315\u00b0",
+          "color": "#fee08b",
+          "value": 10.0
+        },
+        {
+          "label": "15\u201320\u00b0",
+          "color": "#fc8d59",
+          "value": 15.0
+        },
+        {
+          "label": "20\u201330\u00b0",
+          "color": "#d73027",
+          "value": 20.0
+        },
+        {
+          "label": "30\u00b0 and steeper",
+          "color": "#67001f",
+          "value": 30.0
+        }
+      ],
+      "source": [
+        {
+          "name": "MSL Gale DEM mosaic, 1 m, v3",
+          "url": "https://planetarymaps.usgs.gov/mosaic/Mars/MSL/MSL_Gale_DEM_Mosaic_1m_v3.tif"
         }
       ]
     }

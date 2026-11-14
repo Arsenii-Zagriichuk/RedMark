@@ -27,7 +27,7 @@ interface Loaded {
   conditions: Conditions | null;
 }
 
-export function PlanScreen() {
+export function PlanScreen({ onOpenLab }: { onOpenLab: () => void }) {
   const { client } = useApi();
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -176,6 +176,7 @@ export function PlanScreen() {
           selected={selected}
           onSelect={setSelectedId}
           onDirections={() => setPlanning(true)}
+          onOpenLab={onOpenLab}
         />
       )}
       {site && origin ? (
