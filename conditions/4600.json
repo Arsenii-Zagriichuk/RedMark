@@ -1,31 +1,122 @@
 {
   "site": "gale",
   "sol": 4600,
-  "radiation_ugy_per_day": 200,
+  "radiation_ugy_per_day": 232.0,
   "dust": {
     "optical_depth": 0.5,
     "source": "estimated"
   },
-  "sunset_lmst": "18:00",
+  "sunset_lmst": "17:30",
   "steps": [
     {
+      "lmst": "06:00",
+      "temperature_c": -53.7,
+      "pressure_pa": 847.3,
+      "sun_azimuth_deg": 65.9,
+      "sun_elevation_deg": 2.6
+    },
+    {
+      "lmst": "07:00",
+      "temperature_c": -45.9,
+      "pressure_pa": 844.1,
+      "sun_azimuth_deg": 63.42,
+      "sun_elevation_deg": 16.11
+    },
+    {
+      "lmst": "08:00",
+      "temperature_c": -37.5,
+      "pressure_pa": 840.0,
+      "sun_azimuth_deg": 58.98,
+      "sun_elevation_deg": 29.22
+    },
+    {
       "lmst": "09:00",
-      "temperature_c": -40,
-      "pressure_pa": 750,
-      "sun_azimuth_deg": 90,
-      "sun_elevation_deg": 30
+      "temperature_c": -29.1,
+      "pressure_pa": 835.2,
+      "sun_azimuth_deg": 51.48,
+      "sun_elevation_deg": 41.52
+    },
+    {
+      "lmst": "10:00",
+      "temperature_c": -21.2,
+      "pressure_pa": 830.0,
+      "sun_azimuth_deg": 38.73,
+      "sun_elevation_deg": 52.18
+    },
+    {
+      "lmst": "11:00",
+      "temperature_c": -14.5,
+      "pressure_pa": 824.8,
+      "sun_azimuth_deg": 17.76,
+      "sun_elevation_deg": 59.39
     },
     {
       "lmst": "12:00",
-      "temperature_c": -10,
-      "pressure_pa": 740,
-      "sun_azimuth_deg": 0,
-      "sun_elevation_deg": 80
+      "temperature_c": -9.4,
+      "pressure_pa": 820.0,
+      "sun_azimuth_deg": 350.25,
+      "sun_elevation_deg": 60.46
+    },
+    {
+      "lmst": "13:00",
+      "temperature_c": -6.1,
+      "pressure_pa": 815.9,
+      "sun_azimuth_deg": 326.64,
+      "sun_elevation_deg": 54.84
+    },
+    {
+      "lmst": "14:00",
+      "temperature_c": -5.0,
+      "pressure_pa": 812.7,
+      "sun_azimuth_deg": 311.69,
+      "sun_elevation_deg": 44.98
+    },
+    {
+      "lmst": "15:00",
+      "temperature_c": -6.1,
+      "pressure_pa": 810.7,
+      "sun_azimuth_deg": 302.89,
+      "sun_elevation_deg": 33.05
+    },
+    {
+      "lmst": "16:00",
+      "temperature_c": -9.4,
+      "pressure_pa": 810.0,
+      "sun_azimuth_deg": 297.68,
+      "sun_elevation_deg": 20.13
+    },
+    {
+      "lmst": "17:00",
+      "temperature_c": -14.5,
+      "pressure_pa": 810.7,
+      "sun_azimuth_deg": 294.68,
+      "sun_elevation_deg": 6.71
+    },
+    {
+      "lmst": "18:00",
+      "temperature_c": -21.2,
+      "pressure_pa": 812.7,
+      "sun_azimuth_deg": 293.27,
+      "sun_elevation_deg": -6.95
+    },
+    {
+      "lmst": "19:00",
+      "temperature_c": -29.1,
+      "pressure_pa": 815.9,
+      "sun_azimuth_deg": 293.31,
+      "sun_elevation_deg": -20.68
+    },
+    {
+      "lmst": "20:00",
+      "temperature_c": -37.5,
+      "pressure_pa": 820.0,
+      "sun_azimuth_deg": 295.1,
+      "sun_elevation_deg": -34.32
     }
   ],
   "provenance": {
-    "script": "stub",
-    "commit": "",
+    "script": "conditions/gen_conditions.py",
+    "commit": "2940a7b898e87eba48c2e78a764dce13089d9a08",
     "inputs": []
   }
 }

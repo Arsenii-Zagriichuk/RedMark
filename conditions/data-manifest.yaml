@@ -1,0 +1,16 @@
+# Data sources for conditions/4600.json
+#
+# Sun position is computed via the Mars24 algorithm (Allison & McEwen 2000).
+# RAD, REMS and dust values are seasonal estimates; PDS files would go here
+# once downloaded to REDMARK_DATA.
+#
+# References:
+#   Sun:  https://www.giss.nasa.gov/tools/mars24/help/algorithm.html
+#   RAD:  Hassler et al. (2014), Science 343(6169)
+#         https://pds-ppi.igpp.ucla.edu/data/MSL-M-RAD-3-RDR-V1.0/AAREADME.TXT
+#   REMS: Martínez et al. (2017), Space Sci. Rev. 212(1-2)
+#         https://pdsatmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/curiosity/rems.html
+#   Dust: https://atmos.nmsu.edu/data_and_services/atmospheres_data/MARS/curiosity/atmospheric_opacity.html
+#         Labelled 'estimated' (PDS bundle ends at sol 3902, before sol 4600).
+
+files: []
