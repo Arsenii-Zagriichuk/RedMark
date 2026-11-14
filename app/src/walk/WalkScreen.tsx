@@ -19,7 +19,14 @@ import { formatDuration, limitRows, refusal } from "../plan/routes";
 import { walkBadges } from "./breakIt";
 import { conditionsAt } from "./conditions";
 import { landmarkDirectionsFor } from "./layer5";
-import { landmarkDirection, lostModeStart, returnHeading, returnRequest, type LostDirection } from "./lost";
+import {
+  landmarkDirection,
+  lostModeStart,
+  returnHeading,
+  returnRequest,
+  samePoint,
+  type LostDirection,
+} from "./lost";
 import { fixEvents, indexAtTime, walkStatus, type FixEvent } from "./playback";
 import { simulateRequest, type Scenario } from "./schedule";
 
@@ -77,8 +84,6 @@ function directionText(direction: LostDirection): { text: string; note: string |
       return { text: "Layer 5 has no landmark directions for this route yet", note: null };
   }
 }
-
-const samePoint = (a: Point, b: Point | null | undefined) => !!b && a.x === b.x && a.y === b.y;
 
 export function WalkScreen(props: Props) {
   const { site, origin, route, target, conditions } = props;
@@ -176,14 +181,16 @@ export function WalkScreen(props: Props) {
 
   const back = walkBack?.status === "ok" ? walkBack.route : null;
   const straightBack = lastKnown && distanceAndBearing(lastKnown.position, request.start);
-  const returnBearing = back ? returnHeading(back.path) : straightBack?.bearing ?? 0;
+  const backHeading = back ? returnHeading(back.path) : straightBack?.bearing ?? 0;
   const startName = samePoint(request.start, site.base_camp)
     ? "base camp"
     : samePoint(request.start, site.habitat)
       ? "the habitat"
       : "the start";
   const direction = useMemo(
-    () => lastKnown && landmarkDirection(landmarkDirectionsFor(site.site), route, lastKnown.position),
+    () =>
+      lastKnown &&
+      directionText(landmarkDirection(landmarkDirectionsFor(site.site), route, lastKnown.position)),
     [lastKnown, route, site.site],
   );
   const hazardMargin = back && limitRows(back).find((row) => row.limit === "hazard_margin");
@@ -228,13 +235,13 @@ export function WalkScreen(props: Props) {
         {status && (
           <div className={`walk__banner${lastKnown ? " walk__banner--lost" : ""}`}>
             <span className="walk__arrow" aria-hidden="true">
-              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" style={{ transform: `rotate(${(lastKnown ? returnBearing : status.waypointBearing) - heading}deg)` }}>
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" style={{ transform: `rotate(${(lastKnown ? backHeading : status.waypointBearing) - heading}deg)` }}>
                 <path d="M12 20V4M5 11l7-7 7 7" />
               </svg>
             </span>
             <span className="walk__instruction">
               <span>
-                {lastKnown ? `Head ${formatBearing(returnBearing)} back to ${startName}` : status.instruction}
+                {lastKnown ? `Head ${formatBearing(backHeading)} back to ${startName}` : status.instruction}
               </span>
               <span className="walk__instruction-distance">
                 {formatDistance(
@@ -292,10 +299,8 @@ export function WalkScreen(props: Props) {
             </div>
             <div className="walk__lost-row">
               <span className="label">Landmarks · layer 5</span>
-              <span className="walk__lost-direction">{directionText(direction).text}</span>
-              {directionText(direction).note && (
-                <span className="walk__lost-note">{directionText(direction).note}</span>
-              )}
+              <span className="walk__lost-direction">{direction.text}</span>
+              {direction.note && <span className="walk__lost-note">{direction.note}</span>}
             </div>
           </section>
         )}

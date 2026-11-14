@@ -36,11 +36,18 @@ describe("simulateRequest for a break-it scenario", () => {
   ] as const)("%s re-runs the same walk with its source switched off", (scenario, breakIt) => {
     const request = simulateRequest(route, scenario);
 
-    expect(request.break_it).toEqual(breakIt);
-    expect([request.path, request.fix_schedule]).toEqual([
-      route.path,
-      simulateRequest(route, "normal").fix_schedule,
-    ]);
+    // 1800 m at the 2 km/h planning speed is 3240 s: fixes at a third, a half and two thirds.
+    expect(request).toEqual({
+      site: "gale",
+      path: route.path,
+      fix_schedule: [
+        { time_s: 1080, method: "horizon" },
+        { time_s: 1620, method: "ground" },
+        { time_s: 2160, method: "drone" },
+      ],
+      break_it: breakIt,
+      seed: 1,
+    });
   });
 });
 

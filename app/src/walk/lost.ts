@@ -56,8 +56,10 @@ export type LostDirection =
   | { kind: "none-in-view"; leg: number; legs: number }
   | { kind: "not-this-route" };
 
+export const samePoint = (a: Point, b: Point | null | undefined) => !!b && a.x === b.x && a.y === b.y;
+
 function samePath(a: Point[], b: Point[]): boolean {
-  return a.length === b.length && a.every((point, i) => point.x === b[i]!.x && point.y === b[i]!.y);
+  return a.length === b.length && a.every((point, i) => samePoint(point, b[i]));
 }
 
 function toSegment(point: Point, a: Point, b: Point): number {
