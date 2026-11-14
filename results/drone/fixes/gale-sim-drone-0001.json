@@ -3,20 +3,20 @@
   "site": "gale",
   "method": "drone",
   "position": {
-    "x": 8142394.659869542,
-    "y": -285531.75409519544
+    "x": 8142346.07145213,
+    "y": -285502.037890606
   },
-  "heading_deg": 33.80780649511334,
+  "heading_deg": 162.21002839165791,
   "uncertainty_m": 10.0,
   "confidence_pct": 0.0,
-  "time_per_fix_s": 10.4,
+  "time_per_fix_s": 10.03,
   "terrain_type": "textured",
   "simulated": true,
-  "overlay": "results/drone/overlays/gale-sim-drone-0001-loftr-ee89dc72250f4d909e8d202026fbba7d.png",
+  "overlay": "results/drone/overlays/gale-sim-drone-0001-loftr-1729d5f145d64a7886cfff6170664b1c.png",
   "truth": null,
   "provenance": {
     "script": "locate/drone/gale_fix.py",
-    "commit": "426b5222d5ef25987ed5cf9d0078c2adbd315460",
+    "commit": "1839c7054792769ce5a26829b75d505840f20843",
     "inputs": [
       {
         "path": "gale/crops/photo-map-25cm.tif",
