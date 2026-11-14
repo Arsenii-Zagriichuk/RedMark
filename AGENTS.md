@@ -58,8 +58,9 @@ uv run python -m tools.check_contracts     # just the contract files
 uv run python -m tools.gen_contracts       # regenerate models and types after a schema change
 uv run ruff check . && uv run ruff format --check .
 npm run typecheck --prefix app
+npm run lint --prefix app && npm test --prefix app   # app lint (fetch only in the API client) and tests
 uv run python -m tools.owners check        # does this branch stay in one owner's folders?
-uv run uvicorn service.app:app --reload    # the service
+uv run uvicorn service.app:app --reload    # the service; REDMARK_RECORD=1 records the demo cache
 npm run dev --prefix app                   # the app
 ```
 
