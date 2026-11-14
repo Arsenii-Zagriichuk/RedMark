@@ -115,8 +115,8 @@
     }
   ],
   "provenance": {
-    "script": "conditions/gen_conditions.py",
-    "commit": "0c1b3edaaa85c7ac643eff8f5f2d83c1b19b2971",
+    "script": "stub",
+    "commit": "3b94ac5b991ea40dbb6779678a6af4f8f25cd648",
     "inputs": [
       {
         "path": "G:\\Development\\NasaHackathon\\redmark-p4-02\\contracts\\stubs\\stub-data\\rad\\sol4600.csv",

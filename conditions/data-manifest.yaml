@@ -23,7 +23,7 @@ files:
     credit: "Hassler et al. (2014), Science 343(6169)"
   - name: "REMS hourly temperature and pressure for sol 4600"
     path: "rems/sol4600.csv"
-    size_bytes: 345
+    size_bytes: 287
     source_url: "https://pdsatmospheres.nmsu.edu/data_and_services/atmospheres_data/MARS/curiosity/rems.html"
     checksum: "b5a7362096f5759f5776fe47c5a0961b2252eb50ef31228cc91df8cd08cc6cf3"
     checksum_algorithm: "sha256"
