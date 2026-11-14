@@ -9,16 +9,30 @@ The route engine behind `POST /route`: cost map, fastest safe, science and cart 
 - `layers.py`: reads the layers onto a 4 m planning grid over the walk area, keeping the worst pixel in each cell.
 - `plot_route.py`: the overlay image, `route/overlays/p4-03-fastest.png`.
 
-**Layer files the engine reads.** GeoTIFFs in the site projection, named in `sites/<site>.yaml` under `files`, relative to `REDMARK_DATA`:
-
-| Key | Values | Producer |
-| --- | --- | --- |
-| `slope` | slope in degrees; nodata where unknown | Person 2, P2-02 |
-| `sand` | non-zero on loose sand, 0 on firm ground | Person 2, P2-03 |
-| `ridges` | non-zero on a boxwork ridge, 0 elsewhere | Person 2, P2-03 |
-
-With no `slope` key the engine plans on flat stub ground; a key whose file is missing is an error.
-
 **Walk-back margin.** The least spare time at any point of the route: the walk-time limit minus the time walked so far and the fastest safe walk from that point back to the habitat. A route whose margin would go negative is refused with `NoSafeRoute`; the `walk_back` limit check itself comes with P4-04.
 
 Run `uv run python -m route.plot_route` to redraw the overlay.
+
+## Layer files the route needs
+
+The engine reads three rasters. Each is a single-band GeoTIFF in the site's projection (`projection` in `sites/<site>.yaml`), anywhere inside `REDMARK_DATA`, and named under `files` in the site config by its key:
+
+| Key | Band values | Comes from |
+| --- | --- | --- |
+| `slope` | slope in degrees; nodata where unknown | layer 1, slope from the 1 m terrain (P2-02) |
+| `sand` | non-zero on loose sand, 0 on firm ground | layer 2, THEMIS sand vs rock (P2-03) |
+| `ridges` | non-zero on a boxwork ridge, 0 elsewhere | layer 2, ridge map from the 25 cm photos (P2-03) |
+
+```yaml
+# sites/gale.yaml
+files:
+  base_map: gale/layers/base
+  slope: gale/rasters/slope.tif
+  sand: gale/rasters/sand.tif
+  ridges: gale/rasters/ridges.tif
+```
+
+- Any resolution works: each 4 m planning cell takes the highest pixel value inside it, so one steep metre or one ridge pixel is never averaged away.
+- The rasters should cover the walk area (`bounds`). Cells with no slope data are never walked; cells with no sand or ridge data count as firm, ridge-free ground.
+- No `slope` key: the engine plans on flat stub ground. A key whose file is missing is an error, so a typo can't quietly plan on flat ground.
+- Adding the keys needs no code change here.
