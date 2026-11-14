@@ -86,7 +86,8 @@ def read_frame(label_path: Path) -> NavcamFrame:
     c, a, h, v = (np.array(label_vector(model, f"MODEL_COMPONENT_{i}")) for i in range(1, 5))
     site_geometry = _group(label, "SITE_DERIVED_GEOMETRY_PARMS")
     return NavcamFrame(
-        photo_id=re.search(r'PRODUCT_ID\s*=\s*"([^"]+)"', label).group(1),
+        # Anchored: SOURCE_PRODUCT_ID and INPUT_PRODUCT_ID name the raw frame.
+        photo_id=re.search(r'^PRODUCT_ID\s*=\s*"([^"]+)"', label, re.M).group(1),
         image=raw.reshape(lines, samples).astype(np.float32),
         camera=CameraModel(c, a, h, v),
         rover_quaternion=tuple(label_vector(rover, "ORIGIN_ROTATION_QUATERNION")),
