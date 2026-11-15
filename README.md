@@ -6,9 +6,7 @@ Built in 24 hours by a team of four for the **NASA Space Apps Challenge 2026**, 
 
 ## Demo
 
-[![RedMark demo video: the plan screen on the HiRISE photo map of the Gale crater boxwork](docs/demo/redmark-demo-poster.jpg)](docs/demo/redmark-demo.mp4)
-
-▶ **[Watch the demo video](docs/demo/redmark-demo.mp4)** (43 s, 1080p)
+![RedMark's plan screen on the HiRISE photo map of the Gale crater boxwork](docs/demo/redmark-demo-poster.jpg)
 
 ## The problem
 
